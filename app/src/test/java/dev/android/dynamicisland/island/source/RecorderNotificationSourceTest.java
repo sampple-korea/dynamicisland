@@ -30,12 +30,18 @@ public class RecorderNotificationSourceTest {
     }
 
     private StatusBarNotification note(String pkg, String channel, boolean ongoing, boolean withIntent) {
+        return note(pkg, channel, ongoing, withIntent, true, 1, null, 5000L);
+    }
+
+    private StatusBarNotification note(String pkg, String channel, boolean ongoing, boolean withIntent,
+            boolean usesChronometer, int id, String tag, long postTime) {
         NotificationManager nm = app.getSystemService(NotificationManager.class);
         nm.createNotificationChannel(new NotificationChannel(channel, channel, NotificationManager.IMPORTANCE_LOW));
         Notification n = new Notification.Builder(app, channel).setSmallIcon(android.R.drawable.ic_media_play)
-                .setContentTitle("Screen recording").setContentText("Tap to stop recording").setOngoing(ongoing).setUsesChronometer(true).setWhen(1000L)
+                .setContentTitle("Screen recording").setContentText("Tap to stop recording").setOngoing(ongoing)
+                .setUsesChronometer(usesChronometer).setWhen(1000L)
                 .setContentIntent(withIntent ? android.app.PendingIntent.getBroadcast(app, 1, new android.content.Intent("stop"), android.app.PendingIntent.FLAG_IMMUTABLE) : null).build();
-        return new StatusBarNotification(pkg, pkg, 1, null, 1, 1, 0, n, android.os.Process.myUserHandle(), 5000L);
+        return new StatusBarNotification(pkg, pkg, id, tag, 1, 1, 0, n, android.os.Process.myUserHandle(), postTime);
     }
 
     @Test
@@ -69,6 +75,49 @@ public class RecorderNotificationSourceTest {
         out.add(chip);
         source.collect(out);
         assertEquals(1, out.size());
+    }
+
+    @Test
+    public void fallbackTimerSurvivesNotificationKeyAndPostTimeChanges() {
+        RecorderNotificationSource source = new RecorderNotificationSource(app, () -> { });
+        StatusBarNotification first = note("com.samsung.android.app.smartcapture", "capture", true,
+                false, false, 1, null, 5000L);
+        source.update(Collections.singletonList(first));
+        List<IslandItem> initial = new ArrayList<>();
+        source.collect(initial);
+
+        StatusBarNotification repost = note("com.samsung.android.app.smartcapture", "capture", true,
+                false, false, 2, "replacement", 6000L);
+        source.update(Collections.singletonList(repost));
+        List<IslandItem> updated = new ArrayList<>();
+        source.collect(updated);
+
+        assertEquals(5000L, updated.get(0).chronoBase);
+        assertEquals(initial.get(0).key, updated.get(0).key);
+        assertEquals(repost.getKey(), updated.get(0).sourceKey);
+    }
+
+    @Test
+    public void fallbackTimerResetsAfterRecorderNotificationDisappears() {
+        RecorderNotificationSource source = new RecorderNotificationSource(app, () -> { });
+        source.update(Collections.singletonList(note("com.samsung.android.app.smartcapture", "capture", true,
+                false, false, 1, null, 5000L)));
+        source.update(Collections.emptyList());
+        source.update(Collections.singletonList(note("com.samsung.android.app.smartcapture", "capture", true,
+                false, false, 1, null, 9000L)));
+
+        List<IslandItem> out = new ArrayList<>();
+        source.collect(out);
+        assertEquals(9000L, out.get(0).chronoBase);
+    }
+
+    @Test
+    public void systemChronometerStillUsesItsProvidedBase() {
+        RecorderNotificationSource source = new RecorderNotificationSource(app, () -> { });
+        source.update(Collections.singletonList(note("com.android.systemui", "screen_record", true)));
+        List<IslandItem> out = new ArrayList<>();
+        source.collect(out);
+        assertEquals(1000L, out.get(0).chronoBase);
     }
 
     @Test

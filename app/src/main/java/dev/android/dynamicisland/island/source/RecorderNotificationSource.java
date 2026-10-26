@@ -32,6 +32,8 @@ public final class RecorderNotificationSource {
     private final Runnable onChange;
     private Runnable onShownChanged = () -> { };
     private String loggedKey;
+    private String activeRecorderSession;
+    private long activeRecorderStart;
 
     public RecorderNotificationSource(Context ctx, Runnable onChange) {
         this.ctx = ctx;
@@ -58,13 +60,13 @@ public final class RecorderNotificationSource {
 
     public void update(List<StatusBarNotification> snapshot) {
         java.util.TreeSet<String> unmatched = new java.util.TreeSet<>();
-        IslandItem fresh = null;
+        StatusBarNotification recorder = null;
         for (StatusBarNotification sbn : snapshot) {
             Notification n = sbn == null ? null : sbn.getNotification();
             if (n != null && (n.flags & (Notification.FLAG_ONGOING_EVENT | Notification.FLAG_FOREGROUND_SERVICE)) != 0
                     && !isRecorder(sbn) && unmatched.size() < 8) unmatched.add(sbn.getPackageName() + " channel=" + n.getChannelId());
             if (isRecorder(sbn)) {
-                fresh = build(sbn);
+                recorder = sbn;
                 if (!sbn.getKey().equals(loggedKey)) {
                     loggedKey = sbn.getKey();
                     XLog.event("screen recorder notification " + sbn.getKey() + " channel=" + sbn.getNotification().getChannelId());
@@ -73,9 +75,29 @@ public final class RecorderNotificationSource {
             }
         }
         dev.android.dynamicisland.xposed.Diagnostics.fact("ongoing not carded", unmatched.isEmpty() ? "none" : String.join(" | ", unmatched));
+        IslandItem fresh = null;
+        if (recorder != null) {
+            String session = recorder.getUserId() + "|" + recorder.getPackageName();
+            Notification n = recorder.getNotification();
+            Bundle extras = n.extras == null ? new Bundle() : n.extras;
+            boolean hasSystemChronometer = extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER, false) && n.when > 0;
+            if (!session.equals(activeRecorderSession)) {
+                activeRecorderSession = session;
+                activeRecorderStart = hasSystemChronometer ? n.when : recorder.getPostTime();
+            } else if (hasSystemChronometer) {
+                // A real framework chronometer is authoritative; only the post-time fallback is sticky.
+                activeRecorderStart = n.when;
+            }
+            fresh = build(recorder, session, activeRecorderStart);
+        } else {
+            // A missing recorder notification ends the session; the next one must get a fresh start time.
+            activeRecorderSession = null;
+            activeRecorderStart = 0L;
+        }
         IslandItem old = item;
         item = fresh;
-        if ((old == null) != (fresh == null) || (old != null && !old.key.equals(fresh.key))) {
+        if ((old == null) != (fresh == null) || (old != null && fresh != null
+                && (!old.key.equals(fresh.key) || !old.sourceKey.equals(fresh.sourceKey) || old.chronoBase != fresh.chronoBase))) {
             onChange.run();
         }
     }
@@ -113,11 +135,11 @@ public final class RecorderNotificationSource {
         }
     }
 
-    private IslandItem build(StatusBarNotification sbn) {
+    private IslandItem build(StatusBarNotification sbn, String session, long chronoBase) {
         Notification n = sbn.getNotification();
         Bundle extras = n.extras == null ? new Bundle() : n.extras;
         String pkg = sbn.getPackageName();
-        IslandItem it = new IslandItem("rec:" + sbn.getKey());
+        IslandItem it = new IslandItem("rec:" + session);
         it.sourceKey = sbn.getKey();
         it.kind = IslandItem.Kind.RECORDING;
         it.accent = RED;
@@ -130,7 +152,7 @@ public final class RecorderNotificationSource {
         it.contentIntent = n.contentIntent;
         it.postTime = Long.MAX_VALUE - 1;
         it.trailing = IslandItem.Trailing.CHRONOMETER;
-        it.chronoBase = extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER, false) && n.when > 0 ? n.when : sbn.getPostTime();
+        it.chronoBase = chronoBase;
         Drawable icon = apps.icon(pkg);
         it.icon = icon;
         it.iconIsImage = true;
