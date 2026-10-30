@@ -7,6 +7,7 @@ English is the source of truth. The app currently supports English (`en`), Korea
 - **English source:** [`app/src/main/res/values/strings.xml`](../app/src/main/res/values/strings.xml).
 - **Your translation:** `app/src/main/res/values-<language>/strings.xml`.
 - **Supported-language list:** [`app/src/main/res/xml/locales_config.xml`](../app/src/main/res/xml/locales_config.xml). This also registers languages with Android's per-app language settings.
+- **Unfinished languages:** [`scripts/partial-languages.txt`](../scripts/partial-languages.txt).
 
 All settings, module-owned status-bar/card text (`island_*`) and built-in stage names (`stage_label_*`) live in these files. There is no separate Java translation table or language-specific label JSON to edit. Build output under `app/build/generated/localization/` is generated and must not be committed.
 
@@ -14,15 +15,16 @@ Text and app/device names received from other apps are displayed as supplied. Tr
 
 ## Add a language
 
-1. Create a commented template using a base ISO language code:
+1. Create a commented template using an ISO language code, or a language-region tag when the region matters:
 
    ```sh
    python3 scripts/translations.py init de
+   python3 scripts/translations.py init pt-BR
    ```
 
-   The template contains English source comments and values to translate. Do not edit resource names.
-2. Translate values in the generated `values-de/strings.xml`. Preserve existing XML attributes and formatting placeholders. Product names and technical examples marked `translatable="false"` are inherited from English and omitted from the template.
-3. Once complete, add `<locale android:name="de" />` to `locales_config.xml`. No Java changes are required. Keep English first. Base-language entries handle regional variants, for example `de-DE` and `de-AT`; the current Chinese translation is Simplified Chinese.
+   The template contains English source comments and values to translate. Do not edit resource names. A region tag such as `pt-BR` is stored as `values-pt-rBR` (Android's qualifier) and listed as `pt-BR` in `locales_config.xml`.
+2. Translate values in the generated file. Preserve existing XML attributes and formatting placeholders. Product names and technical examples marked `translatable="false"` are inherited from English and omitted from the template.
+3. Add `<locale android:name="de" />` to `locales_config.xml`. No Java changes are required. Keep English first. A base language (`de`) also serves its regional variants (`de-DE`, `de-AT`); add a region tag only when that region needs its own wording. The current Chinese translation is Simplified Chinese.
 4. Run:
 
    ```sh
@@ -30,7 +32,13 @@ Text and app/device names received from other apps are displayed as supplied. Tr
    ./gradlew testReleaseUnitTest assembleRelease
    ```
 
-The check reports missing, empty, unknown and duplicate keys and incompatible format placeholders. CI and release builds run it. Android and SystemUI fall back to English if a locale/key is unavailable; every registered language is nevertheless checked for completeness before merging.
+### Unfinished translations are welcome
+
+A translation does not have to be complete to be registered. Delete the entries you have not translated (or leave them out), register the language in `locales_config.xml`, and add its tag on its own line to [`scripts/partial-languages.txt`](../scripts/partial-languages.txt). Android and SystemUI show English for every string the language lacks, so the app keeps working and more strings can be added in later pull requests. Remove the line from `partial-languages.txt` once the language is complete; from then on the check requires every string again.
+
+Partial languages are still checked for mistakes: unknown keys, empty values and format placeholders that differ from English are errors. Only "this string is not translated yet" is allowed.
+
+The check reports missing, empty, unknown and duplicate keys and incompatible format placeholders. CI and release builds run it. Android and SystemUI fall back to English if a locale or key is unavailable, so a language that is not listed in `partial-languages.txt` is nevertheless required to be complete before merging.
 
 ## Formatting and context
 

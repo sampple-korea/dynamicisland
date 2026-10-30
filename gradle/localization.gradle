@@ -36,7 +36,8 @@ def generateCatalog = tasks.register('generateLocalizationCatalog') {
         def languages = config.locale.collect { it.attribute('android:name').toString() }
         def labels = [:]
         languages.each { language ->
-            File input = file('src/main/res/' + (language == 'en' ? 'values' : 'values-' + language) + '/strings.xml')
+            String qualifier = language.replaceAll(/-([A-Z]{2})$/, '-r$1') // pt-BR -> pt-rBR
+            File input = file('src/main/res/' + (language == 'en' ? 'values' : 'values-' + qualifier) + '/strings.xml')
             def strings = [:]
             if (input.exists()) parser.parse(input).string.each { node ->
                 String key = node.attribute('name')

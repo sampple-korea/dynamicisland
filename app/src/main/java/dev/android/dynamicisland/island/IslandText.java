@@ -22,7 +22,9 @@ public final class IslandText {
 
     public static String get(Locale locale, String key, Object... arguments) {
         Locale use = locale == null ? Locale.ENGLISH : locale;
-        String text = catalog(use.getLanguage()).getProperty(key);
+        // language-region first (pt-BR), then the language (pt), then English for whatever is not translated yet
+        String text = catalog(use.toLanguageTag()).getProperty(key);
+        if (text == null || text.isEmpty()) text = catalog(use.getLanguage()).getProperty(key);
         if (text == null || text.isEmpty()) text = catalog("en").getProperty(key, key);
         return arguments.length == 0 ? text : String.format(use, text, arguments);
     }
