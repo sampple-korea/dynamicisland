@@ -103,6 +103,12 @@
     <string name="desc_card">펼쳐진 카드의 모양과 표시 방식입니다.</string>
     <string name="desc_icon_size">이벤트 카드 속 그림 아이콘의 크기입니다.</string>
     <string name="desc_torch">손전등 카드에서 밝기를 조절하는 방식입니다.</string>
+    <string name="transition_blur">전환 블러</string>
+    <string name="desc_transition_blur">아일랜드가 열리고 닫힐 때의 블러입니다. 자동은 폰이 버벅이면 알아서 꺼요.</string>
+    <string name="blur_mode_auto">자동 (버벅이면 끔)</string>
+    <string name="blur_mode_always">항상 켜짐</string>
+    <string name="blur_mode_off">끄기</string>
+    <string name="search_terms_transition_blur">블러 흐림 모션 전환 끊김 버벅 렉 느림 성능 애니메이션 부드럽게</string>
     <string name="desc_tools">문제를 제보할 때 첨부하는 진단 정보입니다.</string>
     <string name="desc_rule_cards">아일랜드가 알아보는 카드 종류입니다. 켜고 끄거나, 눌러서 고칠 수 있어요.</string>
     <string name="desc_rule_tools">규칙을 시험하고, 가져오고, 내보내고, 초기화합니다.</string>

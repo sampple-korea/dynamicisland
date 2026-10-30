@@ -88,6 +88,7 @@ final class SettingsSearchCatalog {
     }
     private void populate() {
         add(Route.APPEARANCE,R.string.material_style,0,R.string.search_terms_material,0,R.string.material_classic,R.string.material_frosted);
+        add(Route.APPEARANCE,R.string.transition_blur,R.string.desc_transition_blur,R.string.search_terms_transition_blur,0,R.string.blur_mode_auto,R.string.blur_mode_always,R.string.blur_mode_off);
         add(Route.APPEARANCE,R.string.pill_outline,R.string.pill_outline_desc,R.string.search_terms_shape,0,R.string.pill_outline_auto,R.string.pill_outline_none);
         add(Route.APPEARANCE,R.string.setting_card_header,R.string.setting_card_header_desc,0,0);
         add(Route.APPEARANCE,R.string.setting_color_icons,R.string.setting_color_icons_desc,R.string.search_terms_colour,0);

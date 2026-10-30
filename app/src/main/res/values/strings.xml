@@ -109,6 +109,12 @@
     <string name="desc_card">The shape of expanded cards, and the switches that style them.</string>
     <string name="desc_icon_size">The size of the pictograms on event cards.</string>
     <string name="desc_torch">How the flashlight card sets the brightness.</string>
+    <string name="transition_blur">Transition blur</string>
+    <string name="desc_transition_blur">The blur while the island opens and closes. Automatic turns it off if the phone stutters.</string>
+    <string name="blur_mode_auto">Automatic (off if it stutters)</string>
+    <string name="blur_mode_always">Always on</string>
+    <string name="blur_mode_off">Off</string>
+    <string name="search_terms_transition_blur">blur motion transition lag stutter slow performance animation smooth fps</string>
     <string name="desc_tools">Diagnostics to attach to a bug report.</string>
     <string name="desc_rule_cards">The card types the island recognises. Switch each on or off, or open it to edit.</string>
     <string name="desc_rule_tools">Test, import, export or reset your rules.</string>

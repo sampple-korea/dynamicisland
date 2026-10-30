@@ -103,6 +103,12 @@
     <string name="desc_card">展開したカードの形と表示の設定です。</string>
     <string name="desc_icon_size">イベントカードのアイコンの大きさです。</string>
     <string name="desc_torch">ライトのカードで明るさを調整する方法です。</string>
+    <string name="transition_blur">切り替え時のぼかし</string>
+    <string name="desc_transition_blur">アイランドの開閉時のぼかしです。自動では、動作が重くなると自動でオフになります。</string>
+    <string name="blur_mode_auto">自動（重いときはオフ）</string>
+    <string name="blur_mode_always">常にオン</string>
+    <string name="blur_mode_off">オフ</string>
+    <string name="search_terms_transition_blur">ぼかし ブラー モーション 切り替え カクつき ラグ 重い パフォーマンス アニメーション</string>
     <string name="desc_tools">不具合を報告するときに添付する診断情報です。</string>
     <string name="desc_rule_cards">アイランドが認識するカードの種類です。オン/オフの切り替えや、開いて編集ができます。</string>
     <string name="desc_rule_tools">ルールのテスト、インポート、エクスポート、リセットを行います。</string>

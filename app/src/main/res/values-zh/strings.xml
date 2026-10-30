@@ -103,6 +103,12 @@
     <string name="desc_card">展开卡片的形状与显示设置。</string>
     <string name="desc_icon_size">事件卡片上图标的大小。</string>
     <string name="desc_torch">手电筒卡片调节亮度的方式。</string>
+    <string name="transition_blur">切换模糊</string>
+    <string name="desc_transition_blur">岛展开与收起时的模糊。自动模式会在手机卡顿时自动关闭。</string>
+    <string name="blur_mode_auto">自动（卡顿时关闭）</string>
+    <string name="blur_mode_always">始终开启</string>
+    <string name="blur_mode_off">关闭</string>
+    <string name="search_terms_transition_blur">模糊 动效 切换 卡顿 延迟 慢 性能 动画 流畅</string>
     <string name="desc_tools">报告问题时附带的诊断信息。</string>
     <string name="desc_rule_cards">岛能识别的卡片类型。可逐项开关，或点开编辑。</string>
     <string name="desc_rule_tools">测试、导入、导出或重置规则。</string>

@@ -105,4 +105,15 @@ public class BlurGovernorTest {
         }
         assertFalse(g.allowed(clock[0]));
     }
+
+    @Test public void theBlurModeDecidesWhetherTheGovernorMatters() {
+        BlurGovernor paused = new BlurGovernor();
+        long[] clock = {1_000};
+        run(paused, 1_000 * MS, 10, 45, clock); // stuttering: the governor has paused the blur
+        assertFalse(paused.allowed(clock[0]));
+        assertFalse("automatic follows the governor", ContentBlur.enabled(dev.android.dynamicisland.settings.ModuleSettings.TRANSITION_BLUR_AUTO, paused, clock[0]));
+        assertTrue("always ignores it", ContentBlur.enabled(dev.android.dynamicisland.settings.ModuleSettings.TRANSITION_BLUR_ALWAYS, paused, clock[0]));
+        assertFalse("off never blurs", ContentBlur.enabled(dev.android.dynamicisland.settings.ModuleSettings.TRANSITION_BLUR_OFF, new BlurGovernor(), clock[0]));
+        assertTrue(ContentBlur.enabled(dev.android.dynamicisland.settings.ModuleSettings.TRANSITION_BLUR_AUTO, new BlurGovernor(), clock[0]));
+    }
 }

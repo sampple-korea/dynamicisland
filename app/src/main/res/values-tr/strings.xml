@@ -103,6 +103,12 @@
     <string name="desc_card">Genişletilmiş kartların şekli ve görünüm ayarları.</string>
     <string name="desc_icon_size">Olay kartlarındaki simgelerin boyutu.</string>
     <string name="desc_torch">El feneri kartının parlaklığı nasıl ayarladığı.</string>
+    <string name="transition_blur">Geçiş bulanıklığı</string>
+    <string name="desc_transition_blur">Ada açılıp kapanırken uygulanan bulanıklık. Otomatikte telefon takılırsa kapanır.</string>
+    <string name="blur_mode_auto">Otomatik (takılırsa kapanır)</string>
+    <string name="blur_mode_always">Her zaman açık</string>
+    <string name="blur_mode_off">Kapalı</string>
+    <string name="search_terms_transition_blur">bulanıklık blur hareket geçiş takılma kasma yavaş performans animasyon</string>
     <string name="desc_tools">Hata bildirimine eklenecek tanılama bilgisi.</string>
     <string name="desc_rule_cards">Adanın tanıdığı kart türleri. Her birini açıp kapatın veya düzenlemek için açın.</string>
     <string name="desc_rule_tools">Kuralları sınayın, içe/dışa aktarın veya sıfırlayın.</string>

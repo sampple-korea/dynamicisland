@@ -103,6 +103,12 @@
     <string name="desc_card">Форма раскрытых карточек и настройки их вида.</string>
     <string name="desc_icon_size">Размер значков на карточках событий.</string>
     <string name="desc_torch">Как карточка фонарика регулирует яркость.</string>
+    <string name="transition_blur">Размытие при переходах</string>
+    <string name="desc_transition_blur">Размытие при раскрытии и сворачивании острова. В автоматическом режиме отключается, если телефон тормозит.</string>
+    <string name="blur_mode_auto">Автоматически (выкл. при тормозах)</string>
+    <string name="blur_mode_always">Всегда включено</string>
+    <string name="blur_mode_off">Выключено</string>
+    <string name="search_terms_transition_blur">размытие блюр движение переход тормоза лаги медленно производительность анимация</string>
     <string name="desc_tools">Диагностика для отчёта об ошибке.</string>
     <string name="desc_rule_cards">Типы карточек, которые распознаёт остров. Включайте и отключайте их или откройте для правки.</string>
     <string name="desc_rule_tools">Проверка, импорт, экспорт и сброс правил.</string>

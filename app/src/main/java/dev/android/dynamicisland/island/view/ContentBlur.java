@@ -22,6 +22,13 @@ final class ContentBlur {
     private int viewStep = -1;
     private boolean failed;
 
+    /** The transition blur runs unless it is switched off, or, in automatic mode, the governor has paused it. */
+    static boolean enabled(int mode, BlurGovernor governor, long nowMs) {
+        if (mode == ModuleSettings.TRANSITION_BLUR_OFF) return false;
+        if (mode == ModuleSettings.TRANSITION_BLUR_ALWAYS) return true;
+        return governor.allowed(nowMs);
+    }
+
     private int step(float amount) {
         return Math.round(IslandView.clamp01(amount) * STEPS);
     }
@@ -42,7 +49,7 @@ final class ContentBlur {
 
     /** Record just the foreground at its existing coordinates; the caller's clip still bounds the result. */
     Canvas begin(Canvas target, RectF bounds, float amount, float radius) {
-        int level = ModuleSettings.lowPerformance() || !BlurGovernor.INSTANCE.allowed(android.os.SystemClock.uptimeMillis()) ? 0 : step(amount);
+        int level = ModuleSettings.lowPerformance() || !enabled(ModuleSettings.transitionBlurMode(), BlurGovernor.INSTANCE, android.os.SystemClock.uptimeMillis()) ? 0 : step(amount);
         if (failed || level == 0 || !target.isHardwareAccelerated() || bounds.isEmpty()) {
             if (node != null) {
                 if (node.hasDisplayList()) node.discardDisplayList();
@@ -82,7 +89,7 @@ final class ContentBlur {
 
     /** RemoteViews already own a RenderNode; apply the same curve without blurring the card behind them. */
     void apply(View view, float amount, float radius) {
-        int level = failed || ModuleSettings.lowPerformance() || !BlurGovernor.INSTANCE.allowed(android.os.SystemClock.uptimeMillis()) ? 0 : step(amount);
+        int level = failed || ModuleSettings.lowPerformance() || !enabled(ModuleSettings.transitionBlurMode(), BlurGovernor.INSTANCE, android.os.SystemClock.uptimeMillis()) ? 0 : step(amount);
         if (level > 0) BlurGovernor.INSTANCE.blurDrawn();
         if (effectView == view && viewStep == level && effectRadius == radius) return;
         try {

@@ -408,6 +408,10 @@ public final class SettingsActivity extends Activity {
                 selected -> prefs.edit().putBoolean(ModuleSettings.KEY_LEGACY_ANIMATION, selected == 1)
                         .putBoolean(ModuleSettings.KEY_I_MODE, selected == 2).apply());
         ui.note(page, getString(R.string.imode_desc));
+        radios(R.string.transition_blur, R.string.desc_transition_blur, new int[]{R.string.blur_mode_auto, R.string.blur_mode_always, R.string.blur_mode_off},
+                new int[]{OneUi.TAG_DEFAULT, 0, 0},
+                ModuleSettings.readTransitionBlurMode(prefs), LivePreview.RING,
+                selected -> prefs.edit().putInt(ModuleSettings.KEY_TRANSITION_BLUR, selected).apply());
         radios(R.string.material_style, R.string.desc_material, new int[]{R.string.material_frosted, R.string.material_classic},
                 new int[]{OneUi.TAG_RECOMMENDED, OneUi.TAG_DEFAULT},
                 ModuleSettings.readMaterialStyle(prefs), LivePreview.MUSIC,

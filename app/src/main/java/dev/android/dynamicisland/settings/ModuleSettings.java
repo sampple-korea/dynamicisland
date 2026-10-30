@@ -53,6 +53,11 @@ public final class ModuleSettings {
     public static final int PILL_OUTLINE_AUTO = 0;
     public static final int PILL_OUTLINE_ALWAYS = 1;
     public static final int PILL_OUTLINE_NONE = 2;
+    /** The blur while the island opens and closes: automatic (off while the phone stutters), always on, or off. */
+    public static final String KEY_TRANSITION_BLUR = "transition_blur";
+    public static final int TRANSITION_BLUR_AUTO = 0;
+    public static final int TRANSITION_BLUR_ALWAYS = 1;
+    public static final int TRANSITION_BLUR_OFF = 2;
     public static final String KEY_PILL_X_DP = "pill_x_dp";
     public static final String KEY_PILL_Y_DP = "pill_y_dp";
     /** Wall-clock time until which the position page is open; a slower way (the settings file) to ask for the sample. */
@@ -193,6 +198,7 @@ public final class ModuleSettings {
     private static volatile boolean smartRules = true;
     private static volatile int pillAnchor = ANCHOR_AUTO;
     private static volatile int pillOutlineMode = PILL_OUTLINE_AUTO;
+    private static volatile int transitionBlurMode = TRANSITION_BLUR_AUTO;
     private static volatile int cardCornerRadiusDp = 28;
     private static volatile boolean customCardRoundness;
     private static volatile int pillXDp;
@@ -283,6 +289,17 @@ public final class ModuleSettings {
     }
 
     /** Outline policy, independent of animation style. Auto uses contrast with the actual background. */
+    public static int transitionBlurMode() { return transitionBlurMode; }
+
+    public static int readTransitionBlurMode(SharedPreferences source) {
+        try {
+            int mode = source.getInt(KEY_TRANSITION_BLUR, TRANSITION_BLUR_AUTO);
+            return mode >= TRANSITION_BLUR_AUTO && mode <= TRANSITION_BLUR_OFF ? mode : TRANSITION_BLUR_AUTO;
+        } catch (ClassCastException corrupt) {
+            return TRANSITION_BLUR_AUTO;
+        }
+    }
+
     public static int pillOutlineMode() {
         ensureStarted();
         return pillOutlineMode;
@@ -489,6 +506,7 @@ public final class ModuleSettings {
             legacyAnimation = source.getBoolean(KEY_LEGACY_ANIMATION, false);
             iMode = source.getBoolean(KEY_I_MODE, false);
             pillOutlineMode = readPillOutlineMode(source);
+            transitionBlurMode = readTransitionBlurMode(source);
             headsUpIsland = source.getBoolean(KEY_HEADS_UP_ISLAND, true);
             progressNotifications = source.getBoolean(KEY_PROGRESS_NOTIFICATIONS, true);
             allNotifications = source.getBoolean(KEY_ALL_NOTIFICATIONS, false);
@@ -577,6 +595,7 @@ public final class ModuleSettings {
         legacyAnimation = settings.getBoolean(KEY_LEGACY_ANIMATION, false);
         iMode = settings.getBoolean(KEY_I_MODE, false);
         pillOutlineMode = readPillOutlineMode(settings);
+        transitionBlurMode = readTransitionBlurMode(settings);
         lowPerformance = settings.getBoolean(KEY_LOW_PERFORMANCE, false);
         materialStyle = readMaterialStyle(settings);
         torchStyle = settings.getInt(KEY_TORCH_STYLE, 0) == 1 ? 1 : 0;
@@ -659,7 +678,7 @@ public final class ModuleSettings {
         return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/" + glowColour + lowPerformance + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + progressNotifications + hideProgressOriginals
                 + smartRules + privacyIndicator + privacyLocation + otpCard + otpAutoCopy + thirdPartyCalls + visualizer + colorIcons + shadeMedia + cardHeader
                 + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/stockCharging=" + stockChargingAnimation + "/recordingInput=" + concurrentRecordingInput
-                + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/" + appFilter.onlyListed() + appFilter.size();
+                + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/blur=" + transitionBlurMode + "/" + appFilter.onlyListed() + appFilter.size();
     }
 
     /** One line in the event log whenever the values the module runs on differ from the last read. */
