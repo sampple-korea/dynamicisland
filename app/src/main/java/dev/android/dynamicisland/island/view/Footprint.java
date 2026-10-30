@@ -57,7 +57,7 @@ final class Footprint {
         out.setEmpty();
         if (scene.sleeping) return;
         float pad = m.dp(TOUCH_PAD_DP);
-        if (scene.mode == Mode.HIDDEN) {
+        if (scene.mode == Mode.HIDDEN || scene.mode == Mode.IDLE) {
             if ((host.hasMinimized() || scene.iMode!=null && scene.iMode.hiddenByGesture())
                     && !scene.suppressed && scene.shadeAlpha() > 0.5f) {
                 float half = Math.max(m.dp(HIDDEN_TOUCH_HALF_WIDTH_DP), m.holeD);

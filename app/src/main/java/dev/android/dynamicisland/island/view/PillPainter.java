@@ -119,7 +119,7 @@ final class PillPainter {
             if (hasBubble) bubbleGlow.draw(canvas, bubble, glowMotion, alpha, ModuleSettings.glowStrength());
             canvas.restoreToCount(save);
         }
-        boolean outlinePill = pillVisible && scene.mode == Mode.COMPACT && bodyAlpha > IslandView.MIN_VISIBLE_ALPHA;
+        boolean outlinePill = pillVisible && (scene.mode == Mode.COMPACT || scene.mode == Mode.IDLE) && bodyAlpha > IslandView.MIN_VISIBLE_ALPHA;
         if ((outlinePill || hasBubble) && sp.outlineFade.value() > IslandView.MIN_VISIBLE_ALPHA
                 && scene.pillOutlineOpacity() > IslandView.MIN_VISIBLE_ALPHA) {
             drawOutline(canvas, pill, r, outlinePill, bodyAlpha, hasBubble, hasNeck, neckAlpha, bubbleX, bubbleY, bubbleRadius);

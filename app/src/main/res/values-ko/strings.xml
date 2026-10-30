@@ -617,4 +617,6 @@
     <string name="recommend_torch_title">빛을 당겨 손전등 조절하기</string>
     <string name="recommend_search_title">이름이 생각나지 않아도 검색</string>
     <string name="recommend_glass_title">새로운 재질을 먼저 만나보세요 · 실험적</string>
+    <string name="always_visible_island">항상 표시되는 아일랜드</string>
+    <string name="always_visible_island_desc">활동이 없을 때 카메라 주변에 아일랜드를 표시합니다.</string>
 </resources>

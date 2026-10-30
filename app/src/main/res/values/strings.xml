@@ -626,4 +626,6 @@
     <string name="recommend_torch_title">Drag the light to adjust your flashlight</string>
     <string name="recommend_search_title">Search without the exact name</string>
     <string name="recommend_glass_title">Try a new material · Experimental</string>
+    <string name="always_visible_island">Always Visible Island</string>
+    <string name="always_visible_island_desc">Keep the island visible around the camera when no activity is running.</string>
 </resources>

@@ -617,4 +617,6 @@
     <string name="recommend_torch_title">Потяните луч, чтобы настроить фонарик</string>
     <string name="recommend_search_title">Поиск без точного названия</string>
     <string name="recommend_glass_title">Новый материал · Экспериментальный</string>
+    <string name="always_visible_island">Островок всегда виден</string>
+    <string name="always_visible_island_desc">Показывать островок вокруг камеры, когда нет активных задач.</string>
 </resources>

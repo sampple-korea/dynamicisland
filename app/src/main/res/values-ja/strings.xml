@@ -617,4 +617,6 @@
     <string name="recommend_torch_title">光を引いて懐中電灯を調整</string>
     <string name="recommend_search_title">名前を思い出せなくても検索</string>
     <string name="recommend_glass_title">新しい素材を試す · 実験的</string>
+    <string name="always_visible_island">常に表示するアイランド</string>
+    <string name="always_visible_island_desc">アクティビティがないときもカメラの周囲にアイランドを表示します。</string>
 </resources>

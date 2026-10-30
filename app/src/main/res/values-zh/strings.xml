@@ -617,4 +617,6 @@
     <string name="recommend_torch_title">拖动光束调节手电筒</string>
     <string name="recommend_search_title">记不清名称也能搜索</string>
     <string name="recommend_glass_title">尝试全新材质 · 实验性</string>
+    <string name="always_visible_island">始终显示灵动岛</string>
+    <string name="always_visible_island_desc">没有活动时，在摄像头周围保持显示灵动岛。</string>
 </resources>

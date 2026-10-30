@@ -617,4 +617,6 @@
     <string name="recommend_torch_title">Işığı sürükleyerek el fenerini ayarlayın</string>
     <string name="recommend_search_title">Tam adını bilmeden arayın</string>
     <string name="recommend_glass_title">Yeni malzemeyi deneyin · Deneysel</string>
+    <string name="always_visible_island">Adayı Her Zaman Göster</string>
+    <string name="always_visible_island_desc">Etkinlik olmadığında adayı kameranın çevresinde görünür tutun.</string>
 </resources>

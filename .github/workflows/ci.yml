@@ -32,7 +32,7 @@ jobs:
           python3 -m unittest discover -s scripts/tests
 
       - name: Regression tests and APK build
-        run: ./gradlew --no-daemon testReleaseUnitTest assembleRelease
+        run: ./gradlew --no-daemon testReleaseUnitTest assembleRelease assembleDebug
 
       - name: Verify framework stubs are not packaged
         run: |
@@ -55,3 +55,10 @@ jobs:
           path: app/build/reports/tests/testReleaseUnitTest/
           if-no-files-found: ignore
           retention-days: 7
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+         name: DynamicIsland-debug
+         path: app/build/outputs/apk/debug/app-debug.apk
+         if-no-files-found: error

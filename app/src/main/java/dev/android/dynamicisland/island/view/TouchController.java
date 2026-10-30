@@ -149,7 +149,7 @@ final class TouchController {
         downCard = null;
         downActivity = null;
         downOnHole = false;
-        if (scene.mode == Mode.HIDDEN) {
+        if (scene.mode == Mode.HIDDEN || scene.mode == Mode.IDLE) {
             downOnHole = host.hasMinimized() || scene.iMode!=null && scene.iMode.hiddenByGesture();
             return;
         }
