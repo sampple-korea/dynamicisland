@@ -42,7 +42,7 @@ final class ContentBlur {
 
     /** Record just the foreground at its existing coordinates; the caller's clip still bounds the result. */
     Canvas begin(Canvas target, RectF bounds, float amount, float radius) {
-        int level = ModuleSettings.lowPerformance() ? 0 : step(amount);
+        int level = ModuleSettings.lowPerformance() || !BlurGovernor.INSTANCE.allowed(android.os.SystemClock.uptimeMillis()) ? 0 : step(amount);
         if (failed || level == 0 || !target.isHardwareAccelerated() || bounds.isEmpty()) {
             if (node != null) {
                 if (node.hasDisplayList()) node.discardDisplayList();
@@ -65,6 +65,7 @@ final class ContentBlur {
             node.setPosition(left, top, right, bottom);
             Canvas recording = node.beginRecording(right - left, bottom - top);
             recording.translate(-left, -top);
+            BlurGovernor.INSTANCE.blurDrawn();
             return recording;
         } catch (RuntimeException | LinkageError error) {
             failed = true;
@@ -81,7 +82,8 @@ final class ContentBlur {
 
     /** RemoteViews already own a RenderNode; apply the same curve without blurring the card behind them. */
     void apply(View view, float amount, float radius) {
-        int level = failed || ModuleSettings.lowPerformance() ? 0 : step(amount);
+        int level = failed || ModuleSettings.lowPerformance() || !BlurGovernor.INSTANCE.allowed(android.os.SystemClock.uptimeMillis()) ? 0 : step(amount);
+        if (level > 0) BlurGovernor.INSTANCE.blurDrawn();
         if (effectView == view && viewStep == level && effectRadius == radius) return;
         try {
             view.setRenderEffect(effect(level, radius));

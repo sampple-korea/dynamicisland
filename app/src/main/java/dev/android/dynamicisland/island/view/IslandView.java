@@ -52,6 +52,10 @@ import java.util.regex.Pattern;
  * notification can never take System UI down.
  */
 public final class IslandView extends View implements Choreographer.FrameCallback {
+    static {
+        BlurGovernor.INSTANCE.setReport(text -> dev.android.dynamicisland.xposed.Diagnostics.fact("transition blur", text));
+    }
+
     /** {@link #setItems} direction hint: nothing special. */
     public static final int HINT_NONE = 0;
     /** {@link #setItems} direction hint: the change travels to the left (item minimized / swiped away). */
@@ -827,6 +831,7 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
             scheduleFrame();
             return;
         }
+        BlurGovernor.INSTANCE.onFrame(frameTimeNanos, SystemClock.uptimeMillis());
         try {
             step(frameTimeNanos);
             failedFrames = 0;
