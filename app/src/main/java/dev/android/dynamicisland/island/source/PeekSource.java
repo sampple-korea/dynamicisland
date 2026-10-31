@@ -106,6 +106,11 @@ public final class PeekSource {
                 if ((title == null || title.length() == 0) && (text == null || text.length() == 0)) return false;
             } else if (!hasReadableContent(n)) return false;
         }
+        if (!hasContent(n)) {
+            // System UI posts an empty placeholder (channel and group "INSIGNIFICANT", no text and no views) for the
+            // silent section on every unlock; there is nothing to put on a card.
+            return false;
+        }
         String category = n.category;
         if (Notification.CATEGORY_CALL.equals(category) || Notification.CATEGORY_ALARM.equals(category)
                 || Notification.CATEGORY_NAVIGATION.equals(category) || Notification.CATEGORY_TRANSPORT.equals(category)
@@ -126,6 +131,19 @@ public final class PeekSource {
             }
         }
         return true;
+    }
+
+    /** True when the notification carries anything a card could show: text, messages, or views of its own. */
+    static boolean hasContent(Notification n) {
+        if (n.contentView != null || n.bigContentView != null || n.headsUpContentView != null) return true;
+        for (String key : new String[]{Notification.EXTRA_TITLE, Notification.EXTRA_TITLE_BIG, Notification.EXTRA_TEXT,
+                Notification.EXTRA_BIG_TEXT, Notification.EXTRA_SUB_TEXT, Notification.EXTRA_SUMMARY_TEXT}) {
+            CharSequence value = n.extras.getCharSequence(key);
+            if (value != null && value.toString().trim().length() > 0) return true;
+        }
+        return n.extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES) != null
+                || n.extras.getParcelableArray(Notification.EXTRA_MESSAGES, Parcelable.class) != null
+                || n.extras.containsKey(Notification.EXTRA_PICTURE) || n.extras.containsKey(Notification.EXTRA_PICTURE_ICON);
     }
 
     private static boolean hasReadableContent(Notification n) {
