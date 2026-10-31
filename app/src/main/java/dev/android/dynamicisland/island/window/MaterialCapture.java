@@ -34,7 +34,7 @@ final class MaterialCapture {
     private long periodMs=PERIOD_MS;
     private final View host;
     private final Consumer<MaterialFrame> receiver;
-    private final Handler main=new Handler(Looper.getMainLooper());
+    private final Handler main=new dev.android.dynamicisland.xposed.GuardedHandler(Looper.getMainLooper());
     private final ExecutorService worker=Executors.newSingleThreadExecutor(r -> {
         Thread t=new Thread(r,"Island material backdrop");t.setDaemon(true);return t;
     });

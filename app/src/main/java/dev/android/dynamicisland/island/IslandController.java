@@ -57,7 +57,7 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
 
     private final Context ctx;
     /** All callbacks and UI work run here. */
-    private final Handler main = new Handler(Looper.getMainLooper());
+    private final Handler main = new dev.android.dynamicisland.xposed.GuardedHandler(Looper.getMainLooper());
     private final AudioLevels audio = new AudioLevels();
     private final dev.android.dynamicisland.island.feedback.RecorderInput recordingInput;
     private final Haptics haptics;

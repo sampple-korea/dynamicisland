@@ -51,7 +51,7 @@ public final class HeadsUpHooks {
             Boolean up = status(heads, key);
             if (Boolean.FALSE.equals(up)) return "stock banner removed";
             for (long delay : new long[]{150, 500}) {
-                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                new dev.android.dynamicisland.xposed.GuardedHandler(android.os.Looper.getMainLooper()).postDelayed(() -> {
                     if (manager != heads || !owned(key) || Boolean.FALSE.equals(status(heads, key))) return;
                     try { remove(heads, key); }
                     catch (Throwable t) { XLog.once("heads-up retry", t); }
@@ -103,7 +103,7 @@ public final class HeadsUpHooks {
     /** One more attempt after {@code delayMs}, on the main thread. */
     private static void retryCompatLater(Object heads, Method removal, String key, long delayMs) {
         try {
-            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+            new dev.android.dynamicisland.xposed.GuardedHandler(android.os.Looper.getMainLooper()).postDelayed(() -> {
                 if (!ModuleSettings.experimentalRecovery()) return;
                 try {
                     if (stillUpCompat(heads, key)) {
