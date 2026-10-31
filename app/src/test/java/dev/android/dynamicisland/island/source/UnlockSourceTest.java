@@ -117,4 +117,16 @@ public class UnlockSourceTest {
             assertTrue(kind + " draws something but not a filled square", lit > 150 && lit < 96 * 96 / 2);
         }
     }
+
+    @Test public void theKindOfBiometricComesFromTheNameOfTheEnumConstantInTheArguments() throws Exception {
+        Class<?> hooks = Class.forName("dev.android.dynamicisland.xposed.hooks.UnlockHooks");
+        java.lang.reflect.Method kind = hooks.getDeclaredMethod("faceOrFingerprint", Object[].class);
+        kind.setAccessible(true);
+        enum Source { FACE, FINGERPRINT, IRIS }
+        assertEquals(Boolean.TRUE, kind.invoke(null, (Object) new Object[] {0, Source.FACE, true}));
+        assertEquals(Boolean.FALSE, kind.invoke(null, (Object) new Object[] {0, Source.FINGERPRINT, true}));
+        assertEquals(Boolean.FALSE, kind.invoke(null, (Object) new Object[] {0, Source.IRIS, true}));
+        assertNull(kind.invoke(null, (Object) new Object[] {0, "something else", true}));
+        assertNull(kind.invoke(null, (Object) null));
+    }
 }

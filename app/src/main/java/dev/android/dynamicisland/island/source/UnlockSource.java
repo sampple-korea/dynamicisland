@@ -56,6 +56,7 @@ public final class UnlockSource {
     public static void biometricAuthenticated(boolean face) {
         biometricWasFace = face;
         biometricAt = SystemClock.uptimeMillis();
+        Diagnostics.event("unlock: " + (face ? "face" : "fingerprint") + " accepted");
     }
 
     /** For tests: no biometric has been accepted. */
@@ -69,6 +70,7 @@ public final class UnlockSource {
         try {
             Method method = decide(monitor.get(), currentUser(), SystemClock.uptimeMillis());
             biometricAt = 0;
+            Diagnostics.event("unlock notice: " + method);
             show(method);
         } catch (RuntimeException error) {
             XLog.once("UnlockSource.onUnlocked", error);
