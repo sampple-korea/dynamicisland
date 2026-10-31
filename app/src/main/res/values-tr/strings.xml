@@ -523,6 +523,8 @@
     <string name="charging_statistics_note">Güç, şarj cihazının nominal değeri değil, pil tarafındaki bir tahmindir. İstatistikler yalnızca ölçüm açıldıktan sonra gözlenen aralıkları içerir. Ekran durumuna göre şarj dağılımı tahminidir; cihaz şarj sayacı verisi sunmuyorsa mAh gizlenir.</string>
     <string name="setting_event_headset">Kablolu kulaklık bildirimleri</string>
     <string name="setting_event_headset_desc">Kablolu ve USB kulaklık bağlantısını ve ayrılmasını kısa süre gösterir.</string>
+    <string name="setting_headset_stay">Bağlıyken kulaklık kartını koru</string>
+    <string name="setting_headset_stay_desc">Kablolu veya USB kulaklık takılıyken kartı gösterir.</string>
     <string name="hole_text_padding">Kamera yanındaki ek metin boşluğu</string>
     <string name="hole_text_padding_desc">0dp özgün aralığı korur. Ek boşluk, seçilen ada genişliğine sığacak şekilde sınırlanır.</string>
     <string name="island_charge_full">Tamamen şarj oldu</string>

@@ -109,6 +109,7 @@ final class SettingsSearchCatalog {
         add(Route.EVENTS,R.string.setting_event_ringer,R.string.setting_event_ringer_desc,R.string.search_terms_sound,0);
         add(Route.EVENTS,R.string.setting_event_bluetooth,R.string.setting_event_bluetooth_desc,R.string.search_terms_bluetooth,0);
         add(Route.EVENTS,R.string.setting_event_headset,R.string.setting_event_headset_desc,R.string.search_terms_bluetooth,0);
+        add(Route.EVENTS,R.string.setting_headset_stay,R.string.setting_headset_stay_desc,R.string.search_terms_bluetooth,R.string.setting_event_headset);
         add(Route.EVENTS,R.string.setting_event_toggles,R.string.setting_event_toggles_desc,0,0);
         add(Route.EVENTS,R.string.setting_torch_pill,R.string.setting_torch_pill_desc,R.string.search_terms_torch,0);
         add(Route.APPEARANCE,R.string.torch_style,R.string.torch_style_desc,R.string.search_terms_torch,0,

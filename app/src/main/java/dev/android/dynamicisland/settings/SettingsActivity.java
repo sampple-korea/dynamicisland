@@ -534,7 +534,9 @@ public final class SettingsActivity extends Activity {
         device = ui.card(page);
         toggle(device, R.string.setting_event_ringer, R.string.setting_event_ringer_desc, ModuleSettings.KEY_EVENT_RINGER, true);
         toggle(device, R.string.setting_event_bluetooth, R.string.setting_event_bluetooth_desc, ModuleSettings.KEY_EVENT_BLUETOOTH, true);
-        toggle(device, R.string.setting_event_headset, R.string.setting_event_headset_desc, ModuleSettings.KEY_EVENT_HEADSET, false);
+        Switch headset = toggle(device, R.string.setting_event_headset, R.string.setting_event_headset_desc, ModuleSettings.KEY_EVENT_HEADSET, false);
+        Switch headsetStay = toggle(device, R.string.setting_headset_stay, R.string.setting_headset_stay_desc, ModuleSettings.KEY_HEADSET_STAY, false);
+        dependent(headset, OneUi.rowOf(headsetStay));
         ui.category(page, getString(R.string.group_events_quick), getString(R.string.desc_events_quick));
         device = ui.card(page);
         toggle(device, R.string.setting_event_toggles, R.string.setting_event_toggles_desc, ModuleSettings.KEY_EVENT_TOGGLES, true);

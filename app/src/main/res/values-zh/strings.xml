@@ -523,6 +523,8 @@
     <string name="charging_statistics_note">功率为电池侧估算值，并非充电器额定功率。统计仅包含开启测量后实际观测的时段。按屏幕状态划分的充电量为估算值；设备不提供充电量数据时隐藏mAh。</string>
     <string name="setting_event_headset">有线耳机连接提醒</string>
     <string name="setting_event_headset_desc">短暂显示有线或USB耳机的连接与断开。</string>
+    <string name="setting_headset_stay">连接期间保留耳机卡片</string>
+    <string name="setting_headset_stay_desc">有线或 USB 耳机插着时，一直显示卡片。</string>
     <string name="hole_text_padding">摄像头旁文字额外间距</string>
     <string name="hole_text_padding_desc">0dp保留原有间距。额外间距仅在设置的灵动岛宽度允许范围内生效。</string>
     <string name="island_charge_full">充电完成</string>

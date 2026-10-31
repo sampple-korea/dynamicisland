@@ -523,6 +523,8 @@
     <string name="charging_statistics_note">전력은 충전기 정격이 아닌 배터리 측 추정값입니다. 통계는 측정을 켠 뒤 관측한 구간만 포함합니다. 화면 상태별 충전량 변화는 추정치이며, 기기가 충전량을 제공하지 않으면 mAh를 숨깁니다.</string>
     <string name="setting_event_headset">유선 이어폰 연결 알림</string>
     <string name="setting_event_headset_desc">일반 유선·USB 이어폰의 연결과 분리를 잠시 표시합니다.</string>
+    <string name="setting_headset_stay">연결된 동안 이어폰 카드 유지</string>
+    <string name="setting_headset_stay_desc">유선·USB 이어폰이 꽂혀 있는 동안 카드를 계속 보여 줍니다.</string>
     <string name="hole_text_padding">카메라 옆 글자 추가 여백</string>
     <string name="hole_text_padding_desc">0dp는 기존 간격을 유지합니다. 추가 여백은 설정한 아일랜드 너비 안에 들어가는 만큼만 적용합니다.</string>
     <string name="island_charge_full">충전 완료</string>

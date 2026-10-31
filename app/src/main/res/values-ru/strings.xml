@@ -523,6 +523,8 @@
     <string name="charging_statistics_note">Мощность оценивается на стороне батареи, а не по номиналу зарядного устройства. Статистика включает только наблюдаемые интервалы после включения измерения. Распределение заряда по состоянию экрана приблизительное; мА·ч скрываются, если устройство не сообщает данные счётчика заряда.</string>
     <string name="setting_event_headset">Уведомления о проводных наушниках</string>
     <string name="setting_event_headset_desc">Краткие уведомления о подключении и отключении проводных и USB-наушников.</string>
+    <string name="setting_headset_stay">Держать карточку гарнитуры, пока она подключена</string>
+    <string name="setting_headset_stay_desc">Показывать карточку, пока проводная или USB-гарнитура подключена.</string>
     <string name="hole_text_padding">Дополнительный отступ у камеры</string>
     <string name="hole_text_padding_desc">0dp сохраняет исходный интервал. Отступ ограничен выбранной шириной острова.</string>
     <string name="island_charge_full">Полностью заряжено</string>

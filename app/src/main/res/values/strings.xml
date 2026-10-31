@@ -532,6 +532,8 @@
     <string name="charging_statistics_note">Power is estimated at the battery, not the charger rating. Statistics include only observed periods after enabling measurement. Charge changes by screen state are estimates; mAh is hidden if the device does not report charge-counter data.</string>
     <string name="setting_event_headset">Wired headphone alerts</string>
     <string name="setting_event_headset_desc">Briefly show wired and USB headphone connections and disconnections.</string>
+    <string name="setting_headset_stay">Keep the headset card while connected</string>
+    <string name="setting_headset_stay_desc">Keep the card while a wired or USB headset is plugged in.</string>
     <string name="hole_text_padding">Extra space beside camera</string>
     <string name="hole_text_padding_desc">0 dp keeps the original spacing. Extra space is limited to what fits inside the chosen island width.</string>
     <string name="island_charge_full">Fully charged</string>

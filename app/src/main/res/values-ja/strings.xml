@@ -523,6 +523,8 @@
     <string name="charging_statistics_note">電力は充電器の定格ではなく、バッテリー側の推定値です。統計は測定を有効にしてから観測した区間のみを含みます。画面状態別の充電量は推定値で、端末が充電量を提供しない場合はmAhを表示しません。</string>
     <string name="setting_event_headset">有線イヤホン接続通知</string>
     <string name="setting_event_headset_desc">有線・USBイヤホンの接続と取り外しを一時表示します。</string>
+    <string name="setting_headset_stay">接続中はヘッドセットカードを表示し続ける</string>
+    <string name="setting_headset_stay_desc">有線・USBヘッドセットが接続されている間、カードを表示し続けます。</string>
     <string name="hole_text_padding">カメラ横の文字の追加余白</string>
     <string name="hole_text_padding_desc">0dpでは従来の間隔を維持します。設定したアイランド幅に収まる範囲で余白を追加します。</string>
     <string name="island_charge_full">充電完了</string>
