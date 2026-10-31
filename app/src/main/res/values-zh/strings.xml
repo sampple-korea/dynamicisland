@@ -642,4 +642,24 @@
     <string name="recommend_torch_title">拖动光束调节手电筒</string>
     <string name="recommend_search_title">记不清名称也能搜索</string>
     <string name="recommend_glass_title">尝试全新材质 · 实验性</string>
+    <string name="recommend15_preview_title">选择之前先看效果</string>
+    <string name="recommend15_preview">选择动画、材质或轮廓，列表上方的真实灵动岛会立即演示。</string>
+    <string name="recommend15_swipe_title">上滑，正如你所想</string>
+    <string name="recommend15_swipe">向上轻弹小药丸即可隐藏，向上滑动展开的卡片即可收起。滑得越快，反应越快。</string>
+    <string name="recommend15_blur_title">低端手机也流畅</string>
+    <string name="recommend15_blur">手机跟不上时，过渡模糊会自动暂停。可选择自动、始终开启或关闭。</string>
+    <string name="recommend15_glass_title">磨砂玻璃大幅减负</string>
+    <string name="recommend15_glass">玻璃材质的开销降到约四分之一，灵动岛待机时手机依然流畅。</string>
+    <string name="recommend15_notify_title">通知卡片，说明更清楚</string>
+    <string name="recommend15_notify">消息卡片集中为一项清晰的设置，并说明某些应用通知可能不显示的原因。</string>
+    <string name="recommend15_progress_title">进度显示更到位</string>
+    <string name="recommend15_progress">可显示发送中通知的进度条、当前应用的下载，以及带进度条的普通通知。</string>
+    <string name="recommend15_hotspot_title">热点专属卡片</string>
+    <string name="recommend15_hotspot">一眼查看连接设备、已用流量和热点开启时长。需手动开启。</string>
+    <string name="recommend15_unlock_title">是怎么解锁的？</string>
+    <string name="recommend15_unlock">用简短的卡片告诉你手机是通过指纹、人脸、信任设备还是 PIN 解锁的。</string>
+    <string name="recommend15_headset_title">保留耳机卡片</string>
+    <string name="recommend15_headset">有线或 USB 耳机插着时，卡片会一直留在灵动岛上。</string>
+    <string name="recommend15_search_title">边输入边搜索</string>
+    <string name="recommend15_search">输入时即时显示结果，点按直达对应设置。试试搜索“热点”或“解锁”。</string>
 </resources>

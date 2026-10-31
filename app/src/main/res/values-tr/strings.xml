@@ -642,4 +642,24 @@
     <string name="recommend_torch_title">Işığı sürükleyerek el fenerini ayarlayın</string>
     <string name="recommend_search_title">Tam adını bilmeden arayın</string>
     <string name="recommend_glass_title">Yeni malzemeyi deneyin · Deneysel</string>
+    <string name="recommend15_preview_title">Seçmeden önce görün</string>
+    <string name="recommend15_preview">Animasyon, malzeme veya çerçeve seçin; gerçek ada listenin üstünde hemen oynatır.</string>
+    <string name="recommend15_swipe_title">Yukarı kaydırın, istediğiniz gibi</string>
+    <string name="recommend15_swipe">Küçük hapı yukarı fırlatın, gizlensin; açık kartı yukarı kaydırın, katlansın. Ne kadar hızlı, o kadar çabuk tepki verir.</string>
+    <string name="recommend15_blur_title">Yavaş telefonlarda bile akıcı</string>
+    <string name="recommend15_blur">Telefon yetişemediğinde geçiş bulanıklığı kendiliğinden durur. Otomatik, Her zaman açık veya Kapalı seçin.</string>
+    <string name="recommend15_glass_title">Buzlu cam çok daha hafif</string>
+    <string name="recommend15_glass">Cam malzemenin maliyeti yaklaşık dörtte birine indi; ada beklerken telefon akıcı kalır.</string>
+    <string name="recommend15_notify_title">Bildirim kartları, açıklamalı</string>
+    <string name="recommend15_notify">Mesaj kartları için tek ve net bir ayar; bir uygulamanın bildirimi neden görünmeyebilir, onu da söyler.</string>
+    <string name="recommend15_progress_title">İhtiyacınız olan yerde ilerleme</string>
+    <string name="recommend15_progress">Gönderen bir bildirimin çubuğunu, açık uygulamanın indirmelerini ve çubuklu sıradan bildirimleri gösterin.</string>
+    <string name="recommend15_hotspot_title">Erişim noktası kartı</string>
+    <string name="recommend15_hotspot">Bağlı cihazları, kullanılan veriyi ve erişim noktasının ne kadardır açık olduğunu görün. Siz açana kadar kapalıdır.</string>
+    <string name="recommend15_unlock_title">Kilit nasıl açıldı?</string>
+    <string name="recommend15_unlock">Telefonun parmak izi, yüz, güvenilir cihaz veya PIN ile açıldığını kısa bir kartla bildirir.</string>
+    <string name="recommend15_headset_title">Kulaklık kartını koru</string>
+    <string name="recommend15_headset">Kablolu veya USB kulaklık takılıyken kart adada kalır.</string>
+    <string name="recommend15_search_title">Yazdıkça arama</string>
+    <string name="recommend15_search">Sonuçlar yazarken çıkar ve her biri doğrudan ilgili ayarı açar. “Erişim noktası” veya “kilit açma” deneyin.</string>
 </resources>

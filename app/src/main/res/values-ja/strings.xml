@@ -642,4 +642,24 @@
     <string name="recommend_torch_title">光を引いて懐中電灯を調整</string>
     <string name="recommend_search_title">名前を思い出せなくても検索</string>
     <string name="recommend_glass_title">新しい素材を試す · 実験的</string>
+    <string name="recommend15_preview_title">選ぶ前に見られます</string>
+    <string name="recommend15_preview">アニメーション・素材・輪郭を選ぶと、リストの上で実際のアイランドがそのまま再生します。</string>
+    <string name="recommend15_swipe_title">上にスワイプ、思いどおりに</string>
+    <string name="recommend15_swipe">小さなピルを上に弾くと隠れ、開いたカードを上にスワイプすると折りたたまれます。速いほど素早く反応します。</string>
+    <string name="recommend15_blur_title">遅い端末でもなめらかに</string>
+    <string name="recommend15_blur">端末が追いつけないときは遷移ブラーが自動で止まります。自動・常にオン・オフから選べます。</string>
+    <string name="recommend15_glass_title">ずっと軽くなったすりガラス</string>
+    <string name="recommend15_glass">ガラス素材の負荷が約4分の1になり、アイランドが待機中でも端末は軽快なままです。</string>
+    <string name="recommend15_notify_title">通知カードをわかりやすく</string>
+    <string name="recommend15_notify">メッセージカードの設定をひとつにまとめ、アプリの通知が出ないことがある理由も説明します。</string>
+    <string name="recommend15_progress_title">必要な場所に進捗を</string>
+    <string name="recommend15_progress">送信中の通知の進捗バー、使用中アプリのダウンロード、進捗バーのある通常の通知もカードで表示できます。</string>
+    <string name="recommend15_hotspot_title">テザリング専用カード</string>
+    <string name="recommend15_hotspot">接続機器、使用データ量、オンの時間をひと目で確認できます。オンにするまでは無効です。</string>
+    <string name="recommend15_unlock_title">どう解除した？</string>
+    <string name="recommend15_unlock">指紋・顔・信頼できるデバイス・PINのどれで開いたかを短いカードでお知らせします。</string>
+    <string name="recommend15_headset_title">ヘッドセットカードを表示し続ける</string>
+    <string name="recommend15_headset">有線・USBヘッドセットが接続されている間、カードをアイランドに表示し続けます。</string>
+    <string name="recommend15_search_title">入力しながら検索</string>
+    <string name="recommend15_search">入力中に結果が表示され、タップすると該当の設定へ移動します。「テザリング」や「ロック解除」を試してみてください。</string>
 </resources>

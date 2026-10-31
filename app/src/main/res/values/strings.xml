@@ -651,4 +651,24 @@
     <string name="recommend_torch_title">Drag the light to adjust your flashlight</string>
     <string name="recommend_search_title">Search without the exact name</string>
     <string name="recommend_glass_title">Try a new material · Experimental</string>
+    <string name="recommend15_preview_title">See it before you choose</string>
+    <string name="recommend15_preview">Pick an animation, material or outline and watch the real island play it above the list.</string>
+    <string name="recommend15_swipe_title">Swipe up, the way you mean it</string>
+    <string name="recommend15_swipe">Flick the small pill up to hide it. Swipe an open card up to fold it back. Faster swipes react faster.</string>
+    <string name="recommend15_blur_title">Smooth even on slower phones</string>
+    <string name="recommend15_blur">Transition blur pauses by itself when a phone cannot keep up. Choose Automatic, Always on or Off.</string>
+    <string name="recommend15_glass_title">Frosted glass, much lighter</string>
+    <string name="recommend15_glass">The glass material now costs about a quarter of what it did, so the phone stays smooth while the island rests.</string>
+    <string name="recommend15_notify_title">Notification cards, explained</string>
+    <string name="recommend15_notify">One clear setting for message cards, and it says why an app\'s notification may not show.</string>
+    <string name="recommend15_progress_title">More progress, where you need it</string>
+    <string name="recommend15_progress">Show the bar of a sending notification, downloads of the app you are in, and ordinary notifications with a bar.</string>
+    <string name="recommend15_hotspot_title">A card for your hotspot</string>
+    <string name="recommend15_hotspot">See connected devices, data used and how long the hotspot has been on. Off until you turn it on.</string>
+    <string name="recommend15_unlock_title">How was it unlocked?</string>
+    <string name="recommend15_unlock">A short card tells you if the phone was opened by fingerprint, face, a trusted device or PIN.</string>
+    <string name="recommend15_headset_title">Keep the headset card</string>
+    <string name="recommend15_headset">Keep the card on the island while a wired or USB headset is plugged in.</string>
+    <string name="recommend15_search_title">Search as you type</string>
+    <string name="recommend15_search">Results appear while you type, and each one opens the exact setting. Try “hotspot” or “unlock”.</string>
 </resources>

@@ -642,4 +642,24 @@
     <string name="recommend_torch_title">빛을 당겨 손전등 조절하기</string>
     <string name="recommend_search_title">이름이 생각나지 않아도 검색</string>
     <string name="recommend_glass_title">새로운 재질을 먼저 만나보세요 · 실험적</string>
+    <string name="recommend15_preview_title">고르기 전에 먼저 보세요</string>
+    <string name="recommend15_preview">애니메이션, 재질, 외곽선을 고르면 목록 위에서 실제 아일랜드가 그대로 보여 줍니다.</string>
+    <string name="recommend15_swipe_title">위로 밀면 의도한 대로</string>
+    <string name="recommend15_swipe">작은 알약을 위로 튕기면 숨겨지고, 펼친 카드를 위로 밀면 접힙니다. 빨리 밀수록 빠르게 반응해요.</string>
+    <string name="recommend15_blur_title">느린 폰에서도 부드럽게</string>
+    <string name="recommend15_blur">전환 블러는 폰이 따라가지 못하면 스스로 멈춥니다. 자동, 항상 켬, 끔 중에서 고르세요.</string>
+    <string name="recommend15_glass_title">훨씬 가벼워진 프로스티드 글라스</string>
+    <string name="recommend15_glass">유리 재질이 쓰는 자원이 4분의 1 수준으로 줄어, 아일랜드가 가만히 있어도 폰이 부드럽게 유지됩니다.</string>
+    <string name="recommend15_notify_title">알림 카드, 쉽게 설명했어요</string>
+    <string name="recommend15_notify">메시지 카드를 한 곳에서 분명하게 고르고, 어떤 앱 알림이 안 뜰 수 있는지 이유도 알려 줍니다.</string>
+    <string name="recommend15_progress_title">필요한 곳에 진행 표시를 더</string>
+    <string name="recommend15_progress">전송 중인 알림의 진행 바, 지금 쓰는 앱의 다운로드, 진행 바가 있는 일반 알림도 카드로 보여 줍니다.</string>
+    <string name="recommend15_hotspot_title">핫스팟 전용 카드</string>
+    <string name="recommend15_hotspot">연결된 기기, 사용한 데이터, 켜진 시간을 한눈에 봅니다. 직접 켜기 전까지는 꺼져 있어요.</string>
+    <string name="recommend15_unlock_title">어떻게 잠금을 풀었을까요?</string>
+    <string name="recommend15_unlock">지문, 얼굴, 신뢰 기기, PIN 중 무엇으로 열렸는지 짧은 카드로 알려 줍니다.</string>
+    <string name="recommend15_headset_title">이어폰 카드를 계속 보기</string>
+    <string name="recommend15_headset">유선·USB 이어폰이 꽂혀 있는 동안 카드를 아일랜드에 계속 둡니다.</string>
+    <string name="recommend15_search_title">입력하는 즉시 검색</string>
+    <string name="recommend15_search">입력하는 동안 결과가 나오고, 누르면 해당 설정으로 바로 이동합니다. “핫스팟”이나 “잠금 해제”를 검색해 보세요.</string>
 </resources>
