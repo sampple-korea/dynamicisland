@@ -180,7 +180,7 @@ public final class CrashGuard {
         log(sb.toString());
         String text = sb.toString();
         // keep the cause where the settings app can show it: LSPosed logs are rarely at hand
-        Diagnostics.fact("previous crash", text.length() > 1500 ? text.substring(0, 1500) : text);
+        Diagnostics.fact("previous crash", text, 1500);
         //noinspection ResultOfMethodCallIgnored
         new File(dir, REPORT).delete();
     }
