@@ -540,6 +540,7 @@ public final class SettingsActivity extends Activity {
         ui.category(page, getString(R.string.group_events_quick), getString(R.string.desc_events_quick));
         device = ui.card(page);
         toggle(device, R.string.setting_event_toggles, R.string.setting_event_toggles_desc, ModuleSettings.KEY_EVENT_TOGGLES, true);
+        toggle(device, R.string.setting_hotspot_card, R.string.setting_hotspot_card_desc, ModuleSettings.KEY_HOTSPOT_CARD, false);
         toggle(device, R.string.setting_torch_pill, R.string.setting_torch_pill_desc, ModuleSettings.KEY_TORCH_PILL, true);
         ui.category(page, getString(R.string.group_privacy), getString(R.string.desc_privacy));
         LinearLayout privacy = ui.card(page);

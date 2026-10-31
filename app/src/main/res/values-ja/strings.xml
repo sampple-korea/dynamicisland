@@ -26,6 +26,8 @@
     <string name="setting_privacy_location_desc">位置情報の使用も通知します。ナビや天気アプリが常に使うため、初期設定ではオフです。</string>
     <string name="setting_event_toggles">設定の変更</string>
     <string name="setting_event_toggles_desc">おやすみモード・機内モード・省電力・ライト・テザリング・自動回転の切り替えを表示します。</string>
+    <string name="setting_hotspot_card">テザリングカード</string>
+    <string name="setting_hotspot_card_desc">テザリング中、接続機器・使用量・時間を表示します。</string>
     <string name="setting_torch_pill">ライトカード</string>
     <string name="setting_torch_pill_desc">ライトがオンの間、オフにするボタン付きで表示します。明るさが1段階だけの端末でも使えます。</string>
     <string name="setting_progress">ダウンロードと転送</string>
@@ -345,6 +347,7 @@
     <string name="island_power_saving">省電力</string>
     <string name="island_flashlight">ライト</string>
     <string name="island_hotspot">テザリング</string>
+    <string name="island_hotspot_devices">接続機器 %1$d</string>
     <string name="island_auto_rotate">自動回転</string>
     <string name="island_setting_on">%1$s オン</string>
     <string name="island_setting_off">%1$s オフ</string>
@@ -582,6 +585,7 @@
     <string name="search_terms_otp">認証 確認 コード ワンタイム パスワード SMS コピー</string>
     <string name="search_terms_sound">音 サウンド サイレント バイブ 着信音 ミュート 音量</string>
     <string name="search_terms_bluetooth">Bluetooth ブルートゥース イヤホン ヘッドホン スピーカー 有線</string>
+    <string name="search_terms_hotspot">テザリング ホットスポット Wi-Fi 共有 インターネット 機器 データ通信量</string>
     <string name="search_terms_privacy">プライバシー マイク カメラ 録音 権限 使用中</string>
     <string name="search_terms_location">位置 GPS ナビ 地図 測位</string>
     <string name="search_terms_apps">アプリ ブラックリスト ホワイトリスト 除外 許可 ブロック</string>

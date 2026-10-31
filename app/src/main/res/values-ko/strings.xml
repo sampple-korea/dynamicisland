@@ -26,6 +26,8 @@
     <string name="setting_privacy_location_desc">위치 사용도 알립니다. 내비게이션과 날씨 앱이 계속 쓰므로 기본은 꺼짐입니다.</string>
     <string name="setting_event_toggles">설정 변경 알림</string>
     <string name="setting_event_toggles_desc">방해금지, 비행기 모드, 절전 모드, 손전등, 핫스팟, 자동 회전이 켜지거나 꺼질 때 알려줍니다.</string>
+    <string name="setting_hotspot_card">핫스팟 카드</string>
+    <string name="setting_hotspot_card_desc">핫스팟이 켜져 있는 동안 연결 기기, 사용량, 시간을 보여 줍니다.</string>
     <string name="setting_torch_pill">손전등 카드</string>
     <string name="setting_torch_pill_desc">손전등이 켜져 있는 동안 아일랜드에 끄기 버튼과 함께 보여줍니다. 밝기 단계가 하나뿐인 폰에서도 동작합니다.</string>
     <string name="setting_progress">다운로드·전송 진행</string>
@@ -345,6 +347,7 @@
     <string name="island_power_saving">절전 모드</string>
     <string name="island_flashlight">손전등</string>
     <string name="island_hotspot">핫스팟</string>
+    <string name="island_hotspot_devices">기기 %1$d대</string>
     <string name="island_auto_rotate">자동 회전</string>
     <string name="island_setting_on">%1$s 켜짐</string>
     <string name="island_setting_off">%1$s 꺼짐</string>
@@ -582,6 +585,7 @@
     <string name="search_terms_otp">인증번호 인증 코드 보안번호 일회용 비밀번호 문자 자동복사 복사</string>
     <string name="search_terms_sound">소리 사운드 무음 진동 벨소리 음소거 볼륨</string>
     <string name="search_terms_bluetooth">블루투스 블투 이어폰 헤드폰 헤드셋 스피커 버즈 유선</string>
+    <string name="search_terms_hotspot">핫스팟 테더링 와이파이 공유 인터넷 기기 데이터 사용량</string>
     <string name="search_terms_privacy">개인정보 프라이버시 마이크 카메라 녹음 권한 사용중</string>
     <string name="search_terms_location">위치 GPS 내비게이션 내비 지도 추적</string>
     <string name="search_terms_apps">앱 어플 애플리케이션 블랙리스트 화이트리스트 차단 허용 제외 필터</string>

@@ -26,6 +26,8 @@
     <string name="setting_privacy_location_desc">同时提示位置访问。导航和天气应用会持续使用位置，因此默认关闭。</string>
     <string name="setting_event_toggles">设置变更</string>
     <string name="setting_event_toggles_desc">提示勿扰、飞行、省电、手电筒、热点和自动旋转的切换状态。</string>
+    <string name="setting_hotspot_card">热点卡片</string>
+    <string name="setting_hotspot_card_desc">热点开启期间显示连接设备、已用流量和时长。</string>
     <string name="setting_torch_pill">手电筒卡片</string>
     <string name="setting_torch_pill_desc">手电筒开启时显示卡片及关闭按钮。仅支持单档亮度的设备也可使用。</string>
     <string name="setting_progress">下载与传输</string>
@@ -345,6 +347,7 @@
     <string name="island_power_saving">省电模式</string>
     <string name="island_flashlight">手电筒</string>
     <string name="island_hotspot">热点</string>
+    <string name="island_hotspot_devices">设备 %1$d</string>
     <string name="island_auto_rotate">自动旋转</string>
     <string name="island_setting_on">%1$s已开启</string>
     <string name="island_setting_off">%1$s已关闭</string>
@@ -582,6 +585,7 @@
     <string name="search_terms_otp">验证码 验证 认证 一次性 密码 短信 复制</string>
     <string name="search_terms_sound">声音 静音 振动 铃声 音量</string>
     <string name="search_terms_bluetooth">蓝牙 耳机 扬声器 音箱 有线</string>
+    <string name="search_terms_hotspot">热点 共享 网络 wifi 设备 流量 数据</string>
     <string name="search_terms_privacy">隐私 麦克风 相机 摄像头 录音 权限 使用中</string>
     <string name="search_terms_location">位置 定位 GPS 导航 地图</string>
     <string name="search_terms_apps">应用 程序 黑名单 白名单 排除 允许 屏蔽 过滤</string>

@@ -35,6 +35,7 @@ public final class ModuleSettings {
     public static final String KEY_CHARGING_STATS = "charging_statistics";
     public static final String KEY_EVENT_HEADSET = "event_headset";
     public static final String KEY_HEADSET_STAY = "headset_card_stay";
+    public static final String KEY_HOTSPOT_CARD = "hotspot_card";
     public static final String KEY_EVENT_RINGER = "event_ringer";
     public static final String KEY_EVENT_BLUETOOTH = "event_bluetooth";
     public static final String KEY_HAPTICS = "haptics";
@@ -170,6 +171,7 @@ public final class ModuleSettings {
     private static volatile boolean chargingStats;
     private static volatile boolean eventHeadset;
     private static volatile boolean headsetStay;
+    private static volatile boolean hotspotCard;
     private static volatile boolean eventRinger = true;
     private static volatile boolean eventBluetooth = true;
     private static volatile boolean haptics = true;
@@ -650,6 +652,7 @@ public final class ModuleSettings {
     public static boolean chargingStats() { return chargingInfo() && chargingStats; }
     public static boolean eventHeadset() { ensureStarted(); return eventHeadset; }
     /** The headset card stays while a wired/USB headset is plugged in (needs the headset events). */
+    public static boolean hotspotCard() { ensureStarted(); return hotspotCard; }
     public static boolean headsetCardStays() { ensureStarted(); return eventHeadset && headsetStay; }
     public static int holeTextPaddingDp() { ensureStarted(); return holeTextPaddingDp; }
     public static int cardCornerRadiusDp() { ensureStarted(); return cardCornerRadiusDp; }
@@ -668,6 +671,7 @@ public final class ModuleSettings {
         chargingStats = source.getBoolean(KEY_CHARGING_STATS, false);
         eventHeadset = source.getBoolean(KEY_EVENT_HEADSET, false);
         headsetStay = source.getBoolean(KEY_HEADSET_STAY, false);
+        hotspotCard = source.getBoolean(KEY_HOTSPOT_CARD, false);
     }
 
     public static boolean autoOpenCards() { return autoOpenCards; }
@@ -682,7 +686,7 @@ public final class ModuleSettings {
     private static String switchSignature() {
         return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/" + glowColour + lowPerformance + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + progressNotifications + hideProgressOriginals
                 + smartRules + privacyIndicator + privacyLocation + otpCard + otpAutoCopy + thirdPartyCalls + visualizer + colorIcons + shadeMedia + cardHeader
-                + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/" + headsetStay + "/stockCharging=" + stockChargingAnimation + "/recordingInput=" + concurrentRecordingInput
+                + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/" + headsetStay + "/hotspot=" + hotspotCard + "/stockCharging=" + stockChargingAnimation + "/recordingInput=" + concurrentRecordingInput
                 + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/blur=" + transitionBlurMode + "/" + appFilter.onlyListed() + appFilter.size();
     }
 
@@ -697,7 +701,7 @@ public final class ModuleSettings {
         Diagnostics.fact("pill outline mode", Integer.toString(pillOutlineMode));
         Diagnostics.fact("island presentation", iMode ? "iMotion" : "stack");
         Diagnostics.fact("card material selected", materialStyle == MATERIAL_CLASSIC ? "classic" : "frosted");
-        Diagnostics.fact("optional device cards", "charging=" + chargingInfo + " statistics=" + chargingStats + " headset=" + eventHeadset + " stockCharging=" + stockChargingAnimation);
+        Diagnostics.fact("optional device cards", "charging=" + chargingInfo + " statistics=" + chargingStats + " headset=" + eventHeadset + " hotspot=" + hotspotCard + " stockCharging=" + stockChargingAnimation);
         Diagnostics.fact("settings file", prefs.getFile() + " readable=" + prefs.getFile().canRead() + " keys=" + prefs.getAll().size());
         Diagnostics.fact("settings source", viaProvider ? "provider (" + source.getAll().size() + " keys)" : "preference file (" + source.getAll().size() + " keys)");
         if (!now.equals(lastLogged)) {
