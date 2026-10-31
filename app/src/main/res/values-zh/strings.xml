@@ -36,6 +36,8 @@
     <string name="setting_hide_progress">隐藏原始通知</string>
     <string name="setting_hide_progress_desc">卡片显示在灵动岛上时，隐藏通知栏中的原始通知。</string>
     <string name="setting_progress_desc">将带进度条的持续通知（下载、文件复制、应用更新）显示为卡片。</string>
+    <string name="setting_progress_foreground">正在使用的应用的进度</string>
+    <string name="setting_progress_foreground_desc">也显示当前打开的应用的下载和传输。</string>
     <string name="setting_heads_up">岛内通知</string>
     <string name="setting_all_notifications">在岛内显示所有通知</string>
     <string name="setting_all_notifications_desc">将所有新通知（包括不弹横幅的静默通知）显示为卡片。不包括持续通知、通话、闹钟和正在使用的应用。实验功能，部分设备或应用可能不适用。</string>
@@ -312,6 +314,8 @@
     <string name="size_note">拖动时实际状态栏中的小岛会实时调整大小。增加高度也会放大图标。高度变化后仍会避免文字被摄像头挖孔遮挡。</string>
     <string name="foreground_notifications">正在使用的应用通知</string>
     <string name="foreground_notifications_desc">关闭：保持系统横幅。开启：同时显示为卡片。</string>
+    <string name="setting_peek_progress">通知卡片显示进度</string>
+    <string name="setting_peek_progress_desc">通知带有进度条时，在卡片上也显示（发送、上传）。</string>
     <string name="auto_open_cards">自动展开新活动卡片</string>
     <string name="auto_open_cards_desc">短暂展开新活动卡片，内容更新不会再次展开。</string>
     <string name="group_recovery">故障排除</string>

@@ -124,7 +124,7 @@ public final class ProgressSource {
         }
         Set<String> shown = new HashSet<>();
         for (IslandItem it : items.values()) {
-            if (it.packageName != null && it.packageName.equals(foregroundPackage)) {
+            if (it.packageName != null && it.packageName.equals(foregroundPackage) && !ModuleSettings.progressForeground()) {
                 continue;
             }
             if (promoted.contains(it.key.substring(TASK_PREFIX.length()))) {

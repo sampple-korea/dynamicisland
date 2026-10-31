@@ -42,6 +42,8 @@
     <string name="setting_hide_progress">Hide original notifications</string>
     <string name="setting_hide_progress_desc">While its card is on the island, hide the original in the panel.</string>
     <string name="setting_progress_desc">Downloads, file copies and updates with a progress bar become cards.</string>
+    <string name="setting_progress_foreground">Progress of the app you are using</string>
+    <string name="setting_progress_foreground_desc">Also show downloads and transfers of the app that is open.</string>
     <string name="setting_heads_up">Notifications in the island</string>
     <string name="setting_all_notifications">All notifications in the island</string>
     <string name="setting_all_notifications_desc">Every new notification gets an island card, also the quiet ones that would not pop up as a banner. Ongoing, call and alarm notifications and the app you are in are left out. Experimental: it may not work on every phone or for every app.</string>
@@ -321,6 +323,8 @@
     <string name="size_note">The island on the real status bar takes the size as you drag. A higher pill grows its icons with it. With a height change the island keeps its text away from the camera hole as before.</string>
     <string name="foreground_notifications">Notifications from the app you are using</string>
     <string name="foreground_notifications_desc">Off: they keep the stock banner. On: they become cards too.</string>
+    <string name="setting_peek_progress">Progress on notification cards</string>
+    <string name="setting_peek_progress_desc">Show the progress bar when a notification has one (sending, uploads).</string>
     <string name="auto_open_cards">Open new activity cards</string>
     <string name="auto_open_cards_desc">Briefly show new activity cards. Updates do not reopen them.</string>
     <string name="group_recovery">Troubleshooting</string>

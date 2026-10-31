@@ -36,6 +36,8 @@
     <string name="setting_hide_progress">Скрывать исходные уведомления</string>
     <string name="setting_hide_progress_desc">Пока карточка на острове, скрывать оригинал в шторке.</string>
     <string name="setting_progress_desc">Показывать постоянные уведомления с прогрессом — загрузки, копирование, обновления — в виде карточек.</string>
+    <string name="setting_progress_foreground">Прогресс открытого приложения</string>
+    <string name="setting_progress_foreground_desc">Показывать также загрузки и передачи открытого приложения.</string>
     <string name="setting_heads_up">Уведомления на острове</string>
     <string name="setting_all_notifications">Все уведомления на острове</string>
     <string name="setting_all_notifications_desc">Показывать карточку для каждого нового уведомления, включая тихие. Постоянные уведомления, звонки, будильники и открытое приложение исключены. Экспериментальная функция: может работать не на всех телефонах и приложениях.</string>
@@ -312,6 +314,8 @@
     <string name="size_note">Размер острова меняется при движении ползунка. С высотой растут значки. Текст по-прежнему обходит отверстие камеры.</string>
     <string name="foreground_notifications">Уведомления открытого приложения</string>
     <string name="foreground_notifications_desc">Выкл.: обычный баннер. Вкл.: ещё и карточка.</string>
+    <string name="setting_peek_progress">Прогресс в карточках уведомлений</string>
+    <string name="setting_peek_progress_desc">Показывать полосу прогресса, если она есть в уведомлении (отправка, загрузка).</string>
     <string name="auto_open_cards">Автоматически открывать новые карточки</string>
     <string name="auto_open_cards_desc">Ненадолго открывать новые активности. Обновления не открывают их снова.</string>
     <string name="group_recovery">Устранение неполадок</string>

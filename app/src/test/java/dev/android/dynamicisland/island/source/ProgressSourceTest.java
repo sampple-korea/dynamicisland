@@ -120,4 +120,29 @@ public class ProgressSourceTest {
                 .setContentTitle("다운로드").setContentText("73% 완료");
         assertNull(source().build(sbn("com.example.updater", 23, notOngoing)));
     }
+
+    @Test
+    public void theOpenAppsDownloadIsLeftOutUnlessTheOptionIsOn() throws Exception {
+        android.content.SharedPreferences prefs = dev.android.dynamicisland.settings.ModuleSettings.openStore(app);
+        ProgressSource s = source();
+        s.update(java.util.Collections.singletonList(sbn("com.example.store", 4, download("Updating", 30, 100))));
+        try {
+            prefs.edit().putBoolean(dev.android.dynamicisland.settings.ModuleSettings.KEY_PROGRESS_FOREGROUND, false).apply();
+            dev.android.dynamicisland.settings.ModuleSettings.configurePreview(prefs);
+            java.util.List<IslandItem> cards = new java.util.ArrayList<>();
+            s.collect(cards, "com.example.store");
+            org.junit.Assert.assertTrue("the app in front: no card by default", cards.isEmpty());
+            s.collect(cards, "com.example.other");
+            assertEquals("another app is in front: the card is there", 1, cards.size());
+
+            prefs.edit().putBoolean(dev.android.dynamicisland.settings.ModuleSettings.KEY_PROGRESS_FOREGROUND, true).apply();
+            dev.android.dynamicisland.settings.ModuleSettings.configurePreview(prefs);
+            cards.clear();
+            s.collect(cards, "com.example.store");
+            assertEquals("with the option the open app's download shows too", 1, cards.size());
+        } finally {
+            prefs.edit().putBoolean(dev.android.dynamicisland.settings.ModuleSettings.KEY_PROGRESS_FOREGROUND, false).apply();
+            dev.android.dynamicisland.settings.ModuleSettings.configurePreview(prefs);
+        }
+    }
 }

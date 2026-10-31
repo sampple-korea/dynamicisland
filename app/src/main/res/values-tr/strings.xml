@@ -36,6 +36,8 @@
     <string name="setting_hide_progress">Özgün bildirimleri gizle</string>
     <string name="setting_hide_progress_desc">Kart adadayken özgün bildirimi bildirim panelinden gizler.</string>
     <string name="setting_progress_desc">İlerleme çubuğu içeren devam eden bildirimleri (indirmeler, dosya kopyalama, uygulama güncellemeleri) kart olarak gösterir.</string>
+    <string name="setting_progress_foreground">Açık uygulamanın ilerlemesi</string>
+    <string name="setting_progress_foreground_desc">Açık uygulamanın indirme ve aktarımlarını da gösterir.</string>
     <string name="setting_heads_up">Adada bildirimler</string>
     <string name="setting_all_notifications">Tüm bildirimler adada</string>
     <string name="setting_all_notifications_desc">Bant olarak açılmayan sessiz bildirimler dahil her yeni bildirim için adada bir kart gösterir. Devam eden bildirimler, aramalar, alarmlar ve o anda kullandığınız uygulamanın bildirimleri hariç tutulur. Deneysel bir özelliktir; her telefonda veya uygulamada çalışmayabilir.</string>
@@ -312,6 +314,8 @@
     <string name="size_note">Kaydırıcıyı sürükledikçe gerçek durum çubuğundaki adanın boyutu değişir. Kapsülün yüksekliği arttığında simgeleri de büyür. Yükseklik değişse bile metin kamera deliğinin üzerine gelmez.</string>
     <string name="foreground_notifications">Açık uygulamanın bildirimleri</string>
     <string name="foreground_notifications_desc">Kapalı: standart banner kalır. Açık: kart da olur.</string>
+    <string name="setting_peek_progress">Bildirim kartlarında ilerleme</string>
+    <string name="setting_peek_progress_desc">Bildirimde ilerleme çubuğu varsa kartta da gösterir (gönderme, yükleme).</string>
     <string name="auto_open_cards">Yeni etkinlik kartlarını aç</string>
     <string name="auto_open_cards_desc">Yeni etkinlikleri kısa süre gösterir. Güncellemeler tekrar açmaz.</string>
     <string name="group_recovery">Sorun giderme</string>

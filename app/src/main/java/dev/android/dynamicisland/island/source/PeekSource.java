@@ -133,6 +133,21 @@ public final class PeekSource {
         return true;
     }
 
+    /**
+     * An upload or a send that is an ordinary notification with a progress bar: the card shows the bar too when the
+     * option is on, so it does not read as a plain message with no idea how far along it is.
+     */
+    static void applyProgress(IslandItem it, Notification n) {
+        if (!ModuleSettings.peekProgress() || n.extras == null) return;
+        if (n.extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false)) {
+            it.progressIndeterminate = true;
+            return;
+        }
+        int max = n.extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0);
+        int now = n.extras.getInt(Notification.EXTRA_PROGRESS, 0);
+        if (max > 0 && now >= 0) it.progress = Math.min(1f, now / (float) max);
+    }
+
     /** True when the notification carries anything a card could show: text, messages, or views of its own. */
     static boolean hasContent(Notification n) {
         if (n.contentView != null || n.bigContentView != null || n.headsUpContentView != null) return true;
@@ -247,6 +262,7 @@ public final class PeekSource {
         it.iconIsImage = true;
         it.trailing = IslandItem.Trailing.TEXT;
         it.trailingText = it.title;
+        applyProgress(it, n);
         it.actionType = 1;
         if (n.actions != null) {
             for (Notification.Action a : n.actions) {

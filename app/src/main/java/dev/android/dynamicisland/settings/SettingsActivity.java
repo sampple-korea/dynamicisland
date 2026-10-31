@@ -496,6 +496,7 @@ public final class SettingsActivity extends Activity {
                 selected -> prefs.edit().putBoolean(ModuleSettings.KEY_HEADS_UP_ISLAND, selected > 0)
                         .putBoolean(ModuleSettings.KEY_ALL_NOTIFICATIONS, selected == 2).apply());
         Switch foreground = toggle(banners, R.string.foreground_notifications, R.string.foreground_notifications_desc, ModuleSettings.KEY_FOREGROUND_NOTIFICATIONS, false);
+        toggle(banners, R.string.setting_peek_progress, R.string.setting_peek_progress_desc, ModuleSettings.KEY_PEEK_PROGRESS, false);
         OneUi.setDependentsEnabled(mode > 0 || flag(ModuleSettings.KEY_OTP_CARD, true), OneUi.rowOf(foreground));
         ui.linkRow(banners, getString(R.string.apps_title), appsSummary(), () -> open(this::appsPage));
         ui.note(page, getString(R.string.ui_notification_scope));
@@ -503,7 +504,9 @@ public final class SettingsActivity extends Activity {
         LinearLayout activity = ui.card(page);
         ui.linkRow(activity, getString(R.string.hub_events), getString(R.string.hub_events_sum), () -> open(this::eventsPage));
         ui.linkRow(activity, getString(R.string.rules_title), getString(R.string.hub_rules_sum), () -> open(rules::advancedPage));
-        toggle(activity, R.string.setting_progress, R.string.setting_progress_desc, ModuleSettings.KEY_PROGRESS_NOTIFICATIONS, true);
+        Switch progress = toggle(activity, R.string.setting_progress, R.string.setting_progress_desc, ModuleSettings.KEY_PROGRESS_NOTIFICATIONS, true);
+        Switch progressForeground = toggle(activity, R.string.setting_progress_foreground, R.string.setting_progress_foreground_desc, ModuleSettings.KEY_PROGRESS_FOREGROUND, false);
+        dependent(progress, OneUi.rowOf(progressForeground));
         toggle(activity, R.string.setting_hide_progress, R.string.setting_hide_progress_desc, ModuleSettings.KEY_HIDE_PROGRESS_ORIGINALS, true);
         toggle(activity, R.string.setting_calls, R.string.setting_calls_desc, ModuleSettings.KEY_THIRD_PARTY_CALLS, true);
         ui.category(page, getString(R.string.group_codes), getString(R.string.desc_codes));

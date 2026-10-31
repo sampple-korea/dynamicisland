@@ -36,6 +36,8 @@
     <string name="setting_hide_progress">元の通知を非表示にする</string>
     <string name="setting_hide_progress_desc">カードをアイランドに表示している間、通知パネルの元の通知を隠します。</string>
     <string name="setting_progress_desc">進捗バーのある継続通知（ダウンロード・ファイルコピー・アプリ更新）をカードで表示します。</string>
+    <string name="setting_progress_foreground">使用中のアプリの進捗</string>
+    <string name="setting_progress_foreground_desc">開いているアプリのダウンロード・転送もカードで表示します。</string>
     <string name="setting_heads_up">アイランド内の通知</string>
     <string name="setting_all_notifications">すべての通知をアイランドに表示</string>
     <string name="setting_all_notifications_desc">ポップアップしないサイレント通知も含め、新しい通知をカードで表示します。継続通知・通話・アラームと使用中アプリの通知は除きます。実験機能のため、端末やアプリによっては動作しない場合があります。</string>
@@ -312,6 +314,8 @@
     <string name="size_note">ドラッグ中に実際のアイランドのサイズが変わります。高さを増すとアイコンも大きくなります。高さを変えても、テキストはカメラ穴を避けます。</string>
     <string name="foreground_notifications">使用中のアプリの通知</string>
     <string name="foreground_notifications_desc">オフ：標準のバナーのまま。オン：カードでも表示します。</string>
+    <string name="setting_peek_progress">通知カードに進捗を表示</string>
+    <string name="setting_peek_progress_desc">通知に進捗バーがあるとき、カードにも表示します（送信・アップロード）。</string>
     <string name="auto_open_cards">新しい活動カードを自動で開く</string>
     <string name="auto_open_cards_desc">新しいアクティビティを一時表示します。更新では再表示しません。</string>
     <string name="group_recovery">トラブルシューティング</string>

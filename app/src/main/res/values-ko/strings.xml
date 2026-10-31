@@ -36,6 +36,8 @@
     <string name="setting_hide_progress">원본 알림 숨기기</string>
     <string name="setting_hide_progress_desc">카드가 아일랜드에 있는 동안 알림창의 원본을 숨깁니다.</string>
     <string name="setting_progress_desc">진행률이 있는 알림(다운로드, 파일 복사, 앱 업데이트)을 카드로 보여줍니다.</string>
+    <string name="setting_progress_foreground">사용 중인 앱의 진행 표시</string>
+    <string name="setting_progress_foreground_desc">열어 둔 앱의 다운로드·전송도 카드로 보여 줍니다.</string>
     <string name="setting_heads_up">알림을 아일랜드로</string>
     <string name="setting_all_notifications">모든 알림을 아일랜드로</string>
     <string name="setting_all_notifications_desc">배너로 뜨지 않는 조용한 알림까지, 새 알림마다 아일랜드 카드를 띄웁니다. 진행 중 알림, 전화, 알람과 지금 쓰는 앱의 알림은 제외합니다. 실험 기능이라 기기나 앱에 따라 잘 작동하지 않을 수 있습니다.</string>
@@ -312,6 +314,8 @@
     <string name="size_note">슬라이더를 끄는 동안 실제 상태바의 아일랜드가 크기를 따라옵니다. 알약이 높아지면 아이콘도 같이 커집니다. 높이를 바꿔도 글씨는 카메라 구멍을 피해 씁니다.</string>
     <string name="foreground_notifications">사용 중인 앱의 알림</string>
     <string name="foreground_notifications_desc">끔: 기본 배너 유지. 켬: 카드로도 표시합니다.</string>
+    <string name="setting_peek_progress">알림 카드에 진행률 표시</string>
+    <string name="setting_peek_progress_desc">알림에 진행 바가 있으면 카드에도 보여 줍니다(전송, 업로드).</string>
     <string name="auto_open_cards">새 활동 카드 자동 펼침</string>
     <string name="auto_open_cards_desc">새 활동 카드를 잠시 엽니다. 내용 갱신으로 다시 열리지 않습니다.</string>
     <string name="group_recovery">문제 해결</string>
