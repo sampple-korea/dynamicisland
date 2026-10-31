@@ -56,7 +56,7 @@ class TranslationChecks(unittest.TestCase):
     def test_region_tag_resource_directory(self):
         self.assertEqual('values', self.module.resource_dir('en'))
         self.assertEqual('values-ko', self.module.resource_dir('ko'))
-        self.assertEqual('values-pt-rBR', self.module.resource_dir('pt-BR'))
+        self.assertEqual('values-es-rMX', self.module.resource_dir('es-MX'))
 
     def test_an_unfinished_language_can_be_registered_but_not_wrong(self):
         module = self.module
@@ -66,21 +66,28 @@ class TranslationChecks(unittest.TestCase):
             module.RES = module.ROOT / 'app/src/main/res'
             module.PARTIAL = module.ROOT / 'scripts/partial-languages.txt'
             module.PARTIAL.parent.mkdir(parents=True)
+            # the repository's own unfinished language is left out: this test builds its own
             for path in original.glob('values*/strings.xml'):
+                if path.parent.name == 'values-pt-rBR':
+                    continue
                 target = module.RES / path.relative_to(original)
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(path, target)
             config = module.RES / 'xml/locales_config.xml'
             config.parent.mkdir(parents=True)
-            shutil.copyfile(original / 'xml/locales_config.xml', config)
+            tree = ET.parse(original / 'xml/locales_config.xml')
+            for locale in list(tree.getroot()):
+                if locale.get(module.ANDROID + 'name') == 'pt-BR':
+                    tree.getroot().remove(locale)
+            tree.write(config, encoding='utf-8')
             quiet = (contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()))
             with quiet[0], quiet[1]:
-                self.assertEqual(0, module.init('pt-BR'))
-                self.assertTrue((module.RES / 'values-pt-rBR/strings.xml').exists())
+                self.assertEqual(0, module.init('es-MX'))
+                self.assertTrue((module.RES / 'values-es-rMX/strings.xml').exists())
                 tree = ET.parse(config)
-                ET.SubElement(tree.getroot(), 'locale', {module.ANDROID + 'name': 'pt-BR'})
+                ET.SubElement(tree.getroot(), 'locale', {module.ANDROID + 'name': 'es-MX'})
                 tree.write(config)
-                file = module.RES / 'values-pt-rBR/strings.xml'
+                file = module.RES / 'values-es-rMX/strings.xml'
 
                 def strings():
                     tree = ET.parse(file)
@@ -93,8 +100,8 @@ class TranslationChecks(unittest.TestCase):
                 tree.write(file, encoding='utf-8')
                 self.assertEqual(1, module.check())
                 # ... unless it is declared unfinished: English fills the rest
-                module.PARTIAL.write_text('# unfinished\npt-BR  # in progress\n')
-                self.assertEqual({'pt-BR'}, module.partial_languages())
+                module.PARTIAL.write_text('# unfinished\nes-MX  # in progress\n')
+                self.assertEqual({'es-MX'}, module.partial_languages())
                 self.assertEqual(0, module.check())
                 # real mistakes stay errors for an unfinished language
                 tree, nodes = strings()
@@ -117,9 +124,9 @@ class TranslationChecks(unittest.TestCase):
                 next(n for n in nodes if n.get('name') == 'island_reply_to').text = 'Responder a %1$s'
                 tree.write(file, encoding='utf-8')
                 self.assertEqual(0, module.check())
-                module.PARTIAL.write_text('pt-BR\nxx\n')
+                module.PARTIAL.write_text('es-MX\nxx\n')
                 self.assertEqual(1, module.check())
-                module.PARTIAL.write_text('pt-BR\nen\n')
+                module.PARTIAL.write_text('es-MX\nen\n')
                 self.assertEqual(1, module.check())
 
 

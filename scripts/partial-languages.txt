@@ -4,3 +4,4 @@
 # back to English for each missing one, so it can be registered in xml/locales_config.xml before it is finished.
 # Every other check still applies to it: unknown keys, empty values and format placeholders that do not match
 # English are errors. Remove the line when the translation is complete, and the check will then require every string.
+pt-BR
