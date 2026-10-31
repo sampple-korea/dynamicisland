@@ -84,6 +84,7 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
         haptics = new Haptics(ctx);
         placement = new IslandPlacement(ctx, main, classLoader, this, this, audio);
         headsUp = new HeadsUpTakeover(sources, placement, this::refreshNow);
+        placement.setOnUnlocked(sources.unlock::onUnlocked);
         launcher = new ItemLauncher(ctx, haptics, placement::view);
         shadeDrag = new ShadeDragRelay(ctx, placement::statusBar);
     }

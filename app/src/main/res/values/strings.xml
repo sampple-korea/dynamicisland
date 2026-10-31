@@ -34,6 +34,8 @@
     <string name="setting_event_toggles_desc">Confirm Do Not Disturb, airplane mode, power saving, flashlight, hotspot and auto-rotate being switched.</string>
     <string name="setting_hotspot_card">Hotspot card</string>
     <string name="setting_hotspot_card_desc">Show devices, data used and time while the hotspot is on.</string>
+    <string name="setting_unlock_notice">Unlock notice</string>
+    <string name="setting_unlock_notice_desc">Briefly show how the phone was unlocked (fingerprint, face or PIN).</string>
     <string name="setting_torch_pill">Flashlight card</string>
     <string name="setting_torch_pill_desc">While the flashlight is on, show it on the island with a button to turn it off. Works on phones whose flashlight has a single brightness level too.</string>
     <string name="setting_progress">Downloads &amp; transfers</string>
@@ -357,6 +359,10 @@
     <string name="island_flashlight">Flashlight</string>
     <string name="island_hotspot">Hotspot</string>
     <string name="island_hotspot_devices">Devices: %1$d</string>
+    <string name="island_unlocked_fingerprint">Unlocked with fingerprint</string>
+    <string name="island_unlocked_face">Unlocked with face</string>
+    <string name="island_unlocked_trusted">Unlocked by a trusted device</string>
+    <string name="island_unlocked_pin">Unlocked</string>
     <string name="island_auto_rotate">Auto-rotate</string>
     <string name="island_setting_on">%1$s on</string>
     <string name="island_setting_off">%1$s off</string>
@@ -595,6 +601,7 @@
     <string name="search_terms_sound">silent vibrate ring sound mute volume</string>
     <string name="search_terms_bluetooth">bluetooth headphones earbuds speaker headset wired buds</string>
     <string name="search_terms_hotspot">hotspot tethering wifi share internet devices data traffic</string>
+    <string name="search_terms_unlock">unlock unlocked fingerprint face pin pattern password biometric trusted lock screen</string>
     <string name="search_terms_privacy">privacy microphone mic camera recording permission</string>
     <string name="search_terms_location">location GPS navigation positioning</string>
     <string name="search_terms_apps">app apps application blacklist whitelist exclude allow block filter</string>

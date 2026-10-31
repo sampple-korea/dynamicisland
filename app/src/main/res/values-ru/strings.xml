@@ -28,6 +28,8 @@
     <string name="setting_event_toggles_desc">Сообщать о переключении режима «Не беспокоить», авиарежима, энергосбережения, фонарика, точки доступа и автоповорота.</string>
     <string name="setting_hotspot_card">Карточка точки доступа</string>
     <string name="setting_hotspot_card_desc">Показывать устройства, трафик и время, пока точка доступа включена.</string>
+    <string name="setting_unlock_notice">Уведомление о разблокировке</string>
+    <string name="setting_unlock_notice_desc">Кратко показывать способ разблокировки (отпечаток, лицо или PIN).</string>
     <string name="setting_torch_pill">Карточка фонарика</string>
     <string name="setting_torch_pill_desc">Пока фонарик включён, показывать карточку с кнопкой выключения. Работает и на телефонах с одним уровнем яркости.</string>
     <string name="setting_progress">Загрузки и передача файлов</string>
@@ -348,6 +350,10 @@
     <string name="island_flashlight">Фонарик</string>
     <string name="island_hotspot">Точка доступа</string>
     <string name="island_hotspot_devices">Устройств: %1$d</string>
+    <string name="island_unlocked_fingerprint">Разблокировано отпечатком</string>
+    <string name="island_unlocked_face">Разблокировано лицом</string>
+    <string name="island_unlocked_trusted">Разблокировано доверенным устройством</string>
+    <string name="island_unlocked_pin">Разблокировано</string>
     <string name="island_auto_rotate">Автоповорот</string>
     <string name="island_setting_on">%1$s: вкл.</string>
     <string name="island_setting_off">%1$s: выкл.</string>
@@ -586,6 +592,7 @@
     <string name="search_terms_sound">звук беззвучный вибрация звонок громкость тишина</string>
     <string name="search_terms_bluetooth">Bluetooth блютуз наушники гарнитура динамик проводные</string>
     <string name="search_terms_hotspot">точка доступа хотспот раздача wifi интернет устройства трафик</string>
+    <string name="search_terms_unlock">разблокировка отпечаток лицо пин графический ключ пароль биометрия доверенное экран блокировки</string>
     <string name="search_terms_privacy">приватность конфиденциальность микрофон камера запись разрешения</string>
     <string name="search_terms_location">местоположение геолокация GPS навигация карта</string>
     <string name="search_terms_apps">приложение приложения чёрный белый список исключить разрешить блокировать фильтр</string>

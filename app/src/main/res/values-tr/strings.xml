@@ -28,6 +28,8 @@
     <string name="setting_event_toggles_desc">Rahatsız Etmeyin, uçak modu, güç tasarrufu, el feneri, erişim noktası ve otomatik döndürme açıldığında veya kapatıldığında bildirir.</string>
     <string name="setting_hotspot_card">Erişim noktası kartı</string>
     <string name="setting_hotspot_card_desc">Erişim noktası açıkken cihazları, kullanılan veriyi ve süreyi gösterir.</string>
+    <string name="setting_unlock_notice">Kilit açma bildirimi</string>
+    <string name="setting_unlock_notice_desc">Kilidin nasıl açıldığını (parmak izi, yüz veya PIN) kısaca gösterir.</string>
     <string name="setting_torch_pill">El feneri kartı</string>
     <string name="setting_torch_pill_desc">El feneri açıkken adada kapatma düğmesiyle birlikte gösterir. El fenerinin tek parlaklık düzeyi olduğu telefonlarda da çalışır.</string>
     <string name="setting_progress">İndirmeler ve aktarımlar</string>
@@ -348,6 +350,10 @@
     <string name="island_flashlight">El feneri</string>
     <string name="island_hotspot">Mobil erişim noktası</string>
     <string name="island_hotspot_devices">Cihaz: %1$d</string>
+    <string name="island_unlocked_fingerprint">Parmak iziyle açıldı</string>
+    <string name="island_unlocked_face">Yüzle açıldı</string>
+    <string name="island_unlocked_trusted">Güvenilir cihazla açıldı</string>
+    <string name="island_unlocked_pin">Kilit açıldı</string>
     <string name="island_auto_rotate">Otomatik döndürme</string>
     <string name="island_setting_on">%1$s açık</string>
     <string name="island_setting_off">%1$s kapalı</string>
@@ -586,6 +592,7 @@
     <string name="search_terms_sound">ses sessiz titreşim zil sustur ses seviyesi</string>
     <string name="search_terms_bluetooth">Bluetooth kulaklık hoparlör kablolu buds</string>
     <string name="search_terms_hotspot">erişim noktası hotspot paylaşım wifi internet cihaz veri trafik</string>
+    <string name="search_terms_unlock">kilit açma parmak izi yüz pin desen parola biyometrik güvenilir kilit ekranı</string>
     <string name="search_terms_privacy">gizlilik mikrofon kamera kayıt izin kullanım</string>
     <string name="search_terms_location">konum GPS navigasyon harita takip</string>
     <string name="search_terms_apps">uygulama uygulamalar kara beyaz liste hariç izin engelle filtre</string>

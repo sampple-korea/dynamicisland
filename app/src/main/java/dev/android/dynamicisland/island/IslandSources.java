@@ -12,6 +12,7 @@ import dev.android.dynamicisland.island.source.EventSource;
 import dev.android.dynamicisland.island.source.ChargingSource;
 import dev.android.dynamicisland.island.source.HeadsetSource;
 import dev.android.dynamicisland.island.source.HotspotSource;
+import dev.android.dynamicisland.island.source.UnlockSource;
 import dev.android.dynamicisland.island.source.MediaSource;
 import dev.android.dynamicisland.island.source.OaSource;
 import dev.android.dynamicisland.island.source.PeekSource;
@@ -57,6 +58,7 @@ final class IslandSources {
     final ChargingSource charging;
     final HeadsetSource headset;
     final HotspotSource hotspot;
+    final UnlockSource unlock;
     final TorchSource torch;
     final PrivacySource privacy;
     final ProgressSource progress;
@@ -80,6 +82,7 @@ final class IslandSources {
         charging = new ChargingSource(ctx, main, onChange);
         headset = new HeadsetSource(ctx, main, onChange);
         hotspot = new HotspotSource(ctx, main, onChange);
+        unlock = new UnlockSource(ctx, main, onChange);
         torch = new TorchSource(ctx, main, onChange);
         privacy = new PrivacySource(ctx, main, onChange);
         progress = new ProgressSource(ctx, main, onChange);
@@ -143,6 +146,7 @@ final class IslandSources {
         guarded("charging info", () -> charging.collect(items));
         guarded("headset", () -> headset.collect(items));
         guarded("hotspot", () -> hotspot.collect(items));
+        guarded("unlock notice", () -> unlock.collect(items));
         if (charging.isOffering()) items.removeIf(item -> "event:charging".equals(item.key));
         guarded("torch", () -> torch.collect(items));
         if (ModuleSettings.placementPreviewActive()) {
