@@ -360,6 +360,10 @@
     <string name="island_unlocked_face">顔でロック解除</string>
     <string name="island_unlocked_trusted">信頼できるデバイスでロック解除</string>
     <string name="island_unlocked_pin">ロック解除</string>
+    <string name="island_unlock_label_fingerprint">指紋</string>
+    <string name="island_unlock_label_face">顔</string>
+    <string name="island_unlock_label_trusted">信頼済み</string>
+    <string name="island_unlock_label_pin">PIN・パターン</string>
     <string name="island_auto_rotate">自動回転</string>
     <string name="island_setting_on">%1$s オン</string>
     <string name="island_setting_off">%1$s オフ</string>

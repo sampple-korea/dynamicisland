@@ -360,6 +360,10 @@
     <string name="island_unlocked_face">Разблокировано лицом</string>
     <string name="island_unlocked_trusted">Разблокировано доверенным устройством</string>
     <string name="island_unlocked_pin">Разблокировано</string>
+    <string name="island_unlock_label_fingerprint">Отпечаток</string>
+    <string name="island_unlock_label_face">Лицо</string>
+    <string name="island_unlock_label_trusted">Доверенное</string>
+    <string name="island_unlock_label_pin">PIN/ключ</string>
     <string name="island_auto_rotate">Автоповорот</string>
     <string name="island_setting_on">%1$s: вкл.</string>
     <string name="island_setting_off">%1$s: выкл.</string>

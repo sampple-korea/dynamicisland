@@ -33,6 +33,25 @@ public class UnlockSourceTest {
         public boolean getUserHasTrust(int user) { return trust; }
     }
 
+    @org.junit.Before public void noBiometricYet() {
+        UnlockSource.forgetBiometric();
+    }
+
+    @Test public void aBiometricAcceptedJustBeforeTheKeyguardWentAwayIsTheMethodEvenWhenSystemUiForgotIt() {
+        FakeMonitor forgotten = new FakeMonitor(); // System UI clears its record before the keyguard has gone
+        long now = android.os.SystemClock.uptimeMillis();
+        assertEquals(UnlockSource.Method.PIN, UnlockSource.decide(forgotten, 0, now));
+
+        UnlockSource.biometricAuthenticated(false);
+        assertEquals("a fingerprint was accepted a moment ago", UnlockSource.Method.FINGERPRINT, UnlockSource.decide(forgotten, 0, now + 1500));
+        UnlockSource.biometricAuthenticated(true);
+        assertEquals(UnlockSource.Method.FACE, UnlockSource.decide(forgotten, 0, android.os.SystemClock.uptimeMillis() + 800));
+        assertEquals("an old one is not the way this unlock happened", UnlockSource.Method.PIN,
+                UnlockSource.decide(forgotten, 0, android.os.SystemClock.uptimeMillis() + 60_000));
+        forgotten.trust = true;
+        assertEquals(UnlockSource.Method.TRUSTED, UnlockSource.decide(forgotten, 0, android.os.SystemClock.uptimeMillis() + 60_000));
+    }
+
     @Test public void theMethodIsWhatTheKeyguardMonitorReportsAndPinWhenItReportsNothing() {
         FakeMonitor monitor = new FakeMonitor();
         assertEquals(UnlockSource.Method.PIN, UnlockSource.read(monitor, 0));
@@ -72,6 +91,9 @@ public class UnlockSourceTest {
         source.collect(cards);
         assertEquals(1, cards.size());
         assertEquals("event:unlock", cards.get(0).key);
+        assertEquals("the right half of the pill says how", IslandItem.Trailing.TEXT, cards.get(0).trailing);
+        assertEquals(app.getString(app.getResources().getIdentifier("island_unlock_label_face", "string", app.getPackageName())),
+                cards.get(0).trailingText.toString());
         assertEquals(app.getString(app.getResources().getIdentifier("island_unlocked_face", "string", app.getPackageName())),
                 cards.get(0).title.toString());
 

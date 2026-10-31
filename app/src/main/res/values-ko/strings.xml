@@ -360,6 +360,10 @@
     <string name="island_unlocked_face">얼굴로 잠금 해제</string>
     <string name="island_unlocked_trusted">신뢰할 수 있는 기기로 잠금 해제</string>
     <string name="island_unlocked_pin">잠금 해제됨</string>
+    <string name="island_unlock_label_fingerprint">지문</string>
+    <string name="island_unlock_label_face">얼굴</string>
+    <string name="island_unlock_label_trusted">신뢰 기기</string>
+    <string name="island_unlock_label_pin">PIN·패턴</string>
     <string name="island_auto_rotate">자동 회전</string>
     <string name="island_setting_on">%1$s 켜짐</string>
     <string name="island_setting_off">%1$s 꺼짐</string>

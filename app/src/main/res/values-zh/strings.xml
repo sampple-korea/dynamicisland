@@ -360,6 +360,10 @@
     <string name="island_unlocked_face">已用人脸解锁</string>
     <string name="island_unlocked_trusted">已由信任设备解锁</string>
     <string name="island_unlocked_pin">已解锁</string>
+    <string name="island_unlock_label_fingerprint">指纹</string>
+    <string name="island_unlock_label_face">人脸</string>
+    <string name="island_unlock_label_trusted">信任设备</string>
+    <string name="island_unlock_label_pin">PIN/图案</string>
     <string name="island_auto_rotate">自动旋转</string>
     <string name="island_setting_on">%1$s已开启</string>
     <string name="island_setting_off">%1$s已关闭</string>

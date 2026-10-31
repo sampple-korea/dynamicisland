@@ -369,6 +369,10 @@
     <string name="island_unlocked_face">Unlocked with face</string>
     <string name="island_unlocked_trusted">Unlocked by a trusted device</string>
     <string name="island_unlocked_pin">Unlocked</string>
+    <string name="island_unlock_label_fingerprint">Fingerprint</string>
+    <string name="island_unlock_label_face">Face</string>
+    <string name="island_unlock_label_trusted">Trusted</string>
+    <string name="island_unlock_label_pin">Passcode</string>
     <string name="island_auto_rotate">Auto-rotate</string>
     <string name="island_setting_on">%1$s on</string>
     <string name="island_setting_off">%1$s off</string>

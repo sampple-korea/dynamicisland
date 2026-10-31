@@ -360,6 +360,10 @@
     <string name="island_unlocked_face">Yüzle açıldı</string>
     <string name="island_unlocked_trusted">Güvenilir cihazla açıldı</string>
     <string name="island_unlocked_pin">Kilit açıldı</string>
+    <string name="island_unlock_label_fingerprint">Parmak izi</string>
+    <string name="island_unlock_label_face">Yüz</string>
+    <string name="island_unlock_label_trusted">Güvenilir</string>
+    <string name="island_unlock_label_pin">PIN/desen</string>
     <string name="island_auto_rotate">Otomatik döndürme</string>
     <string name="island_setting_on">%1$s açık</string>
     <string name="island_setting_off">%1$s kapalı</string>
