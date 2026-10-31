@@ -47,11 +47,11 @@ Dynamic Island replaces Samsung's Now Bar capsule in the status bar with a pill 
 
 These pictures are drawn by the app's own drawing code on a mock phone in the test environment (see `scripts/readme_images.py`); they are not photos of a device, and the app icons are made of plain shapes.
 
-## New in 0.1.14
+## New in 0.1.13
 
-This stable release brings optional **iMotion**: one expanded activity, coordinated blur and motion, sideways activity switching, and swipe-up hiding with pull-down restoration near the camera hole. It also includes ranked settings search, one-at-a-time feature recommendations, optional expanding-beam flashlight controls, smoother sleep/AOD transitions and notification-card reuse fixes. Existing animations and Classic material remain the defaults; Frosted material is an opt-in experiment. All six languages are supported.
+This stable release collects the 0.1.13 development builds: shared music-reactive glow, simpler settings, optional charging/headset cards, recording-clock and system-font fixes, and the live-notification long-press crash fix. Cards now use circular battery gauges, clearer compact information and a shared 28dp corner radius, with an optional 0–48dp adjustment. The experimental Samsung Voice Recorder waveform is off by default; enable it under Advanced & troubleshooting when supported by your device.
 
-[Release notes](docs/release-notes/0.1.14.md)
+[Release notes](docs/release-notes/0.1.13.md) · [36 current card examples](docs/cards-overview-0.1.13.png) (illustrative data, including optional features).
 
 ## Features
 
@@ -136,8 +136,8 @@ This stable release brings optional **iMotion**: one expanded activity, coordina
 ### System events
 
 - **Charging** (fast or wireless, with the live percentage), **low battery**, **sound mode** (silent, vibrate, ring), **Bluetooth audio** connecting (with its battery level).
-- **Optional device cards:** Live charging details, charging statistics and wired/USB headset alerts are off by default under **Notifications & activities → System events**. The charging card retains event priority and replaces the brief charging popup while active. Statistics require the charging card; disabling either stops the corresponding collection. Power is estimated at the battery, and screen-state charge changes are estimates based on observed fuel-gauge reporting windows. **Advanced → Camera calibration** offers 0–16dp extra text clearance beside the cutout; 0 preserves the original spacing.
-- **Samsung battery charging effect:** **Notifications & activities → System events → Show Samsung battery charging effect** is off by default. It suppresses the expanding, coloured charging animation in the status bar while retaining the regular battery icon, percentage, charging indicator, sounds and island alerts. Both the checked One UI 9 Compose path and the BatteryEvent scheduler path are handled when present; unsupported builds retain their stock behaviour.
+- **Optional device cards:** Live charging details, charging statistics and wired/USB headset alerts are off by default under **Notifications → System events**. The charging card retains event priority and replaces the brief charging popup while active. Statistics require the charging card; disabling either stops the corresponding collection. Power is estimated at the battery, and screen-state charge changes are estimates based on observed fuel-gauge reporting windows. **Advanced → Camera calibration** offers 0–16dp extra text clearance beside the cutout; 0 preserves the original spacing.
+- **Samsung battery charging effect:** **Notifications → System events → Show Samsung battery charging effect** is off by default. It suppresses the expanding, coloured charging animation in the status bar while retaining the regular battery icon, percentage, charging indicator, sounds and island alerts. Both the checked One UI 9 Compose path and the BatteryEvent scheduler path are handled when present; unsupported builds retain their stock behaviour.
 - **Camera, microphone and location in use:** which app uses which sensor; a tap opens that app's permission page. (Location is off by default because navigation and weather apps use it all day.)
 - **Quick-setting feedback:** Do Not Disturb, airplane mode, power saving, hotspot and auto-rotate being switched on or off.
 - **Flashlight brightness:** While the torch is on, tapping the island opens a card with a big iOS style slider for its brightness levels (5 on Galaxy phones, read from the camera) and a turn-off button. On a phone whose torch has a single level the card has no slider, only the state and the turn-off button (the *Flashlight card* switch can be turned off to get the plain "flashlight on" popup instead).
@@ -147,8 +147,8 @@ This stable release brings optional **iMotion**: one expanded activity, coordina
 
 - **Ambient glow (on by default, music sessions only):** all compact pills share the active music session colours and sound response, even when the music pill itself is hidden. Album matching uses the waveform palette. Pausing makes the halo faint; ending the session smoothly fades its last colours out over 1.2 seconds. Choose music-only or all-activity visibility, brightness (default 45%) and dynamic strength (0–100%, default 50%) with a live preview. Theme and separate preset/HSV/HEX colours remain available. Low-performance mode disables the halo.
 - **Low-performance mode (off by default):** replaces content blur with a crossfade and background blur with an opaque black card; keeps static album colours and artwork, static waveforms without audio analysis, and settled icon frames with current battery state. Continuous motion is capped at 30 fps, touch feedback and expansion/collapse at 60 fps. Individual settings are preserved and restored when the mode is turned off; notifications, calls, timers and music controls keep working.
-- Five groups: **Notifications & activities**, **Appearance**, **Behavior**, **Advanced & troubleshooting** and **App info**, with **Restart System UI** and the settings language at the bottom of the home page. English, Korean, Japanese, Simplified Chinese, Russian and Turkish; light and dark themes. Most changes apply within a few seconds without restarting System UI.
-- **Position and size:** live status-bar preview, automatic or custom widths, sliders, numeric input and one-step adjustment. Position, size and camera calibration reset separately. Camera cutout calibration is at the bottom of the position and size page.
+- Six groups: **Notifications & activities**, **App notifications**, **Appearance**, **Behavior**, **Advanced & troubleshooting** and **App info**. English, Korean, Japanese, Simplified Chinese, Russian and Turkish; light and dark themes. Most changes apply within a few seconds without restarting System UI.
+- **Position and size:** live status-bar preview, automatic or custom widths, sliders, numeric input and one-step adjustment. Position, size and camera calibration reset separately. Camera cutout calibration is under **Advanced & troubleshooting**.
 - **Clear choices:** ordinary notification cards can be off, banner-only or include silent notifications. Foreground-service notifications are optional and off by default. App filters affect ordinary notification cards only; search by name or package, view selected apps and save or cancel changes.
 - **Appearance and behavior:** default/custom accent colour with a cancellable HSV/HEX editor; large event icons by default, optional small icons; charging battery icon hidden by default. Animation uses an actual island-renderer preview and saves immediately. Waveform motion can react to audio or use a demo animation.
 - **Timing and recovery:** automatic activity opening is off by default. When enabled, its display time (default 4 seconds) is separate from manual-card auto-collapse (6 seconds) and paused-music retention (60 seconds). Experimental notification recovery is off by default and intended only for compatibility problems.
@@ -179,11 +179,12 @@ This stable release brings optional **iMotion**: one expanded activity, coordina
 
 | Page | What it holds |
 |---|---|
-| Notifications & activities | Ordinary notification mode, app filter (all apps except selected / selected apps only), system events grouped as charging, sound and headphones, and quick settings and flashlight; automatic classification with its rule editor, downloads, calls and verification codes |
-| Appearance | A live island preview above the settings: animation, material, outline, card corners, event icon size, flashlight controls, card header, colour icons and battery icon are chips or switches that play on the preview as soon as they are chosen; accent colour, ambient glow, and position, size and camera calibration |
-| Behavior | Full-screen visibility, low-performance mode, haptics, music player in the shade, audio / demo waveform and microphone input, and separate card timers |
-| Advanced & troubleshooting | Experimental recovery, diagnostics |
-| App info | Version, What's new, author and credits |
+| Notifications & activities | Ordinary notification mode, system events, automatic classification, downloads, calls and verification codes |
+| App notifications | All apps except selected / selected apps only; searchable app list; ordinary cards only |
+| Appearance | Accent colour, position and size, card headers, icon size, charging battery icon and shade music |
+| Behavior | Default / Classic animation, haptics, audio / demo waveform and separate card timers |
+| Advanced & troubleshooting | Rule patterns and stages, clipboard import/export, camera calibration, experimental recovery, diagnostics and System UI restart |
+| App info | Settings language, version, author and credits |
 
 ## If it does not work
 

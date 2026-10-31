@@ -72,7 +72,6 @@ final class IslandPlacement {
     // System UI state that decides whether the island may be shown.
     private int barState;
     private boolean dozing;
-    private boolean sleeping, sleepExitVisible, sleepFinished, wakefulnessKnown;
     private boolean lastSuppressed;
     private int statusBarWindowState;
     private boolean landscapeSuppressed;
@@ -176,8 +175,6 @@ final class IslandPlacement {
                 view = null;
                 return;
             }
-            view.setSleeping(sleeping);
-            if (sleeping && sleepFinished) view.finishSleeping();
             updateSuppression();
             Diagnostics.fact("window", "created");
         } catch (Throwable t) {
@@ -209,50 +206,8 @@ final class IslandPlacement {
         if (dozing != value) {
             XLog.event("dozing " + value);
             dozing = value;
-            // Fallback on builds without an early wakefulness callback.
-            if (!wakefulnessKnown || (!value && sleeping && sleepFinished)) transitionSleeping(value);
-            if (value && sleeping) sleepFinished = true;
-            if (!value && revealPending && !sleeping && barState == BAR_STATE_SHADE) {
-                main.removeCallbacks(revealTimer);
-                main.postDelayed(revealTimer, UNLOCK_REVEAL_DELAY_MS);
-            }
             updateSuppression();
         }
-    }
-
-    void setSleeping(boolean value) {
-        wakefulnessKnown = true;
-        transitionSleeping(value);
-    }
-
-    private void transitionSleeping(boolean value) {
-        if (sleeping == value) return;
-        sleeping = value;
-        XLog.event("sleep transition " + (value ? "closing" : "waking"));
-        main.removeCallbacks(revealTimer);
-        if (value) {
-            sleepFinished = false;
-            revealPending = false;
-            sleepExitVisible = view != null && !lastSuppressed && !view.isFullyHidden();
-            if (view != null) view.setSleeping(true);
-            updateSuppression();
-        } else {
-            boolean cancelled = sleepExitVisible && !sleepFinished && !dozing && barState == BAR_STATE_SHADE;
-            sleepExitVisible = false;
-            // Also cover swipe/no-lock devices, which may never emit a keyguard -> shade change.
-            revealPending = !cancelled;
-            updateSuppression();
-            if (view != null) view.setSleeping(false);
-            if (revealPending && !dozing && barState == BAR_STATE_SHADE) main.postDelayed(revealTimer, UNLOCK_REVEAL_DELAY_MS);
-        }
-    }
-
-    void finishSleeping() {
-        setSleeping(true);
-        sleepFinished = true;
-        if (view != null) view.finishSleeping();
-        if (window != null) window.stopBackdropSampling();
-        onFrame();
     }
 
     void setStatusBarWindowState(int state) {
@@ -263,7 +218,6 @@ final class IslandPlacement {
     }
 
     private void onRevealDelayElapsed() {
-        if (sleeping || dozing || barState != BAR_STATE_SHADE) return;
         revealPending = false;
         updateSuppression();
         if (view != null) {
@@ -277,11 +231,10 @@ final class IslandPlacement {
         }
         boolean locked = barState == BAR_STATE_KEYGUARD || barState == BAR_STATE_SHADE_LOCKED;
         boolean fullscreen = statusBarWindowState != 0 && !(portrait && ModuleSettings.showInFullscreen());
-        boolean suppressed = ((locked || dozing) && !(sleeping && sleepExitVisible))
-                || (fullscreen && !(sleeping && sleepExitVisible)) || landscapeSuppressed || revealPending;
+        boolean suppressed = locked || dozing || fullscreen || landscapeSuppressed || revealPending;
         if (suppressed != lastSuppressed) {
             lastSuppressed = suppressed;
-            XLog.event("island " + (suppressed ? "hidden" : "shown") + " (keyguard=" + locked + " dozing=" + dozing + " sleeping=" + sleeping + " fullscreen=" + fullscreen
+            XLog.event("island " + (suppressed ? "hidden" : "shown") + " (keyguard=" + locked + " dozing=" + dozing + " fullscreen=" + fullscreen
                     + " landscape=" + landscapeSuppressed + " unlockReveal=" + revealPending + ")");
         }
         view.setSuppressed(suppressed);
@@ -465,7 +418,6 @@ final class IslandPlacement {
         }
         window.invalidateTouchRegion();
         boolean hidden = view.isFullyHidden();
-        if (sleeping && hidden) window.stopBackdropSampling();
         window.setShown(true);
         if (!view.shadePulled()) {
             view.getCoverageBounds(scratch);

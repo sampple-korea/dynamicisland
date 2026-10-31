@@ -22,13 +22,6 @@ final class ContentBlur {
     private int viewStep = -1;
     private boolean failed;
 
-    /** The transition blur runs unless it is switched off, or, in automatic mode, the governor has paused it. */
-    static boolean enabled(int mode, BlurGovernor governor, long nowMs) {
-        if (mode == ModuleSettings.TRANSITION_BLUR_OFF) return false;
-        if (mode == ModuleSettings.TRANSITION_BLUR_ALWAYS) return true;
-        return governor.allowed(nowMs);
-    }
-
     private int step(float amount) {
         return Math.round(IslandView.clamp01(amount) * STEPS);
     }
@@ -49,7 +42,7 @@ final class ContentBlur {
 
     /** Record just the foreground at its existing coordinates; the caller's clip still bounds the result. */
     Canvas begin(Canvas target, RectF bounds, float amount, float radius) {
-        int level = ModuleSettings.lowPerformance() || !enabled(ModuleSettings.transitionBlurMode(), BlurGovernor.INSTANCE, android.os.SystemClock.uptimeMillis()) ? 0 : step(amount);
+        int level = ModuleSettings.lowPerformance() ? 0 : step(amount);
         if (failed || level == 0 || !target.isHardwareAccelerated() || bounds.isEmpty()) {
             if (node != null) {
                 if (node.hasDisplayList()) node.discardDisplayList();
@@ -72,7 +65,6 @@ final class ContentBlur {
             node.setPosition(left, top, right, bottom);
             Canvas recording = node.beginRecording(right - left, bottom - top);
             recording.translate(-left, -top);
-            BlurGovernor.INSTANCE.blurDrawn();
             return recording;
         } catch (RuntimeException | LinkageError error) {
             failed = true;
@@ -89,8 +81,7 @@ final class ContentBlur {
 
     /** RemoteViews already own a RenderNode; apply the same curve without blurring the card behind them. */
     void apply(View view, float amount, float radius) {
-        int level = failed || ModuleSettings.lowPerformance() || !enabled(ModuleSettings.transitionBlurMode(), BlurGovernor.INSTANCE, android.os.SystemClock.uptimeMillis()) ? 0 : step(amount);
-        if (level > 0) BlurGovernor.INSTANCE.blurDrawn();
+        int level = failed || ModuleSettings.lowPerformance() ? 0 : step(amount);
         if (effectView == view && viewStep == level && effectRadius == radius) return;
         try {
             view.setRenderEffect(effect(level, radius));
@@ -101,12 +92,6 @@ final class ContentBlur {
             view.setRenderEffect(null);
             XLog.once("remote content blur unavailable", error);
         }
-    }
-
-    void clear() {
-        clearView();
-        if(node!=null) { node.discardDisplayList(); node.setRenderEffect(null); node=null; }
-        Arrays.fill(effects,null);nodeStep=-1;
     }
 
     void clearView() {

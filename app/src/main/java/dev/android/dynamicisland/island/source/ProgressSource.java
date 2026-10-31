@@ -109,7 +109,13 @@ public final class ProgressSource {
         }
     }
 
-    /** Adds the progress cards, except for the foreground app and those One UI already shows as live notification. */
+    /**
+     * Adds the progress cards.
+     *
+     * <p>The foreground app used to be skipped, so a file you started downloading from the app you were in
+     * never appeared - which is exactly when you are most likely to look. Only notifications One UI already
+     * shows as a live card are left out now, so nothing appears twice.
+     */
     public void collect(List<IslandItem> out, String foregroundPackage) {
         if (items.isEmpty() || !ModuleSettings.progressNotifications()) {
             publishShown(Collections.emptySet());
@@ -122,13 +128,21 @@ public final class ProgressSource {
                 else if (it.key.startsWith("oa:")) promoted.add(it.key.substring(3));
             }
         }
+        // a card with a real bar wins over a live card for the same notification, which usually has none
+        Set<String> withBar = new HashSet<>();
+        for (IslandItem it : items.values()) {
+            if (it.progress >= 0.0f || it.progressIndeterminate) {
+                withBar.add(it.key.substring(TASK_PREFIX.length()));
+            }
+        }
+        out.removeIf(o -> (o.key.startsWith("oa:") || o.key.startsWith("live:"))
+                && o.sourceKey != null && withBar.contains(o.sourceKey));
+
         Set<String> shown = new HashSet<>();
         for (IslandItem it : items.values()) {
-            if (it.packageName != null && it.packageName.equals(foregroundPackage)) {
-                continue;
-            }
-            if (promoted.contains(it.key.substring(TASK_PREFIX.length()))) {
-                continue; // already shown as a live notification
+            String source = it.key.substring(TASK_PREFIX.length());
+            if (promoted.contains(source) && !withBar.contains(source)) {
+                continue; // already shown as a live notification, and that card is the only one with content
             }
             out.add(it);
             shown.add(it.key.substring(TASK_PREFIX.length()));
@@ -164,7 +178,15 @@ public final class ProgressSource {
             return null;
         }
         boolean ongoing = (n.flags & (Notification.FLAG_ONGOING_EVENT | Notification.FLAG_FOREGROUND_SERVICE)) != 0;
-        if (!ongoing || (n.flags & Notification.FLAG_GROUP_SUMMARY) != 0) {
+        if ((n.flags & Notification.FLAG_GROUP_SUMMARY) != 0) {
+            return null;
+        }
+        // An ongoing notification may show progress only in its text ("Downloading 73%"); anything that
+        // carries a real progress bar qualifies whether or not it is ongoing, because plenty of apps post a
+        // download or an upload as an ordinary notification.
+        boolean hasBar = extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0
+                && extras.getInt(Notification.EXTRA_PROGRESS, 0) >= 0;
+        if (!ongoing && !hasBar) {
             return null;
         }
         if (isSpecial(sbn, n, extras)) {
@@ -241,9 +263,9 @@ public final class ProgressSource {
                 || template.endsWith("$CallStyle"))) {
             return true;
         }
-        if (!ModuleSettings.experimentalRecovery() && template != null && template.endsWith("$ProgressStyle") && PromotedSource.enabled() && PromotedSource.isPromoted(sbn)) {
-            return true;
-        }
+        // A $ProgressStyle notification is exactly what this source is for. It used to be skipped whenever One
+        // UI promoted it as a live card, and that card often carries no bar at all - so a download showed as
+        // "Downloading…" with no progress anywhere. The live card is now dropped in favour of the bar below.
         if (extras.containsKey(Notification.EXTRA_MEDIA_SESSION) || Notification.CATEGORY_CALL.equals(n.category)
                 || Notification.CATEGORY_TRANSPORT.equals(n.category) || Notification.CATEGORY_NAVIGATION.equals(n.category)) {
             return true;

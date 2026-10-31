@@ -1,0 +1,55 @@
+#
+# There is insufficient memory for the Java Runtime Environment to continue.
+# Native memory allocation (malloc) failed to allocate 32744 bytes. Error detail: ChunkPool::allocate
+# Possible reasons:
+#   The system is out of physical RAM or swap space
+#   This process is running with CompressedOops enabled, and the Java Heap may be blocking the growth of the native heap
+# Possible solutions:
+#   Reduce memory load on the system
+#   Increase physical memory or swap space
+#   Check if swap backing store is full
+#   Decrease Java heap size (-Xmx/-Xms)
+#   Decrease number of Java threads
+#   Decrease Java thread stack sizes (-Xss)
+#   Set larger code cache with -XX:ReservedCodeCacheSize=
+#   JVM is running with Unscaled Compressed Oops mode in which the Java heap is
+#     placed in the first 4GB address space. The Java Heap base address is the
+#     maximum limit for the native heap growth. Please use -XX:HeapBaseMinAddress
+#     to set the Java Heap base and to place the Java Heap above 4GB virtual address.
+# This output file may be truncated or incomplete.
+#
+#  Out of Memory Error (arena.cpp:79), pid=1204, tid=1212
+#
+# JRE version: OpenJDK Runtime Environment Temurin-17.0.21+9 (17.0.21+9) (build 17.0.21+9)
+# Java VM: OpenJDK 64-Bit Server VM Temurin-17.0.21+9 (17.0.21+9, mixed mode, compressed oops, compressed class ptrs, serial gc, linux-amd64)
+# Core dump will be written. Default location: core.1204 (may not exist)
+#
+
+---------------  S U M M A R Y ------------
+
+Command Line: -Dapplication.home=/scratch/work/sdk/jdk --add-modules=ALL-DEFAULT -Xms8m -Djdk.module.main=jdk.compiler -XX:+UseSerialGC -Xmx900m -Xss512k -XX:CompressedClassSpaceSize=64m -XX:MaxMetaspaceSize=256m -XX:-TieredCompilation -Xshare:off -Djava.io.tmpdir=/scratch/work/jtmp jdk.compiler/com.sun.tools.javac.Main -encoding UTF-8 -source 17 -target 17 -nowarn -Xmaxerrs 1000 -classpath /scratch/work/sdk/platform/android-36/android.jar:app/libs/xposed-api-82.jar:/scratch/work/dibuild/stubclasses -d /scratch/work/errdir @/scratch/work/srcs.txt
+
+Host: unknown, 2 cores, 2G, Debian GNU/Linux 12 (bookworm)
+Time: Wed Oct 28 19:27:22 2026 UTC elapsed time: 0.288908 seconds (0d 0h 0m 0s)
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x00007ee1f00ef190):  JavaThread "C2 CompilerThread0" daemon [_thread_in_native, id=1212, stack(0x00007ee1f4011000,0x00007ee1f4111000)]
+
+
+Current CompileTask:
+C2:289   18             java.lang.StringLatin1::hashCode (42 bytes)
+
+Stack: [0x00007ee1f4011000,0x00007ee1f4111000],  sp=0x00007ee1f410b860,  free space=1002k
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+V  [libjvm.so+0xeeeeb1]
+V  [libjvm.so+0xeefa9d]
+V  [libjvm.so+0x60982c]
+V  [libjvm.so+0x3d07f5]
+V  [libjvm.so+0x3d0156]
+V  [libjvm.so+0x69eee3]
+V  [libjvm.so+0xae35e1]
+V  [libjvm.so+0x5d58cf]
+V  [libjvm.so+0x5d3604]
+V  [libjvm.so+0x5d51a1]
+V  [libjvm.so+0x514c99]

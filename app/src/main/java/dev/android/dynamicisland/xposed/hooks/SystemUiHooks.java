@@ -9,6 +9,7 @@ import android.view.View;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import dev.android.dynamicisland.island.IslandController;
+import dev.android.dynamicisland.island.source.UnlockSource;
 import dev.android.dynamicisland.xposed.Diagnostics;
 import dev.android.dynamicisland.xposed.Refl;
 import dev.android.dynamicisland.xposed.SafeHook;
@@ -81,7 +82,7 @@ public final class SystemUiHooks {
         runGroup("cast", () -> hookCast(cl));
         runGroup("flashlight", () -> hookFlashlight(cl));
         runGroup("signals", () -> hookSignals(cl));
-        runGroup("wakefulness", () -> WakefulnessHooks.install(cl));
+        runGroup("unlock notice", () -> hookUnlock(cl));
         runGroup("charging animation", () -> {
             try {
                 ChargingAnimation.install(cl);
@@ -205,7 +206,6 @@ public final class SystemUiHooks {
         island.setBarState(barState);
         island.setDozing(dozing);
         island.setStatusBarWindowState(windowState);
-        WakefulnessHooks.applyInitialState(island);
     }
 
     /** Records which System UI build the module runs in, for the report. */
@@ -546,5 +546,141 @@ public final class SystemUiHooks {
         @SuppressWarnings("unchecked")
         Set<Object> registered = (Set<Object>) listeners;
         registered.add(proxy);
+    }
+
+    /**
+     * Feeds the "unlocked by ..." notice. Only timestamps are recorded here; the notice itself is posted
+     * from the user-present broadcast, which fires for every unlock whatever the method. Both class names
+     * are tried because the keyguard monitor moved package between releases, and each hook is optional:
+     * with neither attached the notice still appears and reports the PIN.
+     */
+    /** Callback names that report a successful biometric authentication, whatever release this is. */
+    private static final String[] BIOMETRIC_METHODS = {
+            "onAuthenticationSucceeded", "onBiometricAuthenticated", "onBiometricAuthSuccess"};
+
+    /**
+     * Records a biometric result from whatever the callback handed over. Shapes differ by release: an
+     * int (2 fingerprint, 4 iris, 8 face), a BiometricSourceType whose toString is FINGERPRINT/FACE, or an
+     * AuthenticationResult carrying getAuthenticationType(). All three are accepted.
+     */
+    private static void recordBiometric(Object... args) {
+        for (Object arg : args) {
+            if (arg == null) {
+                continue;
+            }
+            if (arg instanceof Integer) {
+                int value = (Integer) arg;
+                if (value == 8) { UnlockSource.biometricAuthenticated(true); return; }
+                if (value == 2 || value == 4) { UnlockSource.biometricAuthenticated(false); return; }
+            }
+            String text = arg.toString();
+            if ("FACE".equals(text)) { UnlockSource.biometricAuthenticated(true); return; }
+            if ("FINGERPRINT".equals(text) || "IRIS".equals(text)) { UnlockSource.biometricAuthenticated(false); return; }
+            try {
+                Object type = Refl.call(arg, "getAuthenticationType");
+                if (type instanceof Integer) {
+                    int value = (Integer) type;
+                    if (value == 8) { UnlockSource.biometricAuthenticated(true); return; }
+                    if (value == 2 || value == 4) { UnlockSource.biometricAuthenticated(false); return; }
+                }
+            } catch (Throwable ignored) {
+                // not an AuthenticationResult
+            }
+        }
+    }
+
+    private static final XC_MethodHook BIOMETRIC_HOOK = new XC_MethodHook() {
+        @Override
+        protected void afterHookedMethod(MethodHookParam param) {
+            recordBiometric(param.args);
+        }
+    };
+
+    /** Every class name in this loader. Used to find the biometric classes instead of guessing them. */
+    private static java.util.List<String> classNames(ClassLoader cl) {
+        java.util.List<String> out = new java.util.ArrayList<>();
+        try {
+            Object pathList = Refl.get(cl, "pathList");
+            Object[] elements = (Object[]) Refl.get(pathList, "dexElements");
+            if (elements == null) {
+                return out;
+            }
+            for (Object element : elements) {
+                Object dex = Refl.get(element, "dexFile");
+                if (dex == null) {
+                    continue;
+                }
+                Object entries = Refl.call(dex, "entries");
+                if (!(entries instanceof java.util.Enumeration)) {
+                    continue;
+                }
+                java.util.Enumeration<?> names = (java.util.Enumeration<?>) entries;
+                while (names.hasMoreElements()) {
+                    Object next = names.nextElement();
+                    if (next != null) {
+                        out.add(next.toString());
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            XLog.e("unlock notice: class scan failed", t);
+        }
+        return out;
+    }
+
+    /**
+     * Feeds the "unlocked by ..." notice.
+     *
+     * <p>The keyguard monitor is not where AOSP puts it on every One UI build - the log from 0.1.14-dev24
+     * shows both candidate classes failing to attach - so the classes are not guessed: every class in the
+     * System UI loader whose name looks biometric is hooked by method name, and the result is parsed from
+     * whatever shape the callback uses. AuthController is hooked explicitly as well.
+     */
+    private static void hookUnlock(ClassLoader cl) {
+        int auth = 0;
+        try {
+            auth = Refl.hookAll(cl, "com.android.systemui.biometrics.AuthController", "onAuthenticationSucceeded", BIOMETRIC_HOOK);
+        } catch (Throwable t) {
+            XLog.e("unlock notice: AuthController hook failed", t);
+        }
+        int discovered = 0;
+        StringBuilder seen = new StringBuilder();
+        for (String name : classNames(cl)) {
+            String lower = name.toLowerCase(java.util.Locale.US);
+            boolean biometric = lower.contains("biometric");
+            boolean monitor = lower.contains("keyguardupdatemonitor");
+            if (!biometric && !monitor) {
+                continue;
+            }
+            if (seen.length() < 240) {
+                seen.append(name).append(' ');
+            }
+            for (String method : BIOMETRIC_METHODS) {
+                try {
+                    discovered += Refl.hookAll(cl, name, method, BIOMETRIC_HOOK);
+                } catch (Throwable ignored) {
+                    // this class has no such method
+                }
+            }
+            if (monitor) {
+                try {
+                    Refl.hookAll(cl, name, "onTrustChanged", new XC_MethodHook() {
+                        @Override
+                        protected void afterHookedMethod(MethodHookParam param) {
+                            for (Object arg : param.args) {
+                                if (arg instanceof Boolean && (Boolean) arg) {
+                                    UnlockSource.deviceTrusted();
+                                    return;
+                                }
+                            }
+                        }
+                    });
+                } catch (Throwable ignored) {
+                    // no trust reporting here
+                }
+            }
+        }
+        Diagnostics.fact("unlock notice hooks", "authController=" + auth + " discovered=" + discovered);
+        Diagnostics.fact("unlock notice classes", seen.toString().trim());
     }
 }

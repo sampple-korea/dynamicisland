@@ -2,7 +2,10 @@ package dev.android.dynamicisland.island.rules;
 
 import dev.android.dynamicisland.settings.ModuleSettings;
 import dev.android.dynamicisland.xposed.XLog;
-import dev.android.dynamicisland.island.EmbeddedResources;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -91,7 +94,19 @@ public final class RuleStore {
     }
 
     private static String readResource(String path) {
-        return EmbeddedResources.get(path);
+        try (InputStream in = RuleStore.class.getResourceAsStream(path)) {
+            if (in == null) {
+                return null;
+            }
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            byte[] buffer = new byte[8192];
+            for (int n = in.read(buffer); n >= 0; n = in.read(buffer)) {
+                out.write(buffer, 0, n);
+            }
+            return out.toString(StandardCharsets.UTF_8.name());
+        } catch (IOException e) {
+            return null;
+        }
     }
 
     /** Makes {@link #current()} return {@code dictionary} (null undoes it); for tests. */

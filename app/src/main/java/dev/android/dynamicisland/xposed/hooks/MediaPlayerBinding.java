@@ -248,8 +248,6 @@ final class MediaPlayerBinding {
     }
 
     /** A tap on the card body: opens the media app through the island and collapses the shade. */
-    // The hidden statusbar service is available in the SystemUI host, outside the public SDK list.
-    @android.annotation.SuppressLint("WrongConstant")
     private void openApp(View player, IslandItem item) {
         KeyguardManager keyguard = player.getContext().getSystemService(KeyguardManager.class);
         if (keyguard != null && keyguard.isKeyguardLocked()) {

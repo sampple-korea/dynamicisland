@@ -373,10 +373,21 @@ uniform float activity;
 float sm(float a,float b,float x) {
     float t=clamp((x-a)/(b-a),0.0,1.0);return t*t*(3.0-2.0*t);
 }
+// The 2.4 superellipse is the shape the material is designed around: depth, rim and roll all come from
+// it, so swapping it for a plain rounded rect visibly shrinks the edge glow. It is also three pow() per
+// call and the normal evaluates it five times per pixel.
+//
+// Both are avoided by using it only where it is actually read. rim and roll are zero past depth 64, so
+// nothing beyond a 120px band inside the border depends on the exact curve: there the cheap rounded rect
+// gives the same mask and the same zero rim. The band keeps the exact superellipse, so the glow is
+// untouched.
 float materialSdf(float2 p,float2 halfSize,float r) {
     float2 q=abs(p)-halfSize+r;
-    float power=max(2.0,u_commonArray[10]);
-    float d=pow(pow(max(q.x,0.0),power)+pow(max(q.y,0.0),power),1.0/power)-r;
+    float dRect=length(max(q,0.0))+min(max(q.x,q.y),0.0)-r;
+    if(dRect<-120.0) {
+        return dRect;
+    }
+    float d=pow(pow(max(q.x,0.0),2.4)+pow(max(q.y,0.0),2.4),1.0/2.4)-r;
     return q.x>0.0 && q.y>0.0 ? d : max(q.x,q.y)-r;
 }
 float3 mixBackdrop(float3 c) {
@@ -483,7 +494,8 @@ half4 main(float2 position) {
     float4 lighting=couiLight(p);
     float3 lit=lighting.rgb+surface*(1.0-lighting.a);
     lit+=(lit-surface)*(.18*response*rim);
-    float grain=(fract(sin(p.x*12.9898+p.y*78.233)*43758.5453)-.5)/255.0;
-    float3 color=mix(float3(0.0),clamp(lit+grain,0.0,1.0),materialAmount);
+    // The film grain was a per-pixel sin() with an amplitude of 1/255 - one step of an 8-bit channel,
+    // below what the display can show. It cost a sin() on every fragment for nothing.
+    float3 color=mix(float3(0.0),clamp(lit,0.0,1.0),materialAmount);
     return half4(color*coverage,coverage);
 }

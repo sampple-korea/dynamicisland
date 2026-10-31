@@ -9,6 +9,8 @@ import dev.android.dynamicisland.island.source.CallSource;
 import dev.android.dynamicisland.island.source.WhatsAppCallClock;
 import dev.android.dynamicisland.island.source.CastSource;
 import dev.android.dynamicisland.island.source.EventSource;
+import dev.android.dynamicisland.island.source.HotspotSource;
+import dev.android.dynamicisland.island.source.UnlockSource;
 import dev.android.dynamicisland.island.source.ChargingSource;
 import dev.android.dynamicisland.island.source.HeadsetSource;
 import dev.android.dynamicisland.island.source.MediaSource;
@@ -55,6 +57,8 @@ final class IslandSources {
     final EventSource events;
     final ChargingSource charging;
     final HeadsetSource headset;
+    final HotspotSource hotspot;
+    final UnlockSource unlock;
     final TorchSource torch;
     final PrivacySource privacy;
     final ProgressSource progress;
@@ -77,6 +81,8 @@ final class IslandSources {
         events = new EventSource(ctx, main, onChange);
         charging = new ChargingSource(ctx, main, onChange);
         headset = new HeadsetSource(ctx, main, onChange);
+        hotspot = new HotspotSource(ctx, main, onChange);
+        unlock = new UnlockSource(ctx, main, onChange);
         torch = new TorchSource(ctx, main, onChange);
         privacy = new PrivacySource(ctx, main, onChange);
         progress = new ProgressSource(ctx, main, onChange);
@@ -97,6 +103,10 @@ final class IslandSources {
     /** Starts the sources that listen on their own; the event and privacy islands may fail without harm. */
     void start(Runnable onChange) {
         media.start();
+        guarded("charging start", charging::start);
+        guarded("headset start", headset::start);
+        guarded("hotspot start", hotspot::start);
+        guarded("unlock start", unlock::start);
         syncOptionalSources();
         try {
             events.start();
@@ -108,9 +118,11 @@ final class IslandSources {
         oa.onChanged = onChange;
     }
 
+    /**
+     * The device cards (charging, headset, hotspot) read their settings when they collect, so a settings
+     * change needs no re-sync here. Kept because IslandController calls it after a change.
+     */
     void syncOptionalSources() {
-        guarded("charging settings", charging::syncSettings);
-        guarded("headset settings", headset::syncSettings);
     }
 
     /** Cheap vendor-cache query for ordinary banner scans; gather resolves the actual task once per pass. */
@@ -138,7 +150,8 @@ final class IslandSources {
         guarded("events", () -> events.collect(items));
         guarded("charging info", () -> charging.collect(items));
         guarded("headset", () -> headset.collect(items));
-        if (charging.isOffering()) items.removeIf(item -> "event:charging".equals(item.key));
+        guarded("hotspot", () -> hotspot.collect(items));
+        guarded("unlock notice", () -> unlock.collect(items));
         guarded("torch", () -> torch.collect(items));
         if (ModuleSettings.placementPreviewActive()) {
             items.add(placementSample());

@@ -41,8 +41,6 @@ public final class Haptics {
         play(VibrationEffect.EFFECT_CLICK);
     }
 
-    // Vibration runs in the SystemUI host; a denied or absent vibrator is optional.
-    @android.annotation.SuppressLint("MissingPermission")
     private void play(int effect) {
         if (vibrator == null || !ModuleSettings.haptics()) {
             return;

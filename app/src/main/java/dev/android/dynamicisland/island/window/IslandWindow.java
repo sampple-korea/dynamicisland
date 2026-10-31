@@ -80,7 +80,7 @@ public final class IslandWindow {
         view.setMaterialCaptureRefresh(()->{if(materialCapture!=null)materialCapture.refresh();});
         BlurLayer blur = new BlurLayer(context);
         view.setBlurSink(blur);
-        FrameLayout remoteLayer = new ActivityRemoteLayer(context,view);
+        FrameLayout remoteLayer = new FrameLayout(context);
         remoteLayer.setClipChildren(false);
         view.setRemoteLayer(remoteLayer);
 
@@ -96,8 +96,6 @@ public final class IslandWindow {
         view.setPillSamplingStateChanged(this::updatePillBackgroundSampling);
     }
 
-    // TYPE_STATUS_BAR_SUB_PANEL is a hidden framework window type used only inside SystemUI.
-    @android.annotation.SuppressLint("WrongConstant")
     private static Context createWindowContext(Context systemUiContext) {
         Display display = systemUiContext.getSystemService(DisplayManager.class).getDisplay(Display.DEFAULT_DISPLAY);
         try {
@@ -181,16 +179,6 @@ public final class IslandWindow {
             if (!shown && materialCapture != null) materialCapture.stop();
             if (!shown) view.clearMaterialBackdrop();
         }
-    }
-
-    /** Also stop workers when the display stops producing frames before a final pre-draw can run. */
-    public void stopBackdropSampling() {
-        if (materialCapture != null) materialCapture.stop();
-        if (pillSampler != null && pillSamplingRequested) {
-            pillSamplingRequested = false;
-            pillSampler.update(null, false);
-        }
-        view.clearMaterialBackdrop();
     }
 
     // ---- window geometry and touch -------------------------------------------------------------

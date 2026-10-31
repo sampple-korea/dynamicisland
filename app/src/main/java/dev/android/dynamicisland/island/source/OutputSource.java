@@ -144,8 +144,6 @@ public final class OutputSource {
         }
     }
 
-    // Bluetooth lookup runs in SystemUI and handles denied or unavailable access.
-    @android.annotation.SuppressLint("MissingPermission")
     private Output bluetooth(String routeName) {
         GlyphIcon.Kind icon = GlyphIcon.Kind.HEADPHONES;
         int battery = -1;

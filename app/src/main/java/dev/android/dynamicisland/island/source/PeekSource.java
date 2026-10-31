@@ -68,6 +68,18 @@ public final class PeekSource {
         return it != null && it.expiresAtUptime > SystemClock.uptimeMillis() ? it : null;
     }
 
+    /**
+     * True while the card on the island was made from the notification with this key, so the caller can
+     * drop that notification's own row from the shade and the notification is not on screen twice.
+     */
+    public boolean isShownOnIsland(String notificationKey) {
+        if (notificationKey == null) {
+            return false;
+        }
+        IslandItem it = showing();
+        return it != null && it.key.equals("peek:" + notificationKey);
+    }
+
     /** Takes back a card the island could not show after all. */
     public void dismiss(IslandItem item) {
         if (current == item) {
@@ -98,13 +110,18 @@ public final class PeekSource {
         if ((n.flags & (Notification.FLAG_ONGOING_EVENT | Notification.FLAG_FOREGROUND_SERVICE)) != 0) {
             return false;
         }
+        // A group summary is what Telegram and the other messaging apps post when several messages arrive:
+        // it carries the latest one's title and text, so it is a notification the user wants to see. Rejecting
+        // every summary is why a group's messages never reached the island and only the stock banner showed.
+        // A summary with no text of its own still has nothing to put on a card, so that one is left alone.
         if ((n.flags & Notification.FLAG_GROUP_SUMMARY) != 0) {
-            if (ModuleSettings.experimentalRecovery()) {
-                // Match the alternate One UI 8 build's summary eligibility in recovery mode.
-                CharSequence title = n.extras.getCharSequence(Notification.EXTRA_TITLE);
-                CharSequence text = n.extras.getCharSequence(Notification.EXTRA_TEXT);
-                if ((title == null || title.length() == 0) && (text == null || text.length() == 0)) return false;
-            } else if (!hasReadableContent(n)) return false;
+            CharSequence summaryTitle = n.extras.getCharSequence(Notification.EXTRA_TITLE);
+            CharSequence summaryText = n.extras.getCharSequence(Notification.EXTRA_TEXT);
+            boolean titleEmpty = summaryTitle == null || summaryTitle.length() == 0;
+            boolean textEmpty = summaryText == null || summaryText.length() == 0;
+            if (titleEmpty && textEmpty) {
+                return false;
+            }
         }
         String category = n.category;
         if (Notification.CATEGORY_CALL.equals(category) || Notification.CATEGORY_ALARM.equals(category)
@@ -229,6 +246,19 @@ public final class PeekSource {
         it.iconIsImage = true;
         it.trailing = IslandItem.Trailing.TEXT;
         it.trailingText = it.title;
+        // A notification with its own progress bar keeps it on the card: an upload or a download otherwise
+        // reads as a plain message with no idea how far along it is.
+        if (n.extras != null) {
+            int progressMax = n.extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0);
+            int progressNow = n.extras.getInt(Notification.EXTRA_PROGRESS, 0);
+            boolean indeterminate = n.extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false);
+            if (indeterminate) {
+                it.progressIndeterminate = true;
+                it.progress = 0.0f;
+            } else if (progressMax > 0 && progressNow >= 0) {
+                it.progress = Math.max(0.0f, Math.min(1.0f, progressNow / (float) progressMax));
+            }
+        }
         it.actionType = 1;
         if (n.actions != null) {
             for (Notification.Action a : n.actions) {

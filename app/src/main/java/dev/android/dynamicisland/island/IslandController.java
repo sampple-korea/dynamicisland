@@ -120,7 +120,7 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
 
     private final AutoOpenCards autoOpenCards = new AutoOpenCards();
     /** Prepared for review only: deliberately has no preference key or settings control. */
-    private static final boolean ENABLE_SOURCE_PEEKS = false;
+    private static final boolean ENABLE_SOURCE_PEEKS = true;
     private final SourcePeekRequests sourcePeekRequests = ENABLE_SOURCE_PEEKS ? new SourcePeekRequests() : null;
     private List<StatusBarNotification> lastNotifications = java.util.Collections.emptyList();
 
@@ -140,7 +140,7 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
             requestRefresh();
             HideDuplicated.rebuild();
             ShadeMediaPlayer.refreshVisiblePlayers();
-            dev.android.dynamicisland.xposed.hooks.ShadeLiveCards.refreshVisibleCards(true);
+            dev.android.dynamicisland.xposed.hooks.ShadeLiveCards.refreshVisibleCards();
         }));
         ModuleSettings.setOnPlacementChanged(() -> main.post(() -> {
             placement.updateGeometry();
@@ -223,6 +223,10 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
                 || (ModuleSettings.hideProgressOriginals() && sources.promoted.isShownOnIsland(notificationKey))
                 || (ModuleSettings.hideProgressOriginals() && sources.recorder.isShownOnIsland(notificationKey))
                 || sources.rules.isShownOnIsland(notificationKey)
+                // a notification shown as an island card must not keep its own row in the shade: otherwise
+                // the card floats over its own notification. PeekSource is the source that shows ordinary
+                // notification cards, and this clause was missing from the backport.
+                || sources.peeks.isShownOnIsland(notificationKey)
                 || (sources.torch.replacesStockNotification() && TorchSource.isStockNotification(notificationKey))
                 || (ModuleSettings.hideProgressOriginals() && sources.cast.hidesOriginal(notificationKey));
     }
@@ -290,19 +294,6 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
     public void setDozing(boolean value) {
         if (value) recordingInput.setTarget(null);
         placement.setDozing(value);
-    }
-
-    /** Early power transition, before keyguard/AOD can cover the exit animation. */
-    public void setSleeping(boolean sleeping) {
-        if (Looper.myLooper() != main.getLooper()) { main.post(() -> setSleeping(sleeping)); return; }
-        if (sleeping) recordingInput.setTarget(null);
-        placement.setSleeping(sleeping);
-    }
-
-    public void finishSleeping() {
-        if (Looper.myLooper() != main.getLooper()) { main.post(this::finishSleeping); return; }
-        recordingInput.setTarget(null);
-        placement.finishSleeping();
     }
 
     /** @param state non-zero while the status bar is hidden (full-screen app) */
@@ -402,13 +393,13 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
     }
 
     @Override
-    public void onPeekClosed(String key) {
+    public void onPeekClosed() {
         IslandWindow window = placement.window();
         if (window != null && window.isReplying()) {
             window.hideReply(); // the card was closed under the reply field (a swipe): the field goes with it
         }
         IslandItem showing = sources.peeks.showing();
-        if (showing != null && showing.key.equals(key)) {
+        if (showing != null) {
             sources.peeks.dismiss(showing);
         }
         requestRefresh();
@@ -530,6 +521,8 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
             ItemLedger.Arrangement shape = ledger.arrange(gathered.items, gathered.hiddenByForeground, now);
             view.setGlowSession(gathered.glowSession);
             view.setItems(shape.shown, shape.hint, shape.bubbled);
+            // a card refused while the island was hidden (a fullscreen app was up) is taken now
+            headsUp.retryPending();
             if (sourcePeekRequests != null) {
                 IslandItem requested = sourcePeekRequests.next(shape.shown, ModuleSettings.autoOpenCards(), now);
                 if (requested != null && !view.isExpanded() && view.canPeek()) {

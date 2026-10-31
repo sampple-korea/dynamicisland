@@ -51,8 +51,6 @@ final class ShadeDragRelay {
         }
     }
 
-    // The hidden statusbar service is used only from the SystemUI host.
-    @android.annotation.SuppressLint("WrongConstant")
     private void expandPanel() {
         if (expandedDirectly) {
             return;

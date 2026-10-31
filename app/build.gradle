@@ -10,8 +10,8 @@ android {
         applicationId 'dev.android.dynamicisland'
         minSdk 35
         targetSdk 36
-        versionCode 113
-        versionName providers.gradleProperty('localVersionName').getOrElse('0.1.15-dev1')
+        versionCode 111
+        versionName '0.1.14-dev24'
     }
 
     buildTypes {

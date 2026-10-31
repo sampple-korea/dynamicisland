@@ -84,15 +84,6 @@ final class LiveCardView extends FrameLayout {
         return owner;
     }
 
-    /** Reconcile content without detaching the host or restarting unchanged RemoteViews effects. */
-    void refresh(IslandItem item) {
-        if (current != item) {
-            current = item;
-            requestLayout();
-        }
-        invalidate();
-    }
-
     /** Height the card wanted at its last measure; used before it has been laid out. */
     int desiredHeight() {
         return desiredHeight;

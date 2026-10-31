@@ -217,8 +217,6 @@ final class CallCardBuilder {
     }
 
     /** Ends the call through Telecom when allowed, otherwise fires the notification's hang-up action. */
-    // Runs inside SystemUI; Telecom enforces its host permissions and failure uses the action fallback.
-    @android.annotation.SuppressLint("MissingPermission")
     private void endCall(boolean telecom, PendingIntent hangUp) {
         if (telecom) {
             try {

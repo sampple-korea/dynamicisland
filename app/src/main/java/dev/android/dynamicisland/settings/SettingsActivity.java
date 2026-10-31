@@ -51,16 +51,13 @@ public final class SettingsActivity extends Activity {
     private SharedPreferences prefs;
     private OneUi ui;
     private RulesScreen rules;
+    private AnimationScreen animation;
     private PositionScreen position;
     private AppearanceScreen appearance;
     private LinearLayout page;
     private ScrollView scroll;
-    private LinearLayout previewFrame;
-    private LinearLayout previewHeader;
-    private LivePreview preview;
     private SettingChangeFeedback changeFeedback;
     private SettingsSearchScreen search;
-    private ReleaseRecommendations recommendations;
     /** Builders of the open pages, the visible one on top. */
     private static final class PageState {
         final Runnable build;
@@ -91,11 +88,10 @@ public final class SettingsActivity extends Activity {
         prefs = openPrefs();
         ui = new OneUi(this);
         rules = new RulesScreen(this, ui, prefs);
+        animation = new AnimationScreen(this, ui, prefs);
         position = new PositionScreen(this, ui, prefs);
         appearance = new AppearanceScreen(this, ui, prefs);
         search = new SettingsSearchScreen(this, ui);
-        recommendations=new ReleaseRecommendations(this,ui,version());
-        if(savedInstanceState!=null) recommendations.restore(savedInstanceState.getString("settings.recommendation"));
         ui.setSearchAction(search::launch);
         getWindow().setStatusBarColor(ui.background);
         getWindow().setNavigationBarColor(ui.background);
@@ -106,24 +102,12 @@ public final class SettingsActivity extends Activity {
         scroll = new ScrollView(this);
         scroll.setFillViewport(true);
         scroll.setBackgroundColor(ui.background);
+        scroll.setFitsSystemWindows(true);
         page = new LinearLayout(this);
         page.setOrientation(LinearLayout.VERTICAL);
         page.setPadding(ui.dp(14), 0, ui.dp(14), ui.dp(40));
         scroll.addView(page);
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(ui.background);
-        root.setFitsSystemWindows(true);
-        previewFrame = new LinearLayout(this);
-        previewFrame.setOrientation(LinearLayout.VERTICAL);
-        previewFrame.setPadding(ui.dp(14), 0, ui.dp(14), ui.dp(8));
-        previewFrame.setVisibility(View.GONE);
-        previewHeader = new LinearLayout(this);
-        previewHeader.setOrientation(LinearLayout.VERTICAL);
-        previewFrame.addView(previewHeader, new LinearLayout.LayoutParams(-1, -2));
-        root.addView(previewFrame, new LinearLayout.LayoutParams(-1, -2));
-        root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
-        setContentView(root);
+        setContentView(scroll);
         changeFeedback = new SettingChangeFeedback(this, ui, prefs,
                 findViewById(android.R.id.content), this::confirmRestart);
         getOnBackInvokedDispatcher().registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::goBack);
@@ -139,10 +123,10 @@ public final class SettingsActivity extends Activity {
         super.onPause();
         changeFeedback.stop();
         search.stop();
-        if (preview != null) preview.stop();
         saveScroll();
         position.stop();
         statusHandler.removeCallbacksAndMessages(null);
+        animation.stop();
     }
 
     @Override
@@ -157,7 +141,6 @@ public final class SettingsActivity extends Activity {
     @Override protected void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
         state.putString("settings.search.query",search.query());state.putBoolean("settings.search.open",search.visible());
-        state.putString("settings.recommendation",recommendations.currentId());
     }
     @Override protected void onDestroy() {
         if(search!=null)search.close();
@@ -187,7 +170,7 @@ public final class SettingsActivity extends Activity {
 
     void render() {
         position.stop();
-        hidePreview();
+        animation.stop();
         statusHero = null;
         statusHandler.removeCallbacksAndMessages(null);
         page.removeAllViews();
@@ -202,64 +185,14 @@ public final class SettingsActivity extends Activity {
         });
     }
 
-    /** Pins the page header and the live island preview above the scrolling page; the page builder calls this after {@link #subPage}. */
-    void showPreview() {
-        if (page.getChildCount() > 0) {
-            View header = page.getChildAt(0);
-            page.removeViewAt(0);
-            previewHeader.removeAllViews();
-            previewHeader.addView(header);
-        }
-        if (preview == null) {
-            preview = new LivePreview(this, ui, prefs);
-            preview.setBackground(ui.round(0xFF0B0B0D, ui.dp(26)));
-            preview.setClipToOutline(true);
-            previewFrame.addView(preview, new LinearLayout.LayoutParams(-1, previewHeight()));
-        } else {
-            preview.getLayoutParams().height = previewHeight();
-        }
-        previewFrame.setVisibility(View.VISIBLE);
-        preview.start();
-    }
-
-    /** About 30% of the screen, so tall cards (music) fit on every phone; never tiny, never half the screen. */
-    private int previewHeight() {
-        int screen = getResources().getDisplayMetrics().heightPixels;
-        return Math.max(ui.dp(190), Math.min(ui.dp(340), Math.round(screen * 0.30f)));
-    }
-
-    private void hidePreview() {
-        if (preview != null) preview.stop();
-        if (previewHeader != null) previewHeader.removeAllViews();
-        if (previewFrame != null) previewFrame.setVisibility(View.GONE);
-    }
-
-    /** Plays the preview again after a setting it shows has changed. */
-    void refreshPreview() {
-        refreshPreview(LivePreview.KEEP);
-    }
-
-    /** Same, but plays the sample card that shows the changed setting best. */
-    void refreshPreview(int sample) {
-        if (preview != null && previewFrame.getVisibility() == View.VISIBLE) preview.refresh(sample);
-    }
-
     /** Header of a sub page: back button and title. */
     void subPage(CharSequence title) {
         ui.pageHeader(page, title, this::goBack);
     }
 
     void openSearchResult(SettingsSearchCatalog.Row row) {
-        openSetting(row.route,row.title,row.fallback);
-    }
-    void openSetting(SettingsSearchCatalog.Route route,int title,int fallback) {
-        if(route==SettingsSearchCatalog.Route.SEARCH) { search.launch();return; }
-        if(route==SettingsSearchCatalog.Route.HOME) {
-            while(stack.size()>1)stack.pop();
-            stack.peek().focusTitle=getString(title);stack.peek().fallbackTitle=null;stack.peek().scrollY=0;render();return;
-        }
         Runnable builder;
-        switch(route) {
+        switch(row.route) {
             case NOTIFICATIONS:builder=this::notificationsPage;break;
             case EVENTS:builder=this::eventsPage;break;
             case APPS:builder=this::appsPage;break;
@@ -269,13 +202,16 @@ public final class SettingsActivity extends Activity {
             case DIAGNOSTICS:builder=this::diagnosticsPage;break;
             case POSITION:builder=position::open;break;
             case CALIBRATION:builder=position::calibration;break;
+            case ANIMATION:builder=animation::open;break;
             case ACCENT:builder=appearance::open;break;
             case GLOW:builder=()->new AmbientGlowScreen(this,ui,prefs).open();break;
-            case RULES:builder=rules::advancedPage;break;
+            case ROUNDNESS:builder=()->new CardShapeScreen(this,ui,prefs).open();break;
+            case RULES:builder=rules::listPage;break;
+            case RULE_TOOLS:builder=rules::advancedPage;break;
             default:builder=this::displayPage;break;
         }
         saveScroll();PageState state=new PageState(builder);
-        state.focusTitle=getString(title);state.fallbackTitle=fallback==0?null:getString(fallback);
+        state.focusTitle=getString(row.title);state.fallbackTitle=row.fallback==0?null:getString(row.fallback);
         stack.push(state);render();
     }
     private void revealSearchTarget(PageState state) {
@@ -328,7 +264,6 @@ public final class SettingsActivity extends Activity {
     private void hub() {
         ui.title(page, getString(R.string.app_name), getString(R.string.ui_home_hint), 28);
         ui.searchEntry(page,search::launch);
-        recommendations.addTo(page);
         statusHero = ui.hero(page);
         ui.setHero(statusHero, false, getString(R.string.ui_checking_connection), getString(R.string.ui_status_hint));
         statusNonce = Diagnostics.requestStatus(this);
@@ -337,19 +272,11 @@ public final class SettingsActivity extends Activity {
         ui.category(page, getString(R.string.hub_settings));
         LinearLayout main = ui.card(page);
         ui.linkRow(main, getString(R.string.ui_notifications), getString(R.string.ui_notifications_summary), () -> open(this::notificationsPage));
+        ui.linkRow(main, getString(R.string.apps_title), appsSummary(), () -> open(this::appsPage));
         ui.linkRow(main, getString(R.string.ui_appearance), getString(R.string.ui_appearance_summary), () -> open(this::displayPage));
         ui.linkRow(main, getString(R.string.ui_behavior), getString(R.string.ui_behavior_summary), () -> open(this::behaviorPage));
         ui.linkRow(main, getString(R.string.ui_advanced), getString(R.string.ui_advanced_summary), () -> open(this::advancedPage));
         ui.linkRow(main, getString(R.string.ui_about), getString(R.string.ui_about_summary), () -> open(this::aboutPage));
-        LinearLayout restart = ui.card(page);
-        ui.valueRow(restart, getString(R.string.ui_settings_language), languageLabel(), this::openLanguageSettings);
-        ui.actionRow(restart, getString(R.string.restart_systemui), getString(R.string.restart_systemui_sum), this::confirmRestart);
-        ui.note(page, getString(R.string.ui_language_scope));
-    }
-
-    private void openLanguageSettings() {
-        try { startActivity(new Intent(Settings.ACTION_APP_LOCALE_SETTINGS, Uri.parse("package:" + getPackageName()))); }
-        catch (RuntimeException unavailable) { startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()))); }
     }
 
     void choice(LinearLayout group, int title, int[] labels, int selected, java.util.function.IntConsumer save) {
@@ -364,12 +291,14 @@ public final class SettingsActivity extends Activity {
 
     private void aboutPage() {
         subPage(getString(R.string.ui_about));
+        LinearLayout about = ui.card(page);
+        ui.valueRow(about, getString(R.string.ui_settings_language), languageLabel(), () -> {
+            try { startActivity(new Intent(Settings.ACTION_APP_LOCALE_SETTINGS, Uri.parse("package:" + getPackageName()))); }
+            catch (RuntimeException unavailable) { startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()))); }
+        });
+        ui.note(page, getString(R.string.ui_language_scope));
         LinearLayout information = ui.card(page);
         ui.actionRow(information, getString(R.string.hub_version), "Dynamic Island " + version(), null);
-        if(recommendations.available()) ui.actionRow(information,getString(R.string.recommend_about),null,()->{
-            recommendations.showAgain();
-            while(stack.size()>1) stack.pop();stack.peek().scrollY=0;render();
-        });
         ui.actionRow(information, getString(R.string.hub_author), getString(R.string.hub_author_text), null);
         ui.details(page, getString(R.string.hub_credits), getString(R.string.hub_credits_text));
     }
@@ -392,68 +321,31 @@ public final class SettingsActivity extends Activity {
 
     // ---------------------------------------------------------------- pages
 
-    /** A One UI radio list; the live preview above plays the result as soon as an option is tapped. */
-    LinearLayout radios(int title, int desc, int[] labels, int[] tags, int selected, int sample, java.util.function.IntConsumer save) {
-        CharSequence[] names = new CharSequence[labels.length];
-        for (int i = 0; i < labels.length; i++) names[i] = getString(labels[i]);
-        return ui.radioGroup(page, getString(title), getString(desc), names, tags, selected, which -> { save.accept(which); refreshPreview(sample); });
-    }
-
     private void displayPage() {
         subPage(getString(R.string.ui_appearance));
-        showPreview();
-        radios(R.string.anim_title, R.string.desc_animation, new int[]{R.string.anim_new, R.string.anim_legacy, R.string.imode_title},
-                new int[]{OneUi.TAG_DEFAULT, 0, OneUi.TAG_RECOMMENDED},
-                flag(ModuleSettings.KEY_I_MODE, false) ? 2 : flag(ModuleSettings.KEY_LEGACY_ANIMATION, false) ? 1 : 0, LivePreview.RING,
-                selected -> prefs.edit().putBoolean(ModuleSettings.KEY_LEGACY_ANIMATION, selected == 1)
-                        .putBoolean(ModuleSettings.KEY_I_MODE, selected == 2).apply());
-        ui.note(page, getString(R.string.imode_desc));
-        radios(R.string.transition_blur, R.string.desc_transition_blur, new int[]{R.string.blur_mode_auto, R.string.blur_mode_always, R.string.blur_mode_off},
-                new int[]{OneUi.TAG_DEFAULT, 0, 0},
-                ModuleSettings.readTransitionBlurMode(prefs), LivePreview.RING,
-                selected -> prefs.edit().putInt(ModuleSettings.KEY_TRANSITION_BLUR, selected).apply());
-        radios(R.string.material_style, R.string.desc_material, new int[]{R.string.material_frosted, R.string.material_classic},
-                new int[]{OneUi.TAG_RECOMMENDED, OneUi.TAG_DEFAULT},
-                ModuleSettings.readMaterialStyle(prefs), LivePreview.MUSIC,
+        LinearLayout design = ui.card(page);
+        choice(design, R.string.material_style, new int[]{R.string.material_frosted, R.string.material_classic},
+                ModuleSettings.readMaterialStyle(prefs),
                 selected -> prefs.edit().putInt(ModuleSettings.KEY_MATERIAL_STYLE, selected).apply());
-        radios(R.string.pill_outline, R.string.desc_outline, new int[]{R.string.pill_outline_auto, R.string.pill_outline_always, R.string.pill_outline_none},
-                new int[]{OneUi.TAG_DEFAULT | OneUi.TAG_RECOMMENDED, 0, 0},
-                ModuleSettings.readPillOutlineMode(prefs), LivePreview.RING,
+        ui.linkRow(design, getString(R.string.accent_page), getString(R.string.accent_page_sum), () -> open(appearance::open));
+        ui.linkRow(design, getString(R.string.glow_title), getString(R.string.glow_summary),
+                () -> open(() -> new AmbientGlowScreen(this, ui, prefs).open()));
+        ui.linkRow(design, getString(R.string.pos_title), getString(R.string.pos_sum), () -> open(position::open));
+        ui.linkRow(design, getString(R.string.card_roundness), getString(R.string.card_roundness_summary),
+                () -> open(() -> new CardShapeScreen(this, ui, prefs).open()));
+        choice(design, R.string.pill_outline, new int[]{R.string.pill_outline_auto, R.string.pill_outline_always, R.string.pill_outline_none},
+                ModuleSettings.readPillOutlineMode(prefs),
                 selected -> prefs.edit().putInt(ModuleSettings.KEY_PILL_OUTLINE, selected).apply());
         ui.note(page, getString(R.string.pill_outline_desc));
-        ui.category(page, getString(R.string.group_card), getString(R.string.desc_card));
-        LinearLayout cards = ui.card(page);
-        new CardShapeScreen(this, ui, prefs).addTo(cards);
-        radios(R.string.ui_event_icon_size, R.string.desc_icon_size, new int[]{R.string.ui_size_large_label, R.string.ui_size_small},
-                new int[]{OneUi.TAG_DEFAULT, 0},
-                flag(ModuleSettings.KEY_COMPACT_EVENT_ICONS, false) ? 1 : 0, LivePreview.RING,
-                selected -> prefs.edit().putBoolean(ModuleSettings.KEY_COMPACT_EVENT_ICONS, selected == 1).apply());
-        radios(R.string.torch_style, R.string.desc_torch, new int[]{R.string.torch_style_classic, R.string.torch_style_beam},
-                new int[]{OneUi.TAG_DEFAULT, OneUi.TAG_RECOMMENDED},
-                prefs.getInt(ModuleSettings.KEY_TORCH_STYLE, 0) == 1 ? 1 : 0, LivePreview.TORCH,
-                style -> prefs.edit().putInt(ModuleSettings.KEY_TORCH_STYLE, style).apply());
-        ui.note(page, getString(R.string.torch_style_desc));
         LinearLayout look = ui.card(page);
-        previewToggle(look, R.string.setting_card_header, R.string.setting_card_header_desc, ModuleSettings.KEY_CARD_HEADER, true);
-        previewToggle(look, R.string.setting_color_icons, R.string.setting_color_icons_desc, ModuleSettings.KEY_COLOR_ICONS, false);
+        toggle(look, R.string.setting_card_header, R.string.setting_card_header_desc, ModuleSettings.KEY_CARD_HEADER, true);
+        toggle(look, R.string.setting_color_icons, R.string.setting_color_icons_desc, ModuleSettings.KEY_COLOR_ICONS, false);
+        choice(look, R.string.ui_event_icon_size, new int[]{R.string.ui_size_large, R.string.ui_size_small},
+                flag(ModuleSettings.KEY_COMPACT_EVENT_ICONS, false) ? 1 : 0,
+                selected -> prefs.edit().putBoolean(ModuleSettings.KEY_COMPACT_EVENT_ICONS, selected == 1).apply());
         ui.switchRow(look, getString(R.string.ui_show_battery_icon), getString(R.string.ui_show_battery_icon_summary),
-                !flag(ModuleSettings.KEY_HIDE_BATTERY_ICON, true), on -> {
-                    prefs.edit().putBoolean(ModuleSettings.KEY_HIDE_BATTERY_ICON, !on).apply();
-                    refreshPreview(LivePreview.CHARGING);
-                });
-        LinearLayout more = ui.card(page);
-        ui.linkRow(more, getString(R.string.accent_page), getString(R.string.accent_page_sum), () -> open(appearance::open));
-        ui.linkRow(more, getString(R.string.glow_title), getString(R.string.glow_summary),
-                () -> open(() -> new AmbientGlowScreen(this, ui, prefs).open()));
-        ui.linkRow(more, getString(R.string.pos_title), getString(R.string.pos_sum), () -> open(position::open));
-    }
-
-    /** A switch whose result the preview shows right away. */
-    private Switch previewToggle(LinearLayout group, int title, int summary, String key, boolean def) {
-        return ui.switchRow(group, getString(title), getString(summary), flag(key, def), on -> {
-            prefs.edit().putBoolean(key, on).apply();
-            refreshPreview();
-        });
+                !flag(ModuleSettings.KEY_HIDE_BATTERY_ICON, true), on -> prefs.edit().putBoolean(ModuleSettings.KEY_HIDE_BATTERY_ICON, !on).apply());
+        toggle(look, R.string.setting_shade_media, R.string.setting_shade_media_desc, ModuleSettings.KEY_SHADE_MEDIA, true);
     }
 
     private void behaviorPage() {
@@ -469,8 +361,8 @@ public final class SettingsActivity extends Activity {
                 new AlertDialog.Builder(this).setTitle(R.string.low_performance_mode).setMessage(R.string.low_performance_details)
                         .setPositiveButton(android.R.string.ok, null).show());
         LinearLayout motion = ui.card(page);
+        ui.linkRow(motion, getString(R.string.anim_title), getString(flag(ModuleSettings.KEY_LEGACY_ANIMATION, false) ? R.string.anim_legacy : R.string.anim_new), () -> open(animation::open));
         toggle(motion, R.string.setting_haptics, R.string.setting_haptics_desc, ModuleSettings.KEY_HAPTICS, true);
-        toggle(motion, R.string.setting_shade_media, R.string.setting_shade_media_desc, ModuleSettings.KEY_SHADE_MEDIA, true);
         if (low) {
             ui.actionRow(motion, getString(R.string.ui_wave_motion), getString(R.string.low_performance_static_wave), null);
         } else {
@@ -478,8 +370,7 @@ public final class SettingsActivity extends Activity {
                     flag(ModuleSettings.KEY_VISUALIZER, true) ? 0 : 1,
                     selected -> prefs.edit().putBoolean(ModuleSettings.KEY_VISUALIZER, selected == 0).apply());
         }
-        toggle(motion, R.string.concurrent_recording_input, R.string.concurrent_recording_input_desc, ModuleSettings.KEY_CONCURRENT_RECORDING_INPUT, false);
-        ui.category(page, getString(R.string.ui_card_timing), getString(R.string.desc_timing));
+        ui.category(page, getString(R.string.ui_card_timing));
         LinearLayout timing = ui.card(page);
         Switch auto = toggle(timing, R.string.auto_open_cards, R.string.auto_open_cards_desc, ModuleSettings.KEY_AUTO_OPEN_CARDS, false);
         TextView automatic = secondsRow(timing, R.string.ui_auto_open_time, ModuleSettings.KEY_AUTO_OPEN_S, 4, AUTO_COLLAPSE_CHOICES);
@@ -497,17 +388,16 @@ public final class SettingsActivity extends Activity {
                         .putBoolean(ModuleSettings.KEY_ALL_NOTIFICATIONS, selected == 2).apply());
         Switch foreground = toggle(banners, R.string.foreground_notifications, R.string.foreground_notifications_desc, ModuleSettings.KEY_FOREGROUND_NOTIFICATIONS, false);
         OneUi.setDependentsEnabled(mode > 0 || flag(ModuleSettings.KEY_OTP_CARD, true), OneUi.rowOf(foreground));
-        ui.linkRow(banners, getString(R.string.apps_title), appsSummary(), () -> open(this::appsPage));
         ui.note(page, getString(R.string.ui_notification_scope));
-        ui.category(page, getString(R.string.ui_activity_types), getString(R.string.desc_activity_types));
+        ui.category(page, getString(R.string.ui_activity_types));
         LinearLayout activity = ui.card(page);
         ui.linkRow(activity, getString(R.string.hub_events), getString(R.string.hub_events_sum), () -> open(this::eventsPage));
-        ui.linkRow(activity, getString(R.string.rules_title), getString(R.string.hub_rules_sum), () -> open(rules::advancedPage));
+        ui.linkRow(activity, getString(R.string.rules_title), getString(R.string.hub_rules_sum), () -> open(rules::listPage));
         Switch progress = toggle(activity, R.string.setting_progress, R.string.setting_progress_desc, ModuleSettings.KEY_PROGRESS_NOTIFICATIONS, true);
         Switch hide = toggle(activity, R.string.setting_hide_progress, R.string.setting_hide_progress_desc, ModuleSettings.KEY_HIDE_PROGRESS_ORIGINALS, true);
         dependent(progress, OneUi.rowOf(hide));
         toggle(activity, R.string.setting_calls, R.string.setting_calls_desc, ModuleSettings.KEY_THIRD_PARTY_CALLS, true);
-        ui.category(page, getString(R.string.group_codes), getString(R.string.desc_codes));
+        ui.category(page, getString(R.string.group_codes));
         LinearLayout codes = ui.card(page);
         Switch otp = toggle(codes, R.string.setting_otp, R.string.setting_otp_desc, ModuleSettings.KEY_OTP_CARD, true);
         Switch copy = toggle(codes, R.string.setting_otp_copy, R.string.setting_otp_copy_desc, ModuleSettings.KEY_OTP_AUTO_COPY, false);
@@ -517,10 +407,9 @@ public final class SettingsActivity extends Activity {
 
     private void eventsPage() {
         subPage(getString(R.string.hub_events));
-        ui.category(page, getString(R.string.group_events_power), getString(R.string.desc_events_power));
         LinearLayout device = ui.card(page);
         Switch charging = toggle(device, R.string.setting_event_charging, R.string.setting_event_charging_desc, ModuleSettings.KEY_EVENT_CHARGING, true);
-        Switch chargingInfo = toggle(device, R.string.setting_charging_info, R.string.setting_charging_info_desc, ModuleSettings.KEY_CHARGING_INFO, false);
+        Switch chargingInfo = toggle(device, R.string.setting_charging_info, R.string.setting_charging_info_desc, ModuleSettings.KEY_CHARGING_INFO, true);
         Switch chargingStats = toggle(device, R.string.setting_charging_stats, R.string.setting_charging_stats_desc, ModuleSettings.KEY_CHARGING_STATS, false);
         Runnable chargingDependencies = () -> {
             OneUi.setDependentsEnabled(charging.isChecked(), OneUi.rowOf(chargingInfo));
@@ -531,16 +420,17 @@ public final class SettingsActivity extends Activity {
         chargingDependencies.run();
         toggle(device, R.string.setting_stock_charging_animation, R.string.setting_stock_charging_animation_desc, ModuleSettings.KEY_STOCK_CHARGING_ANIMATION, false);
         ui.details(page, getString(R.string.ui_details), getString(R.string.charging_statistics_note));
-        ui.category(page, getString(R.string.group_events_audio), getString(R.string.desc_events_audio));
-        device = ui.card(page);
         toggle(device, R.string.setting_event_ringer, R.string.setting_event_ringer_desc, ModuleSettings.KEY_EVENT_RINGER, true);
         toggle(device, R.string.setting_event_bluetooth, R.string.setting_event_bluetooth_desc, ModuleSettings.KEY_EVENT_BLUETOOTH, true);
-        toggle(device, R.string.setting_event_headset, R.string.setting_event_headset_desc, ModuleSettings.KEY_EVENT_HEADSET, false);
-        ui.category(page, getString(R.string.group_events_quick), getString(R.string.desc_events_quick));
-        device = ui.card(page);
+        toggle(device, R.string.setting_event_headset, R.string.setting_event_headset_desc, ModuleSettings.KEY_EVENT_HEADSET, true);
+        toggle(device, R.string.setting_unlock_notice, R.string.setting_unlock_notice_desc, ModuleSettings.KEY_UNLOCK_NOTICE, true);
         toggle(device, R.string.setting_event_toggles, R.string.setting_event_toggles_desc, ModuleSettings.KEY_EVENT_TOGGLES, true);
         toggle(device, R.string.setting_torch_pill, R.string.setting_torch_pill_desc, ModuleSettings.KEY_TORCH_PILL, true);
-        ui.category(page, getString(R.string.group_privacy), getString(R.string.desc_privacy));
+        choice(device, R.string.torch_style, new int[]{R.string.torch_style_classic, R.string.torch_style_beam},
+                prefs.getInt(ModuleSettings.KEY_TORCH_STYLE, 0) == 1 ? 1 : 0,
+                style -> prefs.edit().putInt(ModuleSettings.KEY_TORCH_STYLE, style).apply());
+        ui.details(page, getString(R.string.ui_details), getString(R.string.torch_style_desc));
+        ui.category(page, getString(R.string.group_privacy));
         LinearLayout privacy = ui.card(page);
         Switch indicator = toggle(privacy, R.string.setting_privacy, R.string.setting_privacy_desc, ModuleSettings.KEY_PRIVACY, true);
         Switch location = toggle(privacy, R.string.setting_privacy_location, R.string.setting_privacy_location_desc, ModuleSettings.KEY_PRIVACY_LOCATION, false);
@@ -550,11 +440,15 @@ public final class SettingsActivity extends Activity {
     private void advancedPage() {
         subPage(getString(R.string.ui_advanced));
         LinearLayout advanced = ui.card(page);
+        ui.linkRow(advanced, getString(R.string.ui_rules_advanced), getString(R.string.ui_rules_advanced_summary), () -> open(rules::advancedPage));
+        ui.linkRow(advanced, getString(R.string.ui_camera_calibration), getString(R.string.ui_camera_calibration_summary), () -> open(position::calibration));
         toggle(advanced, R.string.experimental_recovery, R.string.ui_recovery_short, ModuleSettings.KEY_EXPERIMENTAL_RECOVERY, false);
+        toggle(advanced, R.string.concurrent_recording_input, R.string.concurrent_recording_input_desc, ModuleSettings.KEY_CONCURRENT_RECORDING_INPUT, false);
         ui.details(page, getString(R.string.ui_recovery_details), getString(R.string.experimental_recovery_desc));
-        ui.category(page, getString(R.string.hub_tools), getString(R.string.desc_tools));
+        ui.category(page, getString(R.string.hub_tools));
         LinearLayout tools = ui.card(page);
         ui.linkRow(tools, getString(R.string.diagnostics_title), getString(R.string.diagnostics_sum), () -> open(this::diagnosticsPage));
+        ui.actionRow(tools, getString(R.string.restart_systemui), getString(R.string.restart_systemui_sum), this::confirmRestart);
     }
 
     // ---------------------------------------------------------------- timing choices

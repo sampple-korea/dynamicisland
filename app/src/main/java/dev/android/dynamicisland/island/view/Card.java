@@ -13,12 +13,6 @@ import dev.android.dynamicisland.island.view.card.CardBody;
 public final class Card {
     final ContentBlur contentBlur = new ContentBlur();
     final FrostedSurface material = new FrostedSurface();
-    boolean iMode;
-    boolean iModePreview, iModePaging;
-    final Spring iModeRole = new Spring(0, .28f, 1).setValueThreshold(.002f);
-    final ContentBlur iModeCompactBlur = new ContentBlur();
-    final Spring cx = new Spring(0, .36f, .92f).setValueThreshold(.15f);
-    final Spring iModeOpacity = new Spring(1, .24f, 1).setValueThreshold(.002f);
     float leaveContentBlur;
     float leaveContentAlpha = 1;
     ContentHandoff handoff;

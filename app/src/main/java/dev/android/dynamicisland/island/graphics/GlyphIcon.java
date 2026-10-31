@@ -21,7 +21,7 @@ import dev.android.dynamicisland.settings.ModuleSettings;
  */
 public final class GlyphIcon extends Drawable {
     /** Which pictogram to draw. {@code POWER_SAVE} is drawn as a battery with a plus cut out. */
-    public enum Kind { BATTERY, BATTERY_CHARGING, BELL, BELL_OFF, VIBRATE, HEADPHONES, CAMERA, MIC, LOCATION, MOON, PLANE, TORCH, HOTSPOT, ROTATE_LOCK, POWER_SAVE, DOWNLOAD, SPEAKER }
+    public enum Kind { BATTERY, BATTERY_CHARGING, BELL, BELL_OFF, VIBRATE, HEADPHONES, CAMERA, MIC, LOCATION, MOON, PLANE, TORCH, HOTSPOT, ROTATE_LOCK, POWER_SAVE, DOWNLOAD, SPEAKER, FINGERPRINT, FACE, WATCH, PIN }
 
     private static final int INTRINSIC_SIZE_PX = 96;
     /** An icon drawn again after this long without a draw plays from the start, like a fresh island. */
@@ -228,6 +228,18 @@ public final class GlyphIcon extends Drawable {
                 break;
             case SPEAKER:
                 drawSpeaker(c, cx, cy, s);
+                break;
+            case FINGERPRINT:
+                drawFingerprint(c, cx, cy, s);
+                break;
+            case FACE:
+                drawFace(c, cx, cy, s);
+                break;
+            case WATCH:
+                drawWatch(c, cx, cy, s);
+                break;
+            case PIN:
+                drawPin(c, cx, cy, s);
                 break;
             default:
                 break;
@@ -453,6 +465,63 @@ public final class GlyphIcon extends Drawable {
         c.drawRoundRect(rect, s * 0.032f, s * 0.032f, paint);
         paint.setXfermode(null);
         c.restoreToCount(layer);
+    }
+
+    /** Nested arcs with a core: a fingerprint. */
+    private void drawFingerprint(Canvas c, float cx, float cy, float s) {
+        float stroke = Math.max(1.5f, s * 0.07f);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(stroke);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        for (int i = 1; i <= 3; i++) {
+            float r = s * 0.115f * i;
+            rect.set(cx - r, cy - r * 1.2f, cx + r, cy + r * 1.2f);
+            c.drawArc(rect, 205f, 130f, false, paint);
+        }
+        rect.set(cx - s * 0.115f, cy - s * 0.14f, cx + s * 0.115f, cy + s * 0.16f);
+        c.drawArc(rect, 180f, 180f, false, paint);
+        paint.setStyle(Paint.Style.FILL);
+    }
+
+    /** A face outline with two eyes and a smile. */
+    private void drawFace(Canvas c, float cx, float cy, float s) {
+        float stroke = Math.max(1.5f, s * 0.07f);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(stroke);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        rect.set(cx - s * 0.29f, cy - s * 0.35f, cx + s * 0.29f, cy + s * 0.35f);
+        c.drawRoundRect(rect, s * 0.22f, s * 0.22f, paint);
+        paint.setStyle(Paint.Style.FILL);
+        c.drawCircle(cx - s * 0.115f, cy - s * 0.10f, s * 0.052f, paint);
+        c.drawCircle(cx + s * 0.115f, cy - s * 0.10f, s * 0.052f, paint);
+        paint.setStyle(Paint.Style.STROKE);
+        rect.set(cx - s * 0.12f, cy + s * 0.02f, cx + s * 0.12f, cy + s * 0.19f);
+        c.drawArc(rect, 25f, 130f, false, paint);
+        paint.setStyle(Paint.Style.FILL);
+    }
+
+    /** A watch: body, two strap ends and a centre dot. */
+    private void drawWatch(Canvas c, float cx, float cy, float s) {
+        float stroke = Math.max(1.5f, s * 0.07f);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(stroke);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        rect.set(cx - s * 0.21f, cy - s * 0.21f, cx + s * 0.21f, cy + s * 0.21f);
+        c.drawRoundRect(rect, s * 0.10f, s * 0.10f, paint);
+        c.drawLine(cx - s * 0.10f, cy - s * 0.30f, cx + s * 0.10f, cy - s * 0.30f, paint);
+        c.drawLine(cx - s * 0.10f, cy + s * 0.30f, cx + s * 0.10f, cy + s * 0.30f, paint);
+        paint.setStyle(Paint.Style.FILL);
+        c.drawCircle(cx, cy, s * 0.045f, paint);
+    }
+
+    /** A three by three keypad: a PIN. */
+    private void drawPin(Canvas c, float cx, float cy, float s) {
+        float r = s * 0.052f, gap = s * 0.165f;
+        for (int y = -1; y <= 1; y++) {
+            for (int x = -1; x <= 1; x++) {
+                c.drawCircle(cx + x * gap, cy + y * gap, r, paint);
+            }
+        }
     }
 
     private void drawHotspot(Canvas c, float cx, float cy, float s) {

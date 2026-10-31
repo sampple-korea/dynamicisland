@@ -69,6 +69,9 @@ public final class Diagnostics {
     private static final SimpleDateFormat EVENT_TIME = new SimpleDateFormat("HH:mm:ss", Locale.US);
     private static long lastPublish;
     private static boolean dirty;
+    /** Longest fact value printed in the report; longer ones are cut so the events still fit. */
+    private static final int MAX_FACT_CHARS = 400;
+
     private static Context context;
 
     private Diagnostics() {
@@ -120,17 +123,45 @@ public final class Diagnostics {
         }
     }
 
+    /**
+     * The version of the module that is actually installed.
+     *
+     * <p>The header used to print a constant, so every report said the same thing whatever had been
+     * installed and a log could not be matched to a build. This reads the module's own package instead,
+     * falling back to the constant if that is not possible.
+     */
+    private static String version() {
+        Context ctx = context;
+        if (ctx != null) {
+            try {
+                Context module = ctx.createPackageContext("dev.android.dynamicisland", 0);
+                android.content.pm.PackageInfo info = module.getPackageManager()
+                        .getPackageInfo("dev.android.dynamicisland", 0);
+                return info.versionName + " (" + info.getLongVersionCode() + ")";
+            } catch (Throwable ignored) {
+                // fall through to the constant
+            }
+        }
+        return CrashGuard.BUILD;
+    }
+
     /** The report as text. */
     public static synchronized String report() {
         StringBuilder sb = new StringBuilder();
-        sb.append("DynamicIsland ").append(CrashGuard.BUILD).append('\n');
+        sb.append("DynamicIsland ").append(version()).append('\n');
         sb.append("time ").append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(new Date())).append(" uptime ")
                 .append(SystemClock.elapsedRealtime() / 1000).append("s\n");
         sb.append("device ").append(Build.MANUFACTURER).append(' ').append(Build.MODEL).append(" android ").append(Build.VERSION.RELEASE)
                 .append(" sdk ").append(Build.VERSION.SDK_INT).append('\n');
         sb.append("build ").append(Build.DISPLAY).append('\n');
         for (Map.Entry<String, String> e : FACTS.entrySet()) {
-            sb.append(e.getKey()).append(' ').append(e.getValue()).append('\n');
+            // A long fact (the hook-attachment list runs to hundreds of class#method names after the
+            // unlock-notice scan) used to push the recent events out of the report entirely.
+            String value = e.getValue();
+            if (value != null && value.length() > MAX_FACT_CHARS) {
+                value = value.substring(0, MAX_FACT_CHARS) + " ...";
+            }
+            sb.append(e.getKey()).append(' ').append(value).append('\n');
         }
         sb.append("-- stages\n");
         for (Map.Entry<String, String> e : STAGES.entrySet()) {

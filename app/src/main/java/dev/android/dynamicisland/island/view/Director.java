@@ -67,8 +67,6 @@ final class Director {
     private final Runnable startSplit = this::startSplitNow;
     /** When the pill last appeared from nothing, for the timing of the first bubble. */
     private long appearedAt;
-    /** A popup remains focused on its own source across unrelated list refreshes. */
-    private String peekKey;
 
     Director(IslandView view, IslandHost host, Metrics m, Scene scene, Shapes shapes, BodyFactory bodies, MediaFxCache mediaFx) {
         this.view = view;
@@ -80,30 +78,6 @@ final class Director {
         this.bodies = bodies;
         this.mediaFx = mediaFx;
     }
-
-    private void reconcilePresentation() {
-        if (ModuleSettings.iMode() == (scene.iMode != null)) return;
-        cancelAutoCollapse(); view.removeCallbacks(fadePillBlob); view.removeCallbacks(startSplit);
-        if (scene.peekOpen) host.onPeekClosed(clearPeek());
-        scene.peekOpen=false; scene.held=false;
-        boolean expanded=scene.mode==Mode.EXPANDED;
-        for (Card card:scene.cards) {
-            if(scene.blur!=null) scene.blur.release(card);
-            card.material.clear();
-        }
-        if(scene.iMode!=null) scene.iMode.dispose();
-        scene.cards.clear();
-        if(view.sliderBody!=null) view.sliderBody.onSliderEnd();
-        view.sliderBody=null; view.seekBody=null;
-        scene.mode=Mode.HIDDEN;
-        scene.mainIn=null; scene.mainOut=null; scene.bubbleIn=null; scene.bubbleOut=null;
-        scene.contentHandoff=null;
-        sp.pillBlob.snapTo(1); sp.stackDx.snapTo(0); sp.stackDy.snapTo(0);
-        scene.iMode=ModuleSettings.iMode() ? new IMode(view,host,m,scene,bodies,this) : null;
-        if(expanded) host.onExpandedChanged(false);
-    }
-
-    String clearPeek() { String key=peekKey; peekKey=null; return key; }
 
     // ---- auto collapse -------------------------------------------------------------------------------------------
 
@@ -147,15 +121,6 @@ final class Director {
 
     /** Applies a new sorted item list: decides between appearing, cross-fading, updating the stack or hiding. */
     void update(List<IslandItem> list, int hint) {
-        reconcilePresentation();
-        if (scene.iMode != null) {
-            scene.items.clear(); scene.items.addAll(list);
-            mediaFx.retainFor(scene.items, scene.minimized);
-            scene.primary=list.isEmpty() ? null : list.get(0);
-            scene.secondary=list.size()>1 ? list.get(1) : null;
-            scene.iMode.update();
-            return;
-        }
         IslandItem oldPrimary = scene.primary;
         IslandItem oldSecondary = scene.secondary;
         scene.items.clear();
@@ -227,7 +192,6 @@ final class Director {
 
     /** Re-creates the content of the compact pill, keeping the running animation (e.g. after a geometry change). */
     void refreshMain() {
-        if (scene.iMode != null) { scene.iMode.relayout(); return; }
         IslandItem primary = scene.primary;
         scene.mainIn = scene.mainIn == null
                 ? Layer.shown(new CompactContent(view, primary))
@@ -237,13 +201,11 @@ final class Director {
     }
 
     void refreshBubble() {
-        if (scene.iMode != null) return;
         scene.bubbleIn = Layer.shown(new BubbleContent(view, scene.secondary));
     }
 
     /** Remeasure with the new font while preserving which cards are open and their animation state. */
     void refreshFontLayouts() {
-        if (scene.iMode != null) { scene.iMode.relayout(); return; }
         if (scene.mode == Mode.COMPACT && scene.primary != null) refreshMain();
         if (scene.secondary != null && scene.bubbleIn != null) refreshBubble();
         if (scene.mode == Mode.EXPANDED) {
@@ -299,7 +261,6 @@ final class Director {
 
     /** Shows the island again for the current primary item (after being suppressed). */
     void reveal() {
-        if (scene.iMode != null) { scene.iMode.update(); return; }
         scene.mode = Mode.HIDDEN;
         scene.keptWidth = 0.0f; // the next pill starts from its own width
         appear(scene.primary, false);
@@ -334,11 +295,6 @@ final class Director {
     private void goHidden(boolean toLeft) {
         cancelAutoCollapse();
         view.removeCallbacks(fadePillBlob);
-        boolean wasPeek = scene.peekOpen;
-        String closedPeek = peekKey;
-        scene.peekOpen = false;
-        peekKey = null;
-        if (wasPeek) host.onPeekClosed(closedPeek);
         sp.pillBlob.animateTo(1.0f, 0.1f, 1.0f);
         boolean wasExpanded = scene.mode == Mode.EXPANDED;
         if (scene.mode == Mode.HIDDEN) {
@@ -375,11 +331,6 @@ final class Director {
 
     /** Opens the card stack on {@code show}; it closes itself after {@code autoCollapseMs} (default from the settings). */
     void expand(List<IslandItem> show, long autoCollapseMs) {
-        if (scene.iMode != null) {
-            if(!show.isEmpty()) scene.iMode.open(show.get(0).key,false);
-            scheduleAutoCollapse(autoCollapseMs>0 ? autoCollapseMs : ModuleSettings.autoCollapseMs());
-            return;
-        }
         if (show.isEmpty()) {
             return;
         }
@@ -415,44 +366,30 @@ final class Director {
         view.notifyHost();
     }
 
+    /** Key of the card a peek shows, so a refresh cannot grow it into the whole stack. */
+    private String peekKey;
+
     void peek(IslandItem item, long ms) {
         scene.peekOpen = true;
-        peekKey = item.key;
-        if(scene.iMode!=null) {
-            scene.iMode.peek(item);
-            scheduleAutoCollapse(ms);
-        } else expand(Collections.singletonList(item), ms);
-    }
-
-    /** Once the display is dark, do not carry half-folded cards or their blur surfaces into a wake. */
-    void finishSleeping() {
-        if(scene.iMode!=null) scene.iMode.finishSleeping();
-        cancelAutoCollapse();
-        view.removeCallbacks(fadePillBlob);
-        boolean hadCards = !scene.cards.isEmpty();
-        for (Card card : scene.cards) {
-            if (scene.blur != null) scene.blur.release(card);
-            card.material.clear();
-        }
-        scene.cards.clear();
-        scene.mainOut = null;
-        scene.bubbleOut = null;
-        scene.contentHandoff = null;
-        sp.pillBlob.snapTo(1);
-        sp.outlineFade.snapTo(1);
-        if (hadCards) host.onWindowHeightNeeded(m.compactWindowHeight());
+        peekKey = item == null ? null : item.key;
+        expand(Collections.singletonList(item), ms);
     }
 
     /** The items changed while the stack is open: reuse the cards that stay, let the others leave. */
     private void rebuildStack() {
-        List<IslandItem> show;
-        if (scene.peekOpen) {
-            show = new ArrayList<>(1);
-            for (IslandItem item : scene.items) {
-                if (item.key.equals(peekKey)) { show.add(item); break; }
+        List<IslandItem> show = scene.stackItems(MAX_CARDS);
+        if (scene.peekOpen && peekKey != null) {
+            // a notification peek is one card: other items (a media session) must not join it on a refresh
+            List<IslandItem> only = new ArrayList<>(1);
+            for (IslandItem it : show) {
+                if (it != null && peekKey.equals(it.key)) {
+                    only.add(it);
+                    break;
+                }
             }
-        } else {
-            show = scene.stackItems(MAX_CARDS);
+            if (!only.isEmpty()) {
+                show = only;
+            }
         }
         if (show.isEmpty()) {
             collapse();
@@ -464,24 +401,16 @@ final class Director {
 
     /** Opens the stack from the current item lists (a tap on the pill). */
     void expandFromPill() {
-        if(scene.iMode!=null) {
-            List<IslandItem> visible=scene.iMode.visibleItems();
-            if(!visible.isEmpty()) scene.iMode.open(visible.get(0).key,true);
-            return;
-        }
         scene.peekOpen = false;
-        peekKey = null;
         expand(scene.stackItems(MAX_CARDS), ModuleSettings.autoCollapseMs());
     }
 
     void collapse() {
-        if(scene.iMode!=null) { scene.iMode.collapse(); return; }
         if (scene.mode != Mode.EXPANDED) {
             return;
         }
         scene.contentHandoff = new ContentHandoff(scene.contentHandoff, false, IslandView.now());
         boolean peek = scene.peekOpen;
-        String closedPeek = peekKey;
         scene.peekOpen = false;
         peekKey = null;
         scene.held = false;
@@ -493,7 +422,7 @@ final class Director {
         // The compact and expanded contents share one crossfade; neither waits for an empty shape to finish folding.
         view.scheduleFrame();
         if (peek) {
-            host.onPeekClosed(closedPeek); // Never dismiss a newer notification replacing this popup.
+            host.onPeekClosed(); // a notification popup is not kept as a pill: it goes away with its card
         }
         if (scene.primary == null || (peek && scene.primary.kind == IslandItem.Kind.PEEK)) {
             collapseCards(true);
@@ -521,7 +450,6 @@ final class Director {
      * so it comes out of the pill in view instead of appearing from behind the folding card.
      */
     private void regrowPill(boolean withBubble) {
-        if(scene.iMode!=null) return;
         if (scene.mode != Mode.COMPACT || scene.mainIn == null) {
             return;
         }
@@ -534,7 +462,6 @@ final class Director {
     }
 
     void fadePillBlobNow() {
-        if(scene.iMode!=null) return;
         if (scene.mode != Mode.EXPANDED) {
             return;
         }
@@ -668,7 +595,6 @@ final class Director {
      * @return true while any card still needs frames
      */
     boolean stepCards(float dt, long t) {
-        if(scene.iMode!=null) return scene.iMode.step(dt,t);
         if (scene.cards.isEmpty()) {
             return false;
         }

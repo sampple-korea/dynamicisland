@@ -19,8 +19,9 @@ import org.robolectric.util.ReflectionHelpers;
 public class AnimationSketchFilmTest {
     @Test public void previewUsesIslandRendererAndCanOpenACard() {
         SettingsActivity activity = Robolectric.buildActivity(SettingsActivity.class).setup().get();
-        activity.openSetting(SettingsSearchCatalog.Route.APPEARANCE, dev.android.dynamicisland.R.string.anim_title, 0);
-        IslandView island = find(activity.findViewById(android.R.id.content));
+        AnimationScreen animation = ReflectionHelpers.getField(activity, "animation");
+        activity.open(animation::open);
+        IslandView island = find(activity.page());
         assertNotNull(island);
         assertFalse(island.isHapticFeedbackEnabled());
         island.setGeometry(1080, 540, 108, 60, false);
@@ -28,6 +29,7 @@ public class AnimationSketchFilmTest {
         sample.title = "Preview";
         assertTrue(island.peek(sample, 1600));
         assertTrue(island.isPeekOpen());
+        animation.stop();
     }
     private IslandView find(View view) {
         if (view instanceof IslandView) return (IslandView) view;

@@ -262,8 +262,25 @@ public final class EventSource {
         it.trailing = IslandItem.Trailing.TEXT;
         it.trailingText = IslandText.get(ctx, on ? "island_on" : "island_off");
         it.compactLabel = IslandText.get(ctx, labelKey);
-        it.subtitle = null;
+        it.subtitle = IslandText.get(ctx, "island_setting_changed");
+        if ("hotspot".equals(name)) {
+            // the hotspot has its own card now (HotspotSource): devices, traffic, uptime, no expiry. Only
+            // the switch-off is still announced here, and only briefly.
+            if (!on) {
+                show(it, TOGGLE_MS);
+            }
+            return;
+        }
         show(it, TOGGLE_MS);
+    }
+
+    /** Like show, but with no expiry: the card stays until something replaces or removes it. */
+    private void showSticky(IslandItem item) {
+        item.expiresAtUptime = Long.MAX_VALUE;
+        item.postTime = SystemClock.uptimeMillis();
+        events.remove(item.key);
+        events.put(item.key, item);
+        onChange.run();
     }
 
     /** Adds the events that are still alive and schedules the refresh that removes them. */
@@ -320,7 +337,8 @@ public final class EventSource {
             events.remove("event:charging");
             onChange.run();
         }
-        if (plugged != 0 && ModuleSettings.eventCharging()) {
+        // the charging card owns the plugged state; the popup is only the fallback when it is off
+        if (plugged != 0 && ModuleSettings.eventCharging() && !ModuleSettings.chargingInfo()) {
             if (justPlugged) {
                 show(chargingItem(percent, plugged, i), CHARGING_MS);
             } else if (events.containsKey("event:charging")) {
@@ -460,8 +478,6 @@ public final class EventSource {
         }
     }
 
-    // Runs with the SystemUI host permissions; unavailable Bluetooth access is caught below.
-    @android.annotation.SuppressLint("MissingPermission")
     private static boolean isAudio(BluetoothDevice device) {
         try {
             BluetoothClass cls = device.getBluetoothClass();
@@ -476,8 +492,6 @@ public final class EventSource {
         return level instanceof Integer ? ((Integer) level).intValue() : -1;
     }
 
-    // Runs with the SystemUI host permissions; denied device names fall back to generic text.
-    @android.annotation.SuppressLint("MissingPermission")
     IslandItem bluetoothItem(BluetoothDevice device, int battery) {
         String name = null;
         try {

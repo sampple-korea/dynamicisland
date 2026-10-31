@@ -32,8 +32,6 @@ public final class TorchSource {
     private static final int YELLOW = 0xFFFFD60A;
     /** Beyond this many levels the slider is smooth instead of stepped. */
     private static final int MAX_STEPS = 10;
-    private static final long OFF_CONTROLS_MS = 5_000;
-    private static final long POWER_RAMP_MS = 240, POWER_TICK_MS = 24;
     /** True once a torch camera was found; the card is only offered when the option is on as well. */
     private static volatile boolean cameraFound;
     /** The ongoing notification System UI posts for the flashlight (id 4660, tag "Flashlight"); the card replaces it. */
@@ -54,25 +52,9 @@ public final class TorchSource {
     private final Set<String> enabled = new LinkedHashSet<>();
     private boolean on;
     private int level = 1;
-    /** The user's chosen level; transient power-ramp levels must never replace it. */
-    private int preferredLevel = 1;
-    private boolean ramping, rampToOn, awaitingOff, rampRetainedBefore;
-    private int rampFrom, rampTarget, rampApplied, rampGeneration;
-    private long rampAt;
-    private String rampCamera;
-    private String supersededOffCamera;
-    private long supersededOffUntil;
-    private final Runnable powerStep = this::stepPowerRamp;
-    private final Runnable powerTimeout = this::cancelPowerRamp;
     /** Samsung's {@code SecFlashlightControllerImpl}, or null. */
     private volatile Object samsungController;
     private long onSince;
-    private boolean controlsExpanded, retainOffControls;
-    private long offControlsUntil;
-    private final Runnable expireOffControls = this::expireOffControlsNow;
-    interface Output { void set(boolean enabled, int strength, boolean remember) throws Exception; }
-    private Output output;
-    void setOutput(Output output) { this.output = output; }
 
     public TorchSource(Context ctx, Handler main, Runnable onChange) {
         this.ctx = ctx;
@@ -151,7 +133,6 @@ public final class TorchSource {
                     onLevel(newStrengthLevel);
                 }
             }
-            @Override public void onTorchModeUnavailable(String id) { onCamera(id,false); }
         });
     }
 
@@ -187,11 +168,6 @@ public final class TorchSource {
         if (levels == null) {
             return;
         }
-        if(!isOn && id.equals(supersededOffCamera)) {
-            boolean superseded=ramping&&rampToOn&&SystemClock.uptimeMillis()<=supersededOffUntil;
-            supersededOffCamera=null;supersededOffUntil=0;
-            if(superseded) return; // the known old off command precedes our newer on command
-        }
         if (isOn) {
             enabled.add(id);
             cameraId = id;
@@ -203,50 +179,34 @@ public final class TorchSource {
                 maxLevel = flashLevels.get(cameraId);
             }
         }
-        if (ramping && !java.util.Objects.equals(rampCamera,cameraId)) cancelPowerRamp();
         onMode(!enabled.isEmpty());
     }
 
     private void onMode(boolean enabled) {
         if (enabled == on) {
-            if (!enabled && ramping && !rampToOn) {
-                cancelPowerRamp();
-                keepOffControls();
-                onChange.run();
-            }
             return;
         }
         on = enabled;
-        if (enabled) {
-            boolean keep=ramping&&!rampToOn&&retainOffControls;
-            clearOffControls();
-            retainOffControls=keep;
-        } else {
-            cancelPowerRamp();
-            keepOffControls();
-        }
         Runnable shown = onShownChanged;
         if (shown != null) {
             shown.run();
         }
         if (enabled) {
             onSince = SystemClock.uptimeMillis();
-            level = ramping ? Math.max(1,rampApplied) : maxLevel;
+            level = maxLevel;
             if (maxLevel > 1) {
                 try {
                     level = Math.max(1, Math.min(maxLevel, cameras.getTorchStrengthLevel(cameraId)));
                 } catch (Throwable t) {
-                    level = ramping ? Math.max(1,rampApplied) : maxLevel;
+                    level = maxLevel;
                 }
             }
-            if (!ramping) preferredLevel=level;
         }
         onChange.run();
     }
 
     private void onLevel(int newLevel) {
         int clamped = Math.max(1, Math.min(maxLevel, newLevel));
-        if (!ramping && on) preferredLevel=clamped;
         if (clamped != level) {
             level = clamped;
             if (on) {
@@ -257,8 +217,7 @@ public final class TorchSource {
 
     /** Adds the flashlight card while the torch is on. */
     public void collect(List<IslandItem> out) {
-        if ((!on && !(retainOffControls && controlsExpanded && offControlsUntil > SystemClock.uptimeMillis()
-                && ModuleSettings.torchBeamStyle())) || !handlesTorch()) {
+        if (!on || !handlesTorch()) {
             return;
         }
         out.add(card());
@@ -268,9 +227,6 @@ public final class TorchSource {
     IslandItem card() {
         IslandItem it = new IslandItem("torch:brightness");
         it.kind = IslandItem.Kind.EVENT;
-        it.torchControls = true;
-        it.torchOn = on;
-        if (!on) it.keepExpandedUntilUptime = offControlsUntil;
         it.iconIsImage = false;
         it.pillColor = 0;
         it.title = IslandText.get(ctx, "island_flashlight");
@@ -291,10 +247,7 @@ public final class TorchSource {
             it.sliderChange = null;
             it.sliderTrailing = null;
         }
-        boolean requestedOn=ramping?rampToOn:on;
-        it.actions.add(new IslandItem.Action(IslandText.get(ctx, requestedOn ? "island_turn_off" : "island_on"), null, null,
-                ModuleSettings.torchBeamStyle() ? this::toggle : this::turnOff, false));
-        if (!on) it.trailingText = IslandText.get(ctx, "island_off");
+        it.actions.add(new IslandItem.Action(IslandText.get(ctx, "island_turn_off"), null, null, this::turnOff, false));
         it.postTime = onSince;
         return it;
     }
@@ -304,7 +257,6 @@ public final class TorchSource {
         cameraId = id;
         maxLevel = levels;
         level = current;
-        preferredLevel = current;
         on = torchOn;
         cameraFound = true;
         flashLevels.put(id, levels);
@@ -320,15 +272,17 @@ public final class TorchSource {
     /** Sets the brightness from a slider position 0..1. */
     void setFraction(float fraction) {
         int wanted = levelFor(fraction);
-        cancelPowerRamp();
-        if(on) clearOffControls();
         if (wanted == level && on) {
             return;
         }
         try {
-            write(true, wanted);
+            Object samsung = samsungController;
+            if (samsung != null && Boolean.TRUE.equals(Refl.call(samsung, "isTorchStrengthControllable"))) {
+                Refl.call(samsung, "setFlashlightLevel", wanted, Boolean.TRUE);
+            } else {
+                cameras.turnOnTorchWithStrengthLevel(cameraId, wanted);
+            }
             level = wanted;
-            preferredLevel = wanted;
             onChange.run(); // the card's texts and the pill follow now, not when the camera reports the new level
         } catch (Throwable t) {
             XLog.e("flashlight level not set", t);
@@ -336,120 +290,19 @@ public final class TorchSource {
     }
 
     void turnOff() {
-        cancelPowerRamp();
         try {
-            write(false, level);
+            cameras.setTorchMode(cameraId, false);
         } catch (Throwable t) {
             XLog.e("flashlight not turned off", t);
         }
     }
 
+    /**
+     * 0.1.14's island view reports whether the torch controls are open. This source no longer keeps a
+     * separate "just switched off" window (the card now ends on the torch state itself), so the call is
+     * accepted and ignored rather than being removed from IslandController.
+     */
     public void onControlsExpanded(boolean expanded) {
-        controlsExpanded = expanded;
-        if (!expanded && retainOffControls) {
-            clearOffControls();
-            if (!on) onChange.run();
-        }
-    }
-
-    private void clearOffControls() {
-        retainOffControls = false;
-        offControlsUntil = 0;
-        main.removeCallbacks(expireOffControls);
-    }
-
-    private void expireOffControlsNow() {
-        if (!on && retainOffControls && SystemClock.uptimeMillis() >= offControlsUntil) {
-            clearOffControls();
-            onChange.run();
-        }
-    }
-
-    private void keepOffControls() {
-        if(retainOffControls && controlsExpanded && ModuleSettings.torchBeamStyle()) {
-            offControlsUntil=SystemClock.uptimeMillis()+OFF_CONTROLS_MS;
-            main.removeCallbacks(expireOffControls);
-            main.postDelayed(expireOffControls,OFF_CONTROLS_MS);
-        } else clearOffControls();
-    }
-
-    private void toggle() {
-        boolean targetOn=ramping?!rampToOn:!on;
-        int start=ramping?rampApplied:on?level:0;
-        boolean retained=retainOffControls;
-        if(targetOn&&awaitingOff) {
-            supersededOffCamera=rampCamera;
-            supersededOffUntil=SystemClock.uptimeMillis()+500;
-        }
-        cancelPowerRamp();
-        if(!targetOn) retainOffControls=controlsExpanded;
-        else if(on) clearOffControls();
-        rampRetainedBefore=retained;
-        if(maxLevel<=1) {
-            try { write(targetOn,1,false); }
-            catch(Throwable error) { retainOffControls=retained;XLog.e("flashlight power not set",error); }
-            return;
-        }
-        ramping=true;rampToOn=targetOn;rampFrom=start;rampApplied=start;
-        rampTarget=targetOn?Math.max(1,Math.min(maxLevel,preferredLevel)):0;
-        rampAt=SystemClock.uptimeMillis();rampCamera=cameraId;
-        stepPowerRamp();
-    }
-
-    private void cancelPowerRamp() {
-        main.removeCallbacks(powerStep);main.removeCallbacks(powerTimeout);
-        ramping=false;awaitingOff=false;rampCamera=null;rampGeneration++;
-    }
-
-    private void stepPowerRamp() {
-        if(!ramping || awaitingOff) return;
-        if(!java.util.Objects.equals(cameraId,rampCamera)) {cancelPowerRamp();return;}
-        int generation=rampGeneration;
-        float t=Math.min(1,(SystemClock.uptimeMillis()-rampAt)/(float)POWER_RAMP_MS);
-        if(!ModuleSettings.torchBeamStyle()) t=1;
-        float eased=t*t*(3-2*t);
-        int next=t>=1?rampTarget:Math.max(1,Math.round(rampFrom+(rampTarget-rampFrom)*eased));
-        try {
-            if(next==0) {
-                rampApplied=0;awaitingOff=true;
-                write(false,Math.max(1,level),false);
-                if(ramping && generation==rampGeneration) main.postDelayed(powerTimeout,600);
-                return;
-            }
-            if(next!=rampApplied || !on) {
-                rampApplied=next;
-                // Public strength writes are transient: no Samsung saved-brightness setting is touched.
-                write(true,next,false);
-                if(!ramping || generation!=rampGeneration) return;
-                level=next;onChange.run();
-            }
-            if(!ramping || generation!=rampGeneration) return;
-            if(t>=1) cancelPowerRamp();
-            else main.postDelayed(powerStep,POWER_TICK_MS);
-        } catch(Throwable error) {
-            if(generation==rampGeneration) {cancelPowerRamp();retainOffControls=rampRetainedBefore;}
-            XLog.e("flashlight power transition stopped",error);
-        }
-    }
-
-    private void write(boolean enabled, int strength) throws Exception {
-        write(enabled,strength,true);
-    }
-
-    private void write(boolean enabled, int strength, boolean remember) throws Exception {
-        if (output != null) { output.set(enabled, strength,remember); return; }
-        if (!enabled) { cameras.setTorchMode(cameraId, false); return; }
-        if (!remember) {
-            if(maxLevel>1) cameras.turnOnTorchWithStrengthLevel(cameraId,strength);
-            else cameras.setTorchMode(cameraId,true);
-            return;
-        }
-        Object samsung = samsungController;
-        if (maxLevel > 1 && samsung != null && Boolean.TRUE.equals(Refl.call(samsung, "isTorchStrengthControllable"))) {
-            if (!on) cameras.turnOnTorchWithStrengthLevel(cameraId, strength);
-            Refl.call(samsung, "setFlashlightLevel", strength, Boolean.TRUE);
-        } else if (maxLevel > 1) cameras.turnOnTorchWithStrengthLevel(cameraId, strength);
-        else cameras.setTorchMode(cameraId, true);
     }
 
 }

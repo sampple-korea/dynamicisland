@@ -61,8 +61,6 @@ public abstract class CardBody {
     public void drawBackground(Canvas canvas, RectF frame, float alpha) {
     }
 
-    public final float density() { return owner.dp(1); }
-
     public MediaFx materialMusic() { return null; }
     public boolean animating(long now) { return false; }
 
