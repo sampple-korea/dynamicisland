@@ -27,9 +27,9 @@
     <string name="setting_event_toggles">Изменения настроек</string>
     <string name="setting_event_toggles_desc">Сообщать о переключении режима «Не беспокоить», авиарежима, энергосбережения, фонарика, точки доступа и автоповорота.</string>
     <string name="setting_hotspot_card">Карточка точки доступа</string>
-    <string name="setting_hotspot_card_desc">Показывать устройства, трафик и время, пока точка доступа включена.</string>
+    <string name="setting_hotspot_card_desc">Устройства, трафик и время, пока точка доступа включена.</string>
     <string name="setting_unlock_notice">Уведомление о разблокировке</string>
-    <string name="setting_unlock_notice_desc">Кратко показывать способ разблокировки (отпечаток, лицо или PIN).</string>
+    <string name="setting_unlock_notice_desc">Кратко показывать способ разблокировки.</string>
     <string name="setting_torch_pill">Карточка фонарика</string>
     <string name="setting_torch_pill_desc">Пока фонарик включён, показывать карточку с кнопкой выключения. Работает и на телефонах с одним уровнем яркости.</string>
     <string name="setting_progress">Загрузки и передача файлов</string>
@@ -37,7 +37,7 @@
     <string name="setting_hide_progress_desc">Пока карточка на острове, скрывать оригинал в шторке.</string>
     <string name="setting_progress_desc">Показывать постоянные уведомления с прогрессом — загрузки, копирование, обновления — в виде карточек.</string>
     <string name="setting_progress_foreground">Прогресс открытого приложения</string>
-    <string name="setting_progress_foreground_desc">Показывать также загрузки и передачи открытого приложения.</string>
+    <string name="setting_progress_foreground_desc">Также загрузки и передачи открытого приложения.</string>
     <string name="setting_heads_up">Уведомления на острове</string>
     <string name="setting_all_notifications">Все уведомления на острове</string>
     <string name="setting_all_notifications_desc">Показывать карточку для каждого нового уведомления, включая тихие. Постоянные уведомления, звонки, будильники и открытое приложение исключены. Экспериментальная функция: может работать не на всех телефонах и приложениях.</string>
@@ -315,7 +315,7 @@
     <string name="foreground_notifications">Уведомления открытого приложения</string>
     <string name="foreground_notifications_desc">Выкл.: обычный баннер. Вкл.: ещё и карточка.</string>
     <string name="setting_peek_progress">Прогресс в карточках уведомлений</string>
-    <string name="setting_peek_progress_desc">Показывать полосу прогресса, если она есть в уведомлении (отправка, загрузка).</string>
+    <string name="setting_peek_progress_desc">Показывать полосу прогресса из уведомления.</string>
     <string name="auto_open_cards">Автоматически открывать новые карточки</string>
     <string name="auto_open_cards_desc">Ненадолго открывать новые активности. Обновления не открывают их снова.</string>
     <string name="group_recovery">Устранение неполадок</string>
@@ -537,7 +537,7 @@
     <string name="setting_event_headset">Уведомления о проводных наушниках</string>
     <string name="setting_event_headset_desc">Краткие уведомления о подключении и отключении проводных и USB-наушников.</string>
     <string name="setting_headset_stay">Держать карточку гарнитуры, пока она подключена</string>
-    <string name="setting_headset_stay_desc">Показывать карточку, пока проводная или USB-гарнитура подключена.</string>
+    <string name="setting_headset_stay_desc">Карточка остаётся, пока гарнитура подключена.</string>
     <string name="hole_text_padding">Дополнительный отступ у камеры</string>
     <string name="hole_text_padding_desc">0dp сохраняет исходный интервал. Отступ ограничен выбранной шириной острова.</string>
     <string name="island_charge_full">Полностью заряжено</string>

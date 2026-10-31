@@ -27,9 +27,9 @@
     <string name="setting_event_toggles">Ayar değişiklikleri</string>
     <string name="setting_event_toggles_desc">Rahatsız Etmeyin, uçak modu, güç tasarrufu, el feneri, erişim noktası ve otomatik döndürme açıldığında veya kapatıldığında bildirir.</string>
     <string name="setting_hotspot_card">Erişim noktası kartı</string>
-    <string name="setting_hotspot_card_desc">Erişim noktası açıkken cihazları, kullanılan veriyi ve süreyi gösterir.</string>
+    <string name="setting_hotspot_card_desc">Açıkken cihazları, veriyi ve süreyi gösterir.</string>
     <string name="setting_unlock_notice">Kilit açma bildirimi</string>
-    <string name="setting_unlock_notice_desc">Kilidin nasıl açıldığını (parmak izi, yüz veya PIN) kısaca gösterir.</string>
+    <string name="setting_unlock_notice_desc">Kilidin nasıl açıldığını kısaca gösterir.</string>
     <string name="setting_torch_pill">El feneri kartı</string>
     <string name="setting_torch_pill_desc">El feneri açıkken adada kapatma düğmesiyle birlikte gösterir. El fenerinin tek parlaklık düzeyi olduğu telefonlarda da çalışır.</string>
     <string name="setting_progress">İndirmeler ve aktarımlar</string>
@@ -315,7 +315,7 @@
     <string name="foreground_notifications">Açık uygulamanın bildirimleri</string>
     <string name="foreground_notifications_desc">Kapalı: standart banner kalır. Açık: kart da olur.</string>
     <string name="setting_peek_progress">Bildirim kartlarında ilerleme</string>
-    <string name="setting_peek_progress_desc">Bildirimde ilerleme çubuğu varsa kartta da gösterir (gönderme, yükleme).</string>
+    <string name="setting_peek_progress_desc">Bildirimdeki ilerleme çubuğunu kartta da gösterir.</string>
     <string name="auto_open_cards">Yeni etkinlik kartlarını aç</string>
     <string name="auto_open_cards_desc">Yeni etkinlikleri kısa süre gösterir. Güncellemeler tekrar açmaz.</string>
     <string name="group_recovery">Sorun giderme</string>
