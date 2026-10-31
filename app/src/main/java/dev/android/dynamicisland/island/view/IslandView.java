@@ -556,6 +556,10 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         if (sleeping) {
             if (scene.mode == Mode.EXPANDED) collapse();
             ticker.cancel();
+            // System UI closes the shade when the screen goes off. If the closing report never reached us, the pill
+            // would stay gone behind a shade that is not there (nothing else brings it back), so start from closed.
+            scene.shade = 0f;
+            scene.shadeGone = false;
         }
         // A wake on the lock screen must not reopen the gate before keyguard permits the reveal.
         if (sleeping || !scene.suppressed) retargetVisibilityGate();
@@ -634,6 +638,11 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         }
         appliedGate = g;
         scene.surfaceFade = host.onShadeFade(scene.shadeAlpha(), 1.0f, metrics.cx, metrics.cy);
+    }
+
+    /** True while the shade is, or was last reported to be, pulled: its real position is then worth asking for. */
+    public boolean shadeNeedsWatching() {
+        return scene.shade > Scene.SHADE_PULLED_EPS || scene.shadeGone;
     }
 
     public boolean shadePulled() {
