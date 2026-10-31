@@ -82,8 +82,15 @@ final class Metrics {
         return true;
     }
 
+    /** How wide the pill may get when the widest is left on automatic: a little over half the screen, at most 232 dp. */
+    static final float AUTO_MAX_SCREEN_SHARE = 0.56f;
+    static final float AUTO_MAX_PHONE_DP = 232.0f;
+    static final float AUTO_MAX_TABLET_DP = 300.0f;
+    static final float AUTO_MAX_TABLET_SHARE = 0.40f;
+
     private void recomputeMaxWidth() {
-        float automatic = Math.min(screenW * IslandView.PAUSED_GLOW, dp(tablet ? 340.0f : 300.0f));
+        float automatic = tablet ? Math.min(screenW * AUTO_MAX_TABLET_SHARE, dp(AUTO_MAX_TABLET_DP))
+                : Math.min(screenW * AUTO_MAX_SCREEN_SHARE, dp(AUTO_MAX_PHONE_DP));
         maxPillW = userMaxW > 0.0f ? Math.max(minPillW, Math.min(userMaxW, screenW * 0.96f)) : Math.max(minPillW, automatic);
     }
 
