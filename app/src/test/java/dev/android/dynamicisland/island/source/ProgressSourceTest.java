@@ -145,4 +145,60 @@ public class ProgressSourceTest {
             dev.android.dynamicisland.settings.ModuleSettings.configurePreview(prefs);
         }
     }
+
+    @Test
+    public void anOrdinaryNotificationWithABarBecomesAProgressCardOnlyWithTheOption() throws Exception {
+        android.content.SharedPreferences prefs = dev.android.dynamicisland.settings.ModuleSettings.openStore(app);
+        Notification.Builder ordinary = new Notification.Builder(app, "dl").setSmallIcon(android.R.drawable.stat_sys_download)
+                .setContentTitle("Photos").setContentText("Saving 12 of 40").setProgress(40, 12, false);
+        Notification.Builder plain = new Notification.Builder(app, "dl").setSmallIcon(android.R.drawable.stat_sys_download)
+                .setContentTitle("Photos").setContentText("Saved");
+        try {
+            prefs.edit().putBoolean(dev.android.dynamicisland.settings.ModuleSettings.KEY_PROGRESS_ANY, false).apply();
+            dev.android.dynamicisland.settings.ModuleSettings.configurePreview(prefs);
+            assertNull("not ongoing: no card without the option", source().build(sbn("com.example.gallery", 21, ordinary)));
+            org.junit.Assert.assertTrue("it stays a message popup", PeekSource.eligible(sbn("com.example.gallery", 21, ordinary)));
+
+            prefs.edit().putBoolean(dev.android.dynamicisland.settings.ModuleSettings.KEY_PROGRESS_ANY, true).apply();
+            dev.android.dynamicisland.settings.ModuleSettings.configurePreview(prefs);
+            IslandItem card = source().build(sbn("com.example.gallery", 21, ordinary));
+            assertNotNull(card);
+            assertEquals(0.3f, card.progress, 0.001f);
+            org.junit.Assert.assertFalse("and is no message popup any more", PeekSource.eligible(sbn("com.example.gallery", 21, ordinary)));
+            assertNull("without a bar it is still nothing", source().build(sbn("com.example.gallery", 22, plain)));
+        } finally {
+            prefs.edit().putBoolean(dev.android.dynamicisland.settings.ModuleSettings.KEY_PROGRESS_ANY, false).apply();
+            dev.android.dynamicisland.settings.ModuleSettings.configurePreview(prefs);
+        }
+    }
+
+    @Test
+    public void aCardWithABarBeatsTheLiveCardOfTheSameNotificationOnlyWithTheOption() throws Exception {
+        android.content.SharedPreferences prefs = dev.android.dynamicisland.settings.ModuleSettings.openStore(app);
+        ProgressSource s = source();
+        StatusBarNotification download = sbn("com.example.store", 31, download("Updating", 30, 100));
+        s.update(java.util.Collections.singletonList(download));
+        try {
+            prefs.edit().putBoolean(dev.android.dynamicisland.settings.ModuleSettings.KEY_PROGRESS_ANY, false).apply();
+            dev.android.dynamicisland.settings.ModuleSettings.configurePreview(prefs);
+            java.util.List<IslandItem> cards = new java.util.ArrayList<>();
+            IslandItem live = new IslandItem("oa:" + download.getKey());
+            live.sourceKey = download.getKey();
+            cards.add(live);
+            s.collect(cards, "com.example.other");
+            assertEquals("by default the live card stays and the bar card is left out", 1, cards.size());
+            assertEquals(live, cards.get(0));
+
+            prefs.edit().putBoolean(dev.android.dynamicisland.settings.ModuleSettings.KEY_PROGRESS_ANY, true).apply();
+            dev.android.dynamicisland.settings.ModuleSettings.configurePreview(prefs);
+            cards.clear();
+            cards.add(live);
+            s.collect(cards, "com.example.other");
+            assertEquals(1, cards.size());
+            org.junit.Assert.assertTrue("with the option the card with the bar wins", cards.get(0).key.startsWith("task:"));
+        } finally {
+            prefs.edit().putBoolean(dev.android.dynamicisland.settings.ModuleSettings.KEY_PROGRESS_ANY, false).apply();
+            dev.android.dynamicisland.settings.ModuleSettings.configurePreview(prefs);
+        }
+    }
 }

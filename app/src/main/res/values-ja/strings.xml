@@ -38,6 +38,8 @@
     <string name="setting_progress_desc">進捗バーのある継続通知（ダウンロード・ファイルコピー・アプリ更新）をカードで表示します。</string>
     <string name="setting_progress_foreground">使用中のアプリの進捗</string>
     <string name="setting_progress_foreground_desc">開いているアプリのダウンロード・転送もカードで表示します。</string>
+    <string name="setting_progress_any">通常の通知の進捗</string>
+    <string name="setting_progress_any_desc">進捗バーのある通常の通知もカードで表示します。</string>
     <string name="setting_heads_up">アイランド内の通知</string>
     <string name="setting_all_notifications">すべての通知をアイランドに表示</string>
     <string name="setting_all_notifications_desc">ポップアップしないサイレント通知も含め、新しい通知をカードで表示します。継続通知・通話・アラームと使用中アプリの通知は除きます。実験機能のため、端末やアプリによっては動作しない場合があります。</string>

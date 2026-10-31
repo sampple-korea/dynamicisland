@@ -506,7 +506,8 @@ public final class SettingsActivity extends Activity {
         ui.linkRow(activity, getString(R.string.rules_title), getString(R.string.hub_rules_sum), () -> open(rules::advancedPage));
         Switch progress = toggle(activity, R.string.setting_progress, R.string.setting_progress_desc, ModuleSettings.KEY_PROGRESS_NOTIFICATIONS, true);
         Switch progressForeground = toggle(activity, R.string.setting_progress_foreground, R.string.setting_progress_foreground_desc, ModuleSettings.KEY_PROGRESS_FOREGROUND, false);
-        dependent(progress, OneUi.rowOf(progressForeground));
+        Switch progressAny = toggle(activity, R.string.setting_progress_any, R.string.setting_progress_any_desc, ModuleSettings.KEY_PROGRESS_ANY, false);
+        dependent(progress, OneUi.rowOf(progressForeground), OneUi.rowOf(progressAny));
         toggle(activity, R.string.setting_hide_progress, R.string.setting_hide_progress_desc, ModuleSettings.KEY_HIDE_PROGRESS_ORIGINALS, true);
         toggle(activity, R.string.setting_calls, R.string.setting_calls_desc, ModuleSettings.KEY_THIRD_PARTY_CALLS, true);
         ui.category(page, getString(R.string.group_codes), getString(R.string.desc_codes));

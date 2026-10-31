@@ -38,6 +38,8 @@
     <string name="setting_progress_desc">将带进度条的持续通知（下载、文件复制、应用更新）显示为卡片。</string>
     <string name="setting_progress_foreground">正在使用的应用的进度</string>
     <string name="setting_progress_foreground_desc">也显示当前打开的应用的下载和传输。</string>
+    <string name="setting_progress_any">普通通知的进度</string>
+    <string name="setting_progress_any_desc">带进度条的普通通知也显示为进度卡片。</string>
     <string name="setting_heads_up">岛内通知</string>
     <string name="setting_all_notifications">在岛内显示所有通知</string>
     <string name="setting_all_notifications_desc">将所有新通知（包括不弹横幅的静默通知）显示为卡片。不包括持续通知、通话、闹钟和正在使用的应用。实验功能，部分设备或应用可能不适用。</string>

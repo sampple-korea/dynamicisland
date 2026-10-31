@@ -38,6 +38,8 @@
     <string name="setting_progress_desc">Показывать постоянные уведомления с прогрессом — загрузки, копирование, обновления — в виде карточек.</string>
     <string name="setting_progress_foreground">Прогресс открытого приложения</string>
     <string name="setting_progress_foreground_desc">Также загрузки и передачи открытого приложения.</string>
+    <string name="setting_progress_any">Прогресс обычных уведомлений</string>
+    <string name="setting_progress_any_desc">Также для обычных уведомлений с полосой прогресса.</string>
     <string name="setting_heads_up">Уведомления на острове</string>
     <string name="setting_all_notifications">Все уведомления на острове</string>
     <string name="setting_all_notifications_desc">Показывать карточку для каждого нового уведомления, включая тихие. Постоянные уведомления, звонки, будильники и открытое приложение исключены. Экспериментальная функция: может работать не на всех телефонах и приложениях.</string>

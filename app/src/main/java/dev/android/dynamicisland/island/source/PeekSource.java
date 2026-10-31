@@ -98,6 +98,9 @@ public final class PeekSource {
         if ((n.flags & (Notification.FLAG_ONGOING_EVENT | Notification.FLAG_FOREGROUND_SERVICE)) != 0) {
             return false;
         }
+        if (ProgressSource.takesOrdinary(sbn)) {
+            return false; // it becomes a progress card, not a message popup
+        }
         if ((n.flags & Notification.FLAG_GROUP_SUMMARY) != 0) {
             if (ModuleSettings.experimentalRecovery()) {
                 // Match the alternate One UI 8 build's summary eligibility in recovery mode.

@@ -99,6 +99,7 @@ final class SettingsSearchCatalog {
         add(Route.NOTIFICATIONS,R.string.foreground_notifications,R.string.foreground_notifications_desc,R.string.search_terms_notifications,0);
         add(Route.NOTIFICATIONS,R.string.setting_progress,R.string.setting_progress_desc,R.string.search_terms_download,0);
         add(Route.NOTIFICATIONS,R.string.setting_progress_foreground,R.string.setting_progress_foreground_desc,R.string.search_terms_download,R.string.setting_progress);
+        add(Route.NOTIFICATIONS,R.string.setting_progress_any,R.string.setting_progress_any_desc,R.string.search_terms_download,R.string.setting_progress);
         add(Route.NOTIFICATIONS,R.string.setting_peek_progress,R.string.setting_peek_progress_desc,R.string.search_terms_download,R.string.ui_notification_mode);
         add(Route.NOTIFICATIONS,R.string.setting_hide_progress,R.string.setting_hide_progress_desc,R.string.search_terms_download,0);
         add(Route.NOTIFICATIONS,R.string.setting_calls,R.string.setting_calls_desc,R.string.search_terms_calls,0);

@@ -39,6 +39,7 @@ public final class ModuleSettings {
     public static final String KEY_UNLOCK_NOTICE = "unlock_notice";
     public static final String KEY_PEEK_PROGRESS = "peek_progress";
     public static final String KEY_PROGRESS_FOREGROUND = "progress_foreground";
+    public static final String KEY_PROGRESS_ANY = "progress_any";
     public static final String KEY_EVENT_RINGER = "event_ringer";
     public static final String KEY_EVENT_BLUETOOTH = "event_bluetooth";
     public static final String KEY_HAPTICS = "haptics";
@@ -178,6 +179,7 @@ public final class ModuleSettings {
     private static volatile boolean unlockNotice;
     private static volatile boolean peekProgress;
     private static volatile boolean progressForeground;
+    private static volatile boolean progressAny;
     private static volatile boolean eventRinger = true;
     private static volatile boolean eventBluetooth = true;
     private static volatile boolean haptics = true;
@@ -664,6 +666,8 @@ public final class ModuleSettings {
     public static boolean peekProgress() { ensureStarted(); return peekProgress; }
     /** Progress cards are also made for the app that is open (they are left out by default). */
     public static boolean progressForeground() { ensureStarted(); return progressForeground; }
+    /** Ordinary (not ongoing) notifications with a progress bar also become progress cards, and a bar card beats a live card. */
+    public static boolean progressAny() { ensureStarted(); return progressAny; }
     public static boolean headsetCardStays() { ensureStarted(); return eventHeadset && headsetStay; }
     public static int holeTextPaddingDp() { ensureStarted(); return holeTextPaddingDp; }
     public static int cardCornerRadiusDp() { ensureStarted(); return cardCornerRadiusDp; }
@@ -686,6 +690,7 @@ public final class ModuleSettings {
         unlockNotice = source.getBoolean(KEY_UNLOCK_NOTICE, false);
         peekProgress = source.getBoolean(KEY_PEEK_PROGRESS, false);
         progressForeground = source.getBoolean(KEY_PROGRESS_FOREGROUND, false);
+        progressAny = source.getBoolean(KEY_PROGRESS_ANY, false);
     }
 
     public static boolean autoOpenCards() { return autoOpenCards; }
@@ -700,7 +705,7 @@ public final class ModuleSettings {
     private static String switchSignature() {
         return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/" + glowColour + lowPerformance + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + progressNotifications + hideProgressOriginals
                 + smartRules + privacyIndicator + privacyLocation + otpCard + otpAutoCopy + thirdPartyCalls + visualizer + colorIcons + shadeMedia + cardHeader
-                + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/" + headsetStay + "/hotspot=" + hotspotCard + "/unlock=" + unlockNotice + "/peekProgress=" + peekProgress + "/progressForeground=" + progressForeground + "/stockCharging=" + stockChargingAnimation + "/recordingInput=" + concurrentRecordingInput
+                + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/" + headsetStay + "/hotspot=" + hotspotCard + "/unlock=" + unlockNotice + "/peekProgress=" + peekProgress + "/progressForeground=" + progressForeground + "/progressAny=" + progressAny + "/stockCharging=" + stockChargingAnimation + "/recordingInput=" + concurrentRecordingInput
                 + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/blur=" + transitionBlurMode + "/" + appFilter.onlyListed() + appFilter.size();
     }
 
