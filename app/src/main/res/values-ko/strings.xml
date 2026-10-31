@@ -29,8 +29,8 @@
     <string name="setting_torch_pill">손전등 카드</string>
     <string name="setting_torch_pill_desc">손전등이 켜져 있는 동안 아일랜드에 끄기 버튼과 함께 보여줍니다. 밝기 단계가 하나뿐인 폰에서도 동작합니다.</string>
     <string name="setting_progress">다운로드·전송 진행</string>
-    <string name="setting_hide_progress">진행 알림 원본 숨기기</string>
-    <string name="setting_hide_progress_desc">아일랜드에 진행 카드를 표시하는 동안 원본을 숨깁니다.</string>
+    <string name="setting_hide_progress">원본 알림 숨기기</string>
+    <string name="setting_hide_progress_desc">카드가 아일랜드에 있는 동안 알림창의 원본을 숨깁니다.</string>
     <string name="setting_progress_desc">진행률이 있는 알림(다운로드, 파일 복사, 앱 업데이트)을 카드로 보여줍니다.</string>
     <string name="setting_heads_up">알림을 아일랜드로</string>
     <string name="setting_all_notifications">모든 알림을 아일랜드로</string>
@@ -45,7 +45,7 @@
     <string name="restart_systemui">시스템 UI 재시작</string>
     <string name="restart_systemui_confirm">상태바와 알림창이 잠깐 다시 시작되며 모듈이 새로 적용됩니다. 루트 권한이 필요합니다.</string>
     <string name="restart_systemui_failed">시스템 UI를 재시작하지 못했습니다. 루트 권한이 허용되지 않았습니다. LSPosed 관리자에서 재시작하거나 재부팅하세요.</string>
-    <string name="rules_title">알림 자동 분류</string>
+    <string name="rules_title">자동 카드 규칙</string>
     <string name="rules_about">알림 글을 읽어 활동 카드로 분류합니다. 앱과 문구에 따라 결과가 달라집니다. 잘못 분류되면 해당 종류를 끄거나 고급 규칙 편집에서 패턴을 조정하세요.</string>
     <string name="setting_smart_rules">배달·택시·길안내·기기 연결 카드</string>
     <string name="setting_smart_rules_desc">"라이더님이 곧 도착해요" 같은 알림을 단계가 보이는 카드로 만듭니다.</string>
@@ -74,7 +74,7 @@
     <string name="hub_notifications_sum">배너, 진행률, 인증번호, 통화</string>
     <string name="hub_events">시스템 이벤트</string>
     <string name="hub_events_sum">충전, 소리 모드, 블루투스, 개인정보</string>
-    <string name="hub_rules_sum">배달, 택시, 길안내 등 카드 종류</string>
+    <string name="hub_rules_sum">배달, 택시, 길안내 같은 알림을 카드로 바꿔 줍니다</string>
     <string name="hub_tools">도구</string>
     <string name="hub_about">정보</string>
     <string name="hub_version">버전</string>
@@ -307,7 +307,7 @@
     <string name="size_auto">자동</string>
     <string name="size_note">슬라이더를 끄는 동안 실제 상태바의 아일랜드가 크기를 따라옵니다. 알약이 높아지면 아이콘도 같이 커집니다. 높이를 바꿔도 글씨는 카메라 구멍을 피해 씁니다.</string>
     <string name="foreground_notifications">사용 중인 앱의 알림</string>
-    <string name="foreground_notifications_desc">일반 알림 또는 인증번호 카드가 켜져 있을 때 상시 실행 알림도 읽습니다.</string>
+    <string name="foreground_notifications_desc">끔: 기본 배너 유지. 켬: 카드로도 표시합니다.</string>
     <string name="auto_open_cards">새 활동 카드 자동 펼침</string>
     <string name="auto_open_cards_desc">새 활동 카드를 잠시 엽니다. 내용 갱신으로 다시 열리지 않습니다.</string>
     <string name="group_recovery">문제 해결</string>
@@ -449,11 +449,11 @@
     <string name="ui_wave_demo">데모 애니메이션</string>
     <string name="ui_card_timing">카드 표시 시간</string>
     <string name="ui_auto_open_time">자동으로 열린 활동 표시 시간</string>
-    <string name="ui_notification_mode">일반 알림 표시</string>
-    <string name="ui_notification_off">사용 안 함</string>
-    <string name="ui_notification_banners">배너 알림만</string>
-    <string name="ui_notification_all">무음 알림도 포함</string>
-    <string name="ui_notification_scope">일반 알림 카드에 적용됩니다. 라이브 활동·음악·통화·인증번호는 별도로 동작합니다.</string>
+    <string name="ui_notification_mode">알림 카드</string>
+    <string name="ui_notification_off">끔 (기본 배너 사용)</string>
+    <string name="ui_notification_banners">배너로 뜨는 알림만</string>
+    <string name="ui_notification_all">배너 알림과 무음 알림</string>
+    <string name="ui_notification_scope">메시지 등 일반 알림을 기본 배너 대신 아일랜드 카드로 보여 줍니다. 시스템이 배너로 띄우는 알림만 카드가 되므로, 휴대폰 알림 설정에서 팝업이나 소리를 꺼 둔 앱은 무음 알림을 포함하지 않으면 카드가 뜨지 않습니다. 전화, 알람, 음악, 라이브 활동, 인증번호는 각각 따로 설정합니다.</string>
     <string name="ui_activity_types">활동 카드</string>
     <string name="ui_rules_advanced">고급 규칙 편집</string>
     <string name="ui_rules_advanced_summary">패턴, 단계, 클립보드 가져오기·내보내기</string>
@@ -574,7 +574,7 @@
     <string name="search_terms_music">노래 음악 뮤직 오디오 앨범 커버 아트 재생 플레이어 소리</string>
     <string name="search_terms_battery">충전 충전기 배터리 밧데리 잔량 전류 전압 와트 전력 온도 퍼센트</string>
     <string name="search_terms_charging_effect">삼성 기본 원래 충전 애니메이션 효과 번개 번쩍 배터리</string>
-    <string name="search_terms_notifications">알림 팝업 배너 헤드업 메시지 통지</string>
+    <string name="search_terms_notifications">알림 팝업 배너 헤드업 메시지 통지 채팅 무음 기본 카드 소리</string>
     <string name="search_terms_download">다운로드 전송 업로드 진행률 파일 받기</string>
     <string name="search_terms_calls">전화 통화 다이얼러 보이스톡 음성</string>
     <string name="search_terms_otp">인증번호 인증 코드 보안번호 일회용 비밀번호 문자 자동복사 복사</string>

@@ -73,7 +73,7 @@ Samsung devam eden etkinliklerinin başlığı, metni, görselleri, ilerlemesi v
 
 ### Normal bildirimler ve kodlar
 
-- Normal bildirim kartları kapatılabilir, yalnızca açılır bildirimler gösterilebilir veya sessiz bildirimler de dahil edilebilir.
+- **Bildirim kartları** kapatılabilir (standart bannerlar), yalnızca banner olarak açılan bildirimler için kullanılabilir veya sessiz bildirimler de dahil edilebilir. Yalnızca sistemin banner olarak göstereceği bildirimler kart olur; kullandığınız uygulamanın bildirimleri varsayılan olarak standart banner kalır (açarsanız onlar da kart olur).
 - Kalıcı hizmet bildirimleri isteğe bağlıdır ve varsayılan olarak alınmaz.
 - Doğrulama kodları ayrı denetlenir. Otomatik kopyalama isteğe bağlıdır; varsayılan olarak kapalıdır.
 - İndirme ve aktarım ilerlemesi ayrı denetlenir. Kart gösterildiğinde özgün bildirimi gizleme seçeneği bulunur.
@@ -134,7 +134,7 @@ Yerleşik kurallar teslimat, kargo, navigasyon, taksi, giyilebilir cihaz, pil, h
 
 | Sayfa | İçerik |
 |---|---|
-| Bildirimler ve etkinlikler | Normal bildirim modu, sistem olayları, otomatik sınıflandırma, indirmeler, aramalar ve kodlar |
+| Bildirimler ve etkinlikler | Bildirim kartları (kapalı, yalnızca bannerlar, sessizler dahil), sistem olayları, otomatik kart kuralları, indirmeler, aramalar ve kodlar |
 | Uygulama bildirimleri | Seçilenler dışında tümü veya yalnızca seçilenler; arama; yalnızca normal kartlar |
 | Görünüm | Vurgu rengi, konum ve boyut, başlıklar, simgeler, şarj pili ve bildirim panelindeki müzik |
 | Davranış | Varsayılan veya klasik animasyon, titreşim, ses veya demo dalgası, ayrı kart süreleri |
