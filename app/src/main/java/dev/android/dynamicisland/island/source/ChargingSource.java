@@ -28,6 +28,8 @@ public final class ChargingSource {
     private double volts = Double.NaN, temperature = Double.NaN, currentMa = Double.NaN;
     private long connectedAt;
     private ChargingSession session;
+    /** Current worked out from the charge counter, for phones that report 0 mA while they charge. */
+    private final ChargeRate rate = new ChargeRate();
     private SharedPreferences store;
     private long lastSaved;
 
@@ -112,6 +114,7 @@ public final class ChargingSource {
         if (plug == 0) {
             session = null;
             currentMa = Double.NaN;
+            rate.clear();
             clearCheckpoint();
         } else sample();
         if (before != plug) save(true);
@@ -127,11 +130,17 @@ public final class ChargingSource {
             BatteryManager manager = ctx.getSystemService(BatteryManager.class);
             if (manager != null) {
                 int current = manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW);
-                if (current != Integer.MIN_VALUE && status == BatteryManager.BATTERY_STATUS_CHARGING) {
+                boolean charging = status == BatteryManager.BATTERY_STATUS_CHARGING;
+                double reported = Double.NaN;
+                if (current != Integer.MIN_VALUE && charging) {
                     double magnitude = Math.abs((double) current) / 1000;
-                    if (magnitude <= 50_000) currentMa = magnitude;
+                    if (magnitude <= 50_000) reported = magnitude;
                 }
-                if (statistics) counter = manager.getLongProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
+                long reading = manager.getLongProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
+                if (statistics) counter = reading;
+                if (charging) rate.add(SystemClock.elapsedRealtime(), reading); else rate.clear();
+                // Some phones keep the current at 0 while they charge: the rise of the charge counter says more.
+                currentMa = reported >= 1.0 ? reported : charging ? rate.estimateMa(SystemClock.elapsedRealtime()) : reported;
             }
         } catch (RuntimeException error) { XLog.once("ChargingSource.sample", error); }
         if (statistics) {

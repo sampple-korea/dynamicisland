@@ -85,6 +85,42 @@ public class ChargingSourceTest {
         cards.clear(); source.collect(cards); assertTrue(cards.isEmpty());
     }
 
+    @Test public void aPhoneThatReportsZeroCurrentWhileChargingGetsItFromTheChargeCounter() {
+        Application app = RuntimeEnvironment.getApplication();
+        SharedPreferences prefs = ModuleSettings.openStore(app);
+        prefs.edit().putBoolean(ModuleSettings.KEY_CHARGING_INFO, true).apply();
+        ModuleSettings.configurePreview(prefs);
+        shadowOf(app.getSystemService(PowerManager.class)).setIsInteractive(true);
+        org.robolectric.shadows.ShadowBatteryManager manager = shadowOf(app.getSystemService(BatteryManager.class));
+        manager.setIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW, 0);
+        long counter = 1_000_000;
+        manager.setLongProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER, counter);
+        ChargingSource source = new ChargingSource(app, new Handler(Looper.getMainLooper()), () -> { });
+        source.syncSettings();
+        app.sendBroadcast(battery(1));
+        shadowOf(Looper.getMainLooper()).idle();
+        ArrayList<IslandItem> cards = new ArrayList<>();
+        source.collect(cards);
+        assertEquals("nothing is known yet: no made-up 0 W", "50%", cards.get(0).trailingText.toString());
+        assertFalse(cards.get(0).subtitle.toString().contains("0 mA"));
+
+        for (int i = 0; i < 4; i++) { // 1.2 A, read every five seconds
+            counter += 1_667;
+            manager.setLongProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER, counter);
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(5));
+        }
+        cards.clear();
+        source.collect(cards);
+        assertEquals("4.0 V at about 1.2 A", "5W", cards.get(0).trailingText.toString());
+        assertTrue(cards.get(0).subtitle.toString(), cards.get(0).subtitle.toString().matches("(?s).*1[12]\\d\\d mA.*"));
+
+        manager.setIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW, -900_000);
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(5));
+        cards.clear();
+        source.collect(cards);
+        assertEquals("a real reading wins: 0.9 A at 4.0 V", "4W", cards.get(0).trailingText.toString());
+    }
+
     private Intent battery(int plug) {
         return new Intent(Intent.ACTION_BATTERY_CHANGED).putExtra(BatteryManager.EXTRA_PLUGGED, plug)
                 .putExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_CHARGING)
