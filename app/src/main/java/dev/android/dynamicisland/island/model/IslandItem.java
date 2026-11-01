@@ -282,6 +282,24 @@ public final class IslandItem {
         return leftImage != null && rightImage != null;
     }
 
+    /**
+     * Whether a score text says anything: a lone dash or colon (what a match shows before it starts) is only
+     * a separator, so it has no letter or digit.
+     */
+    public static boolean hasContent(CharSequence text) {
+        if (text == null) {
+            return false;
+        }
+        for (int i = 0; i < text.length(); ) {
+            int cp = Character.codePointAt(text, i);
+            if (Character.isLetterOrDigit(cp)) {
+                return true;
+            }
+            i += Character.charCount(cp);
+        }
+        return false;
+    }
+
     public int priority() {
         return kind.priority;
     }
