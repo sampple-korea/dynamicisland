@@ -63,6 +63,8 @@ public final class TimerBody extends CardBody {
             }
             if (action.destructive) {
                 b.bg = Colors.DESTRUCTIVE_RED;
+            } else if (action.affirmative) {
+                b.bg = Colors.CALL_GREEN;
             } else if (action.glyph != 0) {
                 b.bg = action.active ? Colors.WHITE : Colors.BUTTON_GRAY;
             } else if (!usedAccent && i == 0) {

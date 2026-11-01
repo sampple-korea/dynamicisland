@@ -383,6 +383,9 @@
     <string name="island_turn_off">关闭</string>
     <string name="island_speaker">扬声器</string>
     <string name="island_end_call">结束通话</string>
+    <string name="island_incoming_call">来电</string>
+    <string name="island_answer_call">接听</string>
+    <string name="island_decline_call">拒接</string>
     <string name="island_reply">回复</string>
     <string name="island_copied">已复制</string>
     <string name="island_verification_code">验证码</string>

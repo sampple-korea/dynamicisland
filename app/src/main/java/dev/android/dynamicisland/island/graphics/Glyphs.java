@@ -27,6 +27,7 @@ public final class Glyphs {
     public static final int COPY = 11;
     public static final int CHECK = 12;
     public static final int POWER = 13;
+    public static final int ANSWER = 14;
 
     private static final Path PATH = new Path();
     private static final RectF R = new RectF();
@@ -86,6 +87,9 @@ public final class Glyphs {
                 break;
             case POWER:
                 power(canvas, cx, cy, size, paint);
+                break;
+            case ANSWER:
+                answer(canvas, cx, cy, size, paint);
                 break;
             default:
                 break;
@@ -189,6 +193,14 @@ public final class Glyphs {
                     cx + (side * size * 0.36f), earpieceY + (size * 0.1f), paint);
         }
         paint.setStrokeCap(Paint.Cap.BUTT);
+    }
+
+    /** The handset of {@link #HANGUP} turned upright, the green button of a ringing call. */
+    private static void answer(Canvas canvas, float cx, float cy, float size, Paint paint) {
+        canvas.save();
+        canvas.rotate(-135.0f, cx, cy);
+        hangup(canvas, cx, cy, size, paint);
+        canvas.restore();
     }
 
     /** Speaker cone with two sound-wave arcs. */

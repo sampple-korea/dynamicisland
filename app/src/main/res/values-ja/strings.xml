@@ -383,6 +383,9 @@
     <string name="island_turn_off">オフにする</string>
     <string name="island_speaker">スピーカー</string>
     <string name="island_end_call">通話を終了</string>
+    <string name="island_incoming_call">着信中</string>
+    <string name="island_answer_call">応答</string>
+    <string name="island_decline_call">拒否</string>
     <string name="island_reply">返信</string>
     <string name="island_copied">コピー済み</string>
     <string name="island_verification_code">認証コード</string>

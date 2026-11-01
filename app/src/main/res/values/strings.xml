@@ -392,6 +392,9 @@
     <string name="island_turn_off">Turn off</string>
     <string name="island_speaker">Speaker</string>
     <string name="island_end_call">End call</string>
+    <string name="island_incoming_call">Incoming call</string>
+    <string name="island_answer_call">Answer</string>
+    <string name="island_decline_call">Decline</string>
     <string name="island_reply">Reply</string>
     <string name="island_copied">Copied</string>
     <string name="island_verification_code">Verification code</string>

@@ -383,6 +383,9 @@
     <string name="island_turn_off">Выключить</string>
     <string name="island_speaker">Динамик</string>
     <string name="island_end_call">Завершить звонок</string>
+    <string name="island_incoming_call">Входящий звонок</string>
+    <string name="island_answer_call">Ответить</string>
+    <string name="island_decline_call">Отклонить</string>
     <string name="island_reply">Ответить</string>
     <string name="island_copied">Скопировано</string>
     <string name="island_verification_code">Код подтверждения</string>

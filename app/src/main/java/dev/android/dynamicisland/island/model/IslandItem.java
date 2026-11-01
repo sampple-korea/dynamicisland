@@ -256,6 +256,8 @@ public final class IslandItem {
         public boolean active;
         /** Drawn in the destructive colour (hang up, decline). */
         public final boolean destructive;
+        /** Drawn in the affirmative colour (answer a call). */
+        public boolean affirmative;
         /** One of the {@code Glyphs} ids to draw instead of {@link #icon}; 0 = none. */
         public int glyph;
         public final Drawable icon;

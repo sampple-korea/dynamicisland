@@ -383,6 +383,9 @@
     <string name="island_turn_off">끄기</string>
     <string name="island_speaker">스피커</string>
     <string name="island_end_call">통화 종료</string>
+    <string name="island_incoming_call">수신 전화</string>
+    <string name="island_answer_call">받기</string>
+    <string name="island_decline_call">거절</string>
     <string name="island_reply">답장</string>
     <string name="island_copied">복사됨</string>
     <string name="island_verification_code">인증번호</string>
