@@ -180,6 +180,8 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
     }
 
     private final FramePacer framePacer = new FramePacer();
+    private final dev.android.dynamicisland.island.graphics.FrameStats frameStats = new dev.android.dynamicisland.island.graphics.FrameStats();
+    private boolean frameRateBoosted;
     private TorchBeamVisual torchBeamVisual;
     public TorchBeamVisual torchBeamVisual() {
         if (torchBeamVisual == null) torchBeamVisual = new TorchBeamVisual();
@@ -841,9 +843,11 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
             return;
         }
         BlurGovernor.INSTANCE.onFrame(frameTimeNanos, SystemClock.uptimeMillis());
+        noteFrame(frameTimeNanos);
         try {
             step(frameTimeNanos);
             failedFrames = 0;
+            boostFrameRate(!ModuleSettings.lowPerformance() && interactiveMotion());
         } catch (Throwable t) {
             lastFrameNanos = 0L;
             XLog.once("IslandView.doFrame", t);
@@ -852,6 +856,28 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
             }
             return;
         }
+    }
+
+    /**
+     * While the island moves it asks for a high frame rate: a window that only draws on its own timer is otherwise
+     * given a lower one than the system animations around it (the shade, the launcher), and its pill then looks
+     * choppy next to them. Back to the default as soon as it is still.
+     */
+    private void boostFrameRate(boolean on) {
+        if (on == frameRateBoosted) return;
+        frameRateBoosted = on;
+        try {
+            setRequestedFrameRate(on ? REQUESTED_FRAME_RATE_CATEGORY_HIGH : REQUESTED_FRAME_RATE_CATEGORY_DEFAULT);
+        } catch (Throwable t) {
+            XLog.once("IslandView.frameRate", t);
+        }
+    }
+
+    /** Keeps count of how evenly the animation frames arrive, for the diagnostics report. */
+    private void noteFrame(long frameTimeNanos) {
+        frameStats.onFrame(frameTimeNanos, interactiveMotion());
+        String report = frameStats.reportIfDue(frameTimeNanos, getDisplay() == null ? 0f : getDisplay().getRefreshRate());
+        if (report != null) dev.android.dynamicisland.xposed.Diagnostics.fact("island animation frames", report);
     }
 
     private void step(long frameTimeNanos) {

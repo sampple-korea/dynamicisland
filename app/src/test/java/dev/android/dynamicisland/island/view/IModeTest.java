@@ -1018,4 +1018,22 @@ public class IModeTest {
             f.event(MotionEvent.ACTION_UP,x+70,y+30);
         }
     }
+
+    @Test public void theIslandAsksForAHighFrameRateOnlyWhileItMoves() {
+        try(Fixture f=new Fixture(1)) {
+            f.step(16,240);
+            assertEquals("still: the default",View.REQUESTED_FRAME_RATE_CATEGORY_DEFAULT,f.view.getRequestedFrameRate(),0f);
+            f.view.setItems(Collections.emptyList());   // the pill leaves: it animates
+            f.step(16,4);
+            assertEquals(View.REQUESTED_FRAME_RATE_CATEGORY_HIGH,f.view.getRequestedFrameRate(),0f);
+            f.step(16,240);
+            assertEquals("still again: back to the default",View.REQUESTED_FRAME_RATE_CATEGORY_DEFAULT,f.view.getRequestedFrameRate(),0f);
+
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_LOW_PERFORMANCE,true).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            f.view.setItems(f.items);
+            f.step(16,4);
+            assertEquals("low-performance mode never asks for more",View.REQUESTED_FRAME_RATE_CATEGORY_DEFAULT,f.view.getRequestedFrameRate(),0f);
+        }
+    }
 }
