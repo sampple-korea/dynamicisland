@@ -125,6 +125,7 @@ final class SettingsSearchCatalog {
         add(Route.APPS,R.string.apps_mode,R.string.apps_only_listed_desc,R.string.search_terms_apps,0,R.string.apps_blacklist,R.string.apps_whitelist);
         add(Route.APPS,R.string.ui_excluded_apps,R.string.apps_choose_sum,R.string.search_terms_apps,R.string.apps_mode);
         add(Route.APPS,R.string.ui_allowed_apps,R.string.apps_choose_sum,R.string.search_terms_apps,R.string.apps_mode);
+        add(Route.ADVANCED,R.string.reset_all,R.string.reset_all_desc,R.string.search_terms_reset,0);
         add(Route.BEHAVIOR,R.string.always_visible_island,R.string.always_visible_island_desc,0,0);
         add(Route.BEHAVIOR,R.string.swipe_up_hides,R.string.swipe_up_hides_desc,0,0);
         add(Route.BEHAVIOR,R.string.show_in_fullscreen,R.string.show_in_fullscreen_desc,0,0);

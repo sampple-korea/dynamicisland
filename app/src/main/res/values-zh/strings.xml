@@ -695,4 +695,10 @@
     <string name="recommend16_perf">新的性能页可以不开整个低性能模式，只逐项关闭音乐光晕、波形或动画图标等效果。</string>
     <string name="recommend16_colour_title">跟随壁纸的颜色</string>
     <string name="recommend16_colour">进度条和按钮跟随壁纸的 Material 颜色，并随壁纸变化。</string>
+    <string name="reset_all">重置所有设置</string>
+    <string name="reset_all_desc">将所有选项、颜色、位置、应用列表和你创建的规则恢复为原始值。</string>
+    <string name="reset_all_confirm">包括选项、颜色、位置、应用列表和你创建的规则在内的所有设置都会恢复为原始值，且无法撤销。设置语言和手机的通知不受影响。</string>
+    <string name="reset_all_button">重置</string>
+    <string name="reset_all_done">已重置所有设置</string>
+    <string name="search_terms_reset">重置 恢复默认 初始化 清除 重新开始</string>
 </resources>

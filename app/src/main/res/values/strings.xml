@@ -704,4 +704,10 @@
     <string name="recommend16_perf">The new Performance page turns off single effects, such as the music glow, the waveform or animated icons, without the whole low-performance mode.</string>
     <string name="recommend16_colour_title">Colours from your wallpaper</string>
     <string name="recommend16_colour">Let progress bars and buttons follow the Material colour of your wallpaper and change with it.</string>
+    <string name="reset_all">Reset all settings</string>
+    <string name="reset_all_desc">Return every option, colour, position, app list and rule you made to its original value.</string>
+    <string name="reset_all_confirm">Every setting goes back to its original value: options, colours, position, app lists and the rules you made. This cannot be undone. The settings language and your phone\'s notifications are not touched.</string>
+    <string name="reset_all_button">Reset</string>
+    <string name="reset_all_done">All settings were reset</string>
+    <string name="search_terms_reset">reset restore defaults clear factory original start over</string>
 </resources>

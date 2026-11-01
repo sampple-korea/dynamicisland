@@ -695,4 +695,10 @@
     <string name="recommend16_perf">新しいパフォーマンスページで、音楽のグローや波形、アニメーションアイコンなどを低負荷モードなしで1つずつ切れます。</string>
     <string name="recommend16_colour_title">壁紙の色に合わせて</string>
     <string name="recommend16_colour">進行バーとボタンが壁紙のMaterialカラーに従い、壁紙を変えると一緒に変わります。</string>
+    <string name="reset_all">すべての設定をリセット</string>
+    <string name="reset_all_desc">すべてのオプション、色、位置、アプリ一覧、作成したルールを元の値に戻します。</string>
+    <string name="reset_all_confirm">オプション、色、位置、アプリ一覧、作成したルールを含むすべての設定が元の値に戻ります。元に戻すことはできません。設定の言語と端末の通知は変わりません。</string>
+    <string name="reset_all_button">リセット</string>
+    <string name="reset_all_done">すべての設定をリセットしました</string>
+    <string name="search_terms_reset">リセット 初期化 既定値 復元 削除 最初から</string>
 </resources>

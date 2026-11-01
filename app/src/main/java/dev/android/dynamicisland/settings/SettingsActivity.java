@@ -588,6 +588,28 @@ public final class SettingsActivity extends Activity {
         ui.category(page, getString(R.string.hub_tools), getString(R.string.desc_tools));
         LinearLayout tools = ui.card(page);
         ui.linkRow(tools, getString(R.string.diagnostics_title), getString(R.string.diagnostics_sum), () -> open(this::diagnosticsPage));
+        ui.actionRow(tools, getString(R.string.reset_all), getString(R.string.reset_all_desc), this::confirmReset);
+    }
+
+    /**
+     * Every setting lives in the one preference store this app writes (options, colours, position, app lists and the
+     * rules you made), so emptying it returns all of them to their original values. The module reads the empty store
+     * the same way it reads any change. Clearing the app's data does not do this on LSPosed: the store is not in it.
+     */
+    private void confirmReset() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.reset_all)
+                .setMessage(R.string.reset_all_confirm)
+                .setPositiveButton(R.string.reset_all_button, (dialog, which) -> resetAllSettings())
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    void resetAllSettings() {
+        prefs.edit().clear().apply();
+        ModuleSettings.configurePreview(prefs);
+        Toast.makeText(this, R.string.reset_all_done, Toast.LENGTH_LONG).show();
+        refresh();
     }
 
     // ---------------------------------------------------------------- timing choices
