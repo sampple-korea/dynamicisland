@@ -95,6 +95,8 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
         placement.setOnUnlocked(sources.unlock::onUnlocked);
         launcher = new ItemLauncher(ctx, haptics, placement::view);
         shadeDrag = new ShadeDragRelay(ctx, placement::statusBar);
+        Diagnostics.live("system ui memory",
+                new dev.android.dynamicisland.xposed.MemoryReport(dev.android.dynamicisland.island.window.IslandWindow::materialBufferStats)::line);
     }
 
     /** Creates the controller on first call (from the System UI hook) and returns it. */

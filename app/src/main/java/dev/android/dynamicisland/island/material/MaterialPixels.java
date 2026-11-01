@@ -2,19 +2,83 @@ package dev.android.dynamicisland.island.material;
 
 /** Float RGB filtering shared by the live backdrop and material review. No Android dependencies. */
 public final class MaterialPixels {
+    /**
+     * Float arrays kept for the next filter. Filtering a backdrop makes dozens of multi-megabyte arrays that are
+     * dead a moment later; allocating them anew every second keeps System UI in the collector. A request is met by
+     * the smallest waiting array that is long enough (up to twice as long): the arrays of one filter shrink and
+     * grow again, so a handful of them serve all its steps. An array taken this way may be longer than its image
+     * needs; only the first {@code width * height * 3} entries mean anything. Not thread safe: one owner thread.
+     */
+    public static final class Scratch {
+        private static final long LIMIT_BYTES = 32L << 20;
+        private final java.util.TreeMap<Integer, java.util.ArrayDeque<float[]>> free = new java.util.TreeMap<>();
+        private long heldBytes;
+        private long freshBytes, reusedBytes;
+        private int filters;
+
+        float[] take(int length) {
+            java.util.Map.Entry<Integer, java.util.ArrayDeque<float[]>> fit = free.ceilingEntry(length);
+            if (fit != null && fit.getKey() <= 2L * length) {
+                float[] array = fit.getValue().pollFirst();
+                if (fit.getValue().isEmpty()) free.remove(fit.getKey());
+                heldBytes -= 4L * array.length;
+                reusedBytes += 4L * length;
+                return array;
+            }
+            freshBytes += 4L * length;
+            return new float[length];
+        }
+
+        void give(float[] array) {
+            if (array == null || heldBytes + 4L * array.length > LIMIT_BYTES) return;
+            free.computeIfAbsent(array.length, k -> new java.util.ArrayDeque<>()).addFirst(array);
+            heldBytes += 4L * array.length;
+        }
+
+        /** Bytes of float arrays allocated anew by the filters so far. */
+        public long freshBytes() { return freshBytes; }
+
+        /** Bytes of float arrays the filters took from the pool instead of allocating. */
+        public long reusedBytes() { return reusedBytes; }
+
+        /** Bytes of arrays waiting for the next filter. */
+        public long heldBytes() { return heldBytes; }
+
+        public int filters() { return filters; }
+
+        /** Gives up everything held (the backdrop is no longer drawn). */
+        public void clear() { free.clear(); heldBytes = 0; }
+    }
+
+    private static float[] take(Scratch scratch, int length) {
+        return scratch == null ? new float[length] : scratch.take(length);
+    }
+
+    private static void give(Scratch scratch, float[] array) {
+        if (scratch != null) scratch.give(array);
+    }
+
     public final int width, height;
     public final float[] rgb;
     public MaterialPixels(int width, int height, float[] rgb) {
-        if (width < 1 || height < 1 || rgb.length != width * height * 3) throw new IllegalArgumentException("RGB size");
+        if (width < 1 || height < 1 || rgb.length < width * height * 3) throw new IllegalArgumentException("RGB size");
         this.width = width; this.height = height; this.rgb = rgb;
     }
     public static MaterialPixels fromArgb(int[] pixels, int width, int height) {
-        float[] rgb = new float[pixels.length * 3];
+        return fromArgb(pixels, width, height, null);
+    }
+    /** Same, with the float array taken from {@code scratch}; the caller gives it back with {@link #release}. */
+    public static MaterialPixels fromArgb(int[] pixels, int width, int height, Scratch scratch) {
+        float[] rgb = take(scratch, pixels.length * 3);
         for (int i = 0; i < pixels.length; i++) for (int c = 0; c < 3; c++) rgb[3*i+c] = ((pixels[i] >> (16-8*c)) & 255) / 255f;
         return new MaterialPixels(width, height, rgb);
     }
     public int[] argb() {
-        int[] out = new int[width * height];
+        return argb(new int[width * height]);
+    }
+    /** The pixels written into {@code out}, which must be exactly {@code width * height} long. */
+    public int[] argb(int[] out) {
+        if (out.length != width * height) throw new IllegalArgumentException("size");
         for (int i = 0; i < out.length; i++) {
             int p = 0xff000000;
             for (int c = 0; c < 3; c++) p |= Math.max(0, Math.min(255, (int)(rgb[i*3+c]*255))) << (16-8*c);
@@ -24,10 +88,19 @@ public final class MaterialPixels {
     }
     /** Pillow's antialiased bilinear support, including its widened triangle on downsampling. */
     public MaterialPixels resize(int w, int h) {
-        float[] tmp = new float[w*height*3], out = new float[w*h*3];
+        return resize(w, h, null, false);
+    }
+    private MaterialPixels resize(int w, int h, Scratch scratch, boolean keepResult) {
+        if (keepResult && scratch != null) scratch.freshBytes += 4L * w * h * 3; // the result is always a new array
+        float[] tmp = take(scratch, w*height*3), out = keepResult ? new float[w*h*3] : take(scratch, w*h*3);
         resample(rgb, tmp, width, height, w, true);
         resample(tmp, out, w, height, h, false);
+        give(scratch, tmp);
         return new MaterialPixels(w,h,out);
+    }
+    /** Hands the float array back to {@code scratch} once nothing reads this any more. */
+    public void release(Scratch scratch) {
+        give(scratch, rgb);
     }
     private static void resample(float[] in, float[] out, int w, int h, int size, boolean horizontal) {
         int old = horizontal ? w : h, lines = horizontal ? h : w;
@@ -48,8 +121,8 @@ public final class MaterialPixels {
             }
         }
     }
-    private MaterialPixels taps(boolean up) {
-        float[] out = new float[rgb.length];
+    private MaterialPixels taps(boolean up, Scratch scratch) {
+        float[] out = take(scratch, width * height * 3);
         for(int y=0;y<height;y++) for(int x=0;x<width;x++) for(int c=0;c<3;c++) {
             float diagonal=at(x-1,y-1,c)+at(x+1,y-1,c)+at(x-1,y+1,c)+at(x+1,y+1,c);
             float axial=up ? at(x-2,y,c)+at(x+2,y,c)+at(x,y-2,c)+at(x,y+2,c) : 4*at(x,y,c);
@@ -66,14 +139,33 @@ public final class MaterialPixels {
     }
     /** Approved .75 radius, normalized to the original review's 1164px screen width. */
     public MaterialPixels blur() {
+        return blur(null);
+    }
+    /**
+     * The same filter with its intermediate arrays taken from and given back to {@code scratch}. Only the result,
+     * which the caller keeps, is a new array; this image is left as it was.
+     */
+    public MaterialPixels blur(Scratch scratch) {
         float blurScale=.75f*width/1164f;
         int levels=Math.max(1,Math.min(5,(int)Math.ceil(5+Math.log(blurScale)/Math.log(2))));
         float relative=blurScale/(float)Math.pow(2,levels-5);
-        MaterialPixels a=resize(Math.max(1,Math.round(width/relative)),Math.max(1,Math.round(height/relative)));
+        if(scratch!=null) scratch.filters++;
+        MaterialPixels a=resize(Math.max(1,Math.round(width/relative)),Math.max(1,Math.round(height/relative)),scratch,false);
         int[] ws=new int[levels],hs=new int[levels];
-        for(int i=0;i<levels;i++) { ws[i]=a.width;hs[i]=a.height;a=a.resize(Math.max(1,a.width/2),Math.max(1,a.height/2)).taps(false); }
-        for(int i=levels-1;i>=0;i--) a=a.resize(ws[i],hs[i]).taps(true);
-        return a.resize(width,height);
+        for(int i=0;i<levels;i++) {
+            ws[i]=a.width;hs[i]=a.height;
+            MaterialPixels smaller=a.resize(Math.max(1,a.width/2),Math.max(1,a.height/2),scratch,false);
+            MaterialPixels next=smaller.taps(false,scratch);
+            smaller.release(scratch);a.release(scratch);a=next;
+        }
+        for(int i=levels-1;i>=0;i--) {
+            MaterialPixels larger=a.resize(ws[i],hs[i],scratch,false);
+            MaterialPixels next=larger.taps(true,scratch);
+            larger.release(scratch);a.release(scratch);a=next;
+        }
+        MaterialPixels result=a.resize(width,height,scratch,true);
+        a.release(scratch);
+        return result;
     }
     static float linear(float c) { return c<=.04045f ? c/12.92f : (float)Math.pow((c+.055f)/1.055f,2.4); }
     /** Response field for exactly one card, using the review's local float mean/variance equations. */
