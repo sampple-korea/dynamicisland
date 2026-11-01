@@ -551,9 +551,10 @@ public final class SettingsActivity extends Activity {
         Switch charging = toggle(device, R.string.setting_event_charging, R.string.setting_event_charging_desc, ModuleSettings.KEY_EVENT_CHARGING, true);
         Switch chargingInfo = toggle(device, R.string.setting_charging_info, R.string.setting_charging_info_desc, ModuleSettings.KEY_CHARGING_INFO, false);
         Switch chargingStats = toggle(device, R.string.setting_charging_stats, R.string.setting_charging_stats_desc, ModuleSettings.KEY_CHARGING_STATS, false);
+        Switch chargingText = toggle(device, R.string.setting_charging_text, R.string.setting_charging_text_desc, ModuleSettings.KEY_CHARGING_TEXT, false);
         Runnable chargingDependencies = () -> {
             OneUi.setDependentsEnabled(charging.isChecked(), OneUi.rowOf(chargingInfo));
-            OneUi.setDependentsEnabled(charging.isChecked() && chargingInfo.isChecked(), OneUi.rowOf(chargingStats));
+            OneUi.setDependentsEnabled(charging.isChecked() && chargingInfo.isChecked(), OneUi.rowOf(chargingStats), OneUi.rowOf(chargingText));
         };
         OneUi.listen(charging, on -> chargingDependencies.run());
         OneUi.listen(chargingInfo, on -> chargingDependencies.run());

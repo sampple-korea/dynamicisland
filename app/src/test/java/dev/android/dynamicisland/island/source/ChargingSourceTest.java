@@ -121,6 +121,58 @@ public class ChargingSourceTest {
         assertEquals("a real reading wins: 0.9 A at 4.0 V", "4W", cards.get(0).trailingText.toString());
     }
 
+    private ArrayList<IslandItem> collect(SharedPreferences prefs, boolean stats, boolean text, int currentMicro) {
+        Application app = RuntimeEnvironment.getApplication();
+        prefs.edit().clear().putBoolean(ModuleSettings.KEY_CHARGING_INFO, true).putBoolean(ModuleSettings.KEY_CHARGING_STATS, stats)
+                .putBoolean(ModuleSettings.KEY_CHARGING_TEXT, text).apply();
+        ModuleSettings.configurePreview(prefs);
+        shadowOf(app.getSystemService(PowerManager.class)).setIsInteractive(true);
+        org.robolectric.shadows.ShadowBatteryManager manager = shadowOf(app.getSystemService(BatteryManager.class));
+        manager.setIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW, currentMicro);
+        manager.setLongProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER, 1_000_000);
+        ChargingSource source = new ChargingSource(app, new Handler(Looper.getMainLooper()), () -> { });
+        source.syncSettings();
+        app.sendBroadcast(battery(1));
+        shadowOf(Looper.getMainLooper()).idle();
+        ArrayList<IslandItem> cards = new ArrayList<>();
+        source.collect(cards);
+        return cards;
+    }
+
+    @Test public void theChargingCardCanBeLinesOfTextInsteadOfTheGauge() {
+        SharedPreferences prefs = ModuleSettings.openStore(RuntimeEnvironment.getApplication());
+        try {
+            IslandItem gauge = collect(prefs, true, false, 1_000_000).get(0);
+            assertEquals("the gauge is the default", IslandItem.EventLayout.BATTERY, gauge.eventLayout);
+            assertEquals(50, gauge.batteryPercent);
+            assertNotNull(gauge.subtitle);
+            assertFalse(gauge.subtitle.toString().startsWith("Now"));
+
+            IslandItem lines = collect(prefs, true, true, 1_000_000).get(0);
+            assertEquals(IslandItem.EventLayout.DEFAULT, lines.eventLayout);
+            assertNull("the live reading moves into the text block", lines.subtitle);
+            String block = lines.description.toString();
+            assertTrue(block, block.startsWith("Now: 1000 mA (4.0 W) \u2022 31.0 \u00b0C\n"));
+            assertTrue(block, block.contains("\nScreen on: "));
+            assertTrue(block, block.contains("\nScreen off: "));
+            assertEquals("the pill shows the same power as before", gauge.trailingText.toString(), lines.trailingText.toString());
+            assertEquals(gauge.title.toString(), lines.title.toString());
+
+            IslandItem noStats = collect(prefs, false, true, 1_000_000).get(0);
+            assertEquals("without statistics the reading is the subtitle", "Now: 1000 mA (4.0 W) \u2022 31.0 \u00b0C", noStats.subtitle.toString());
+            assertNull(noStats.description);
+        } finally { prefs.edit().clear().apply(); ModuleSettings.configurePreview(prefs); }
+    }
+
+    @Test public void theTextLinesNeverMakeUpAZeroCurrent() {
+        SharedPreferences prefs = ModuleSettings.openStore(RuntimeEnvironment.getApplication());
+        try {
+            IslandItem unknown = collect(prefs, false, true, 0).get(0);
+            assertEquals("no reading yet: a dash and no power", "Now: \u2014 \u2022 31.0 \u00b0C", unknown.subtitle.toString());
+            assertFalse(unknown.subtitle.toString().contains("0 mA"));
+        } finally { prefs.edit().clear().apply(); ModuleSettings.configurePreview(prefs); }
+    }
+
     private Intent battery(int plug) {
         return new Intent(Intent.ACTION_BATTERY_CHANGED).putExtra(BatteryManager.EXTRA_PLUGGED, plug)
                 .putExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_CHARGING)

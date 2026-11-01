@@ -710,4 +710,7 @@
     <string name="reset_all_button">Reset</string>
     <string name="reset_all_done">All settings were reset</string>
     <string name="search_terms_reset">reset restore defaults clear factory original start over</string>
+    <string name="setting_charging_text">Charging card as text lines</string>
+    <string name="setting_charging_text_desc">Show the charging details as lines of text instead of the battery gauge: the live reading first, then the screen-on and screen-off statistics.</string>
+    <string name="island_charge_now">Now: %1$s</string>
 </resources>

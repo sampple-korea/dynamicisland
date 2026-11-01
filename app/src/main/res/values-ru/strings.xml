@@ -701,4 +701,7 @@
     <string name="reset_all_button">Сбросить</string>
     <string name="reset_all_done">Все настройки сброшены</string>
     <string name="search_terms_reset">сброс восстановить по умолчанию очистить заново</string>
+    <string name="setting_charging_text">Карточка зарядки текстом</string>
+    <string name="setting_charging_text_desc">Показывать подробности зарядки строками текста вместо индикатора батареи: сначала текущие значения, затем статистика при включённом и выключенном экране.</string>
+    <string name="island_charge_now">Сейчас: %1$s</string>
 </resources>

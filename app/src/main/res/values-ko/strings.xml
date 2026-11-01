@@ -701,4 +701,7 @@
     <string name="reset_all_button">초기화</string>
     <string name="reset_all_done">모든 설정을 초기화했습니다</string>
     <string name="search_terms_reset">초기화 리셋 기본값 복원 삭제 처음부터</string>
+    <string name="setting_charging_text">충전 카드를 텍스트 줄로</string>
+    <string name="setting_charging_text_desc">충전 상세 정보를 배터리 게이지 대신 글자 줄로 보여 줍니다. 현재 값이 맨 위에 나오고, 그 아래에 화면 켠 때와 끈 때의 통계가 이어집니다.</string>
+    <string name="island_charge_now">지금: %1$s</string>
 </resources>

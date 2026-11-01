@@ -701,4 +701,7 @@
     <string name="reset_all_button">リセット</string>
     <string name="reset_all_done">すべての設定をリセットしました</string>
     <string name="search_terms_reset">リセット 初期化 既定値 復元 削除 最初から</string>
+    <string name="setting_charging_text">充電カードをテキスト行で</string>
+    <string name="setting_charging_text_desc">充電の詳細をバッテリーゲージの代わりに文字の行で表示します。最初に現在の値、その下に画面オン時とオフ時の統計が並びます。</string>
+    <string name="island_charge_now">現在: %1$s</string>
 </resources>

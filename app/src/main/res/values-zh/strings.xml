@@ -701,4 +701,7 @@
     <string name="reset_all_button">重置</string>
     <string name="reset_all_done">已重置所有设置</string>
     <string name="search_terms_reset">重置 恢复默认 初始化 清除 重新开始</string>
+    <string name="setting_charging_text">充电卡片显示为文字行</string>
+    <string name="setting_charging_text_desc">用文字行代替电池仪表来显示充电详情：先显示当前读数，其后是亮屏和熄屏时的统计。</string>
+    <string name="island_charge_now">当前：%1$s</string>
 </resources>

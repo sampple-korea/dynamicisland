@@ -202,9 +202,12 @@ public final class ChargingSource {
         if (!isOffering()) return;
         IslandItem item = new IslandItem("charging:info");
         item.kind = IslandItem.Kind.EVENT; // Same priority as the charging popup and the reviewed version.
-        item.eventLayout = IslandItem.EventLayout.BATTERY;
-        item.batteryPercent = level;
-        item.batteryCharging = status == BatteryManager.BATTERY_STATUS_CHARGING;
+        boolean textLines = ModuleSettings.chargingTextLines();
+        if (!textLines) {
+            item.eventLayout = IslandItem.EventLayout.BATTERY;
+            item.batteryPercent = level;
+            item.batteryCharging = status == BatteryManager.BATTERY_STATUS_CHARGING;
+        }
         item.title = text(status == BatteryManager.BATTERY_STATUS_FULL ? "island_charge_full"
                 : status == BatteryManager.BATTERY_STATUS_CHARGING ? "island_charging" : "island_charge_connected");
         item.icon = ModuleSettings.hideBatteryIcon() || level < 0 ? null : BatteryIcon.load(ctx, level, true);
@@ -214,15 +217,29 @@ public final class ChargingSource {
         if (power > 300) power = Double.NaN;
         item.trailingText = Double.isFinite(power) ? number(power, 0) + "W" : level >= 0 ? percent(level) : null;
         if (Double.isFinite(power) && level >= 0) item.compactLabel = item.trailingText;
-        item.subtitle = text("island_charge_live", value(currentMa, "mA"), value(power, "W"), value(temperature, "°C"));
+        String live = textLines ? nowLine(power) : text("island_charge_live", value(currentMa, "mA"), value(power, "W"), value(temperature, "°C"));
+        item.subtitle = live;
         if (statistics && session != null) {
             item.descriptionMaxLines = 8;
             session.advance(SystemClock.elapsedRealtime());
             item.description = text("island_charge_screen_on", duration(session.onMs), gains(session.onPercent, session.onUah))
                     + "\n" + text("island_charge_screen_off", duration(session.offMs), gains(session.offPercent, session.offUah));
+            // as lines of text the live reading leads the block, the way the card was laid out before the gauge
+            if (textLines) {
+                item.description = live + "\n" + item.description;
+                item.subtitle = null;
+            }
         }
         item.postTime = connectedAt;
         out.add(item);
+    }
+
+    /** "Now: 1552 mA (6.2 W) • 34.1 °C"; what is not known yet is left out, the current shows "—". */
+    private String nowLine(double power) {
+        StringBuilder reading = new StringBuilder(value(currentMa, "mA"));
+        if (Double.isFinite(power)) reading.append(" (").append(value(power, "W")).append(')');
+        if (Double.isFinite(temperature)) reading.append(" • ").append(value(temperature, "°C"));
+        return text("island_charge_now", reading.toString());
     }
 
     private String gains(double percent, double uah) {
