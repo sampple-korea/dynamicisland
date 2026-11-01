@@ -687,12 +687,4 @@
     <string name="perf_material_link">用经典材质代替磨砂玻璃，绘制负担小得多</string>
     <string name="accent_system">系统颜色（Material You）</string>
     <string name="accent_system_note">进度条和按钮跟随壁纸的 Material 颜色，并随壁纸变化。深色会适当提亮以便阅读。</string>
-    <string name="recommend16_idle_title">没有活动，胶囊也在</string>
-    <string name="recommend16_idle">没有活动时也能在摄像头周围保留一个空胶囊，第一个活动会从它里面长出来。</string>
-    <string name="recommend16_hide_title">按你的方式隐藏</string>
-    <string name="recommend16_hide">长按小胶囊即可隐藏，也可以关掉上滑隐藏，避免误触。</string>
-    <string name="recommend16_perf_title">逐项精简效果</string>
-    <string name="recommend16_perf">新的性能页可以不开整个低性能模式，只逐项关闭音乐光晕、波形或动画图标等效果。</string>
-    <string name="recommend16_colour_title">跟随壁纸的颜色</string>
-    <string name="recommend16_colour">进度条和按钮跟随壁纸的 Material 颜色，并随壁纸变化。</string>
 </resources>

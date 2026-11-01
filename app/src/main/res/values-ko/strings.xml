@@ -687,12 +687,4 @@
     <string name="perf_material_link">프로스트 글라스 대신 기본 재질이 훨씬 가볍게 그려집니다</string>
     <string name="accent_system">시스템 색상 (Material You)</string>
     <string name="accent_system_note">진행 막대와 버튼이 배경화면의 Material 색상을 따르고, 배경화면이 바뀌면 함께 바뀝니다. 어두운 색은 읽기 쉽게 밝아집니다.</string>
-    <string name="recommend16_idle_title">비어 있어도 알약은 그대로</string>
-    <string name="recommend16_idle">활동이 없어도 카메라 둘레에 빈 알약을 남겨 두세요. 첫 활동은 그 알약에서 자라 나옵니다.</string>
-    <string name="recommend16_hide_title">내 방식대로 숨기기</string>
-    <string name="recommend16_hide">작은 알약을 길게 누르면 숨겨지고, 위로 밀어 숨기기를 꺼서 실수로 숨겨지는 일을 막을 수도 있어요.</string>
-    <string name="recommend16_perf_title">효과를 하나씩 줄이기</string>
-    <string name="recommend16_perf">새 성능 페이지에서 음악 글로우, 파형, 애니메이션 아이콘 같은 효과를 저성능 모드 없이 하나씩 끌 수 있어요.</string>
-    <string name="recommend16_colour_title">배경화면 색을 따라서</string>
-    <string name="recommend16_colour">진행 막대와 버튼이 배경화면의 Material 색상을 따르고, 배경화면이 바뀌면 함께 바뀌어요.</string>
 </resources>

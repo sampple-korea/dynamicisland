@@ -687,12 +687,4 @@
     <string name="perf_material_link">Классический материал вместо матового стекла рисуется гораздо легче</string>
     <string name="accent_system">Системный цвет (Material You)</string>
     <string name="accent_system_note">Полосы прогресса и кнопки следуют цвету Material обоев и меняются вместе с ними. Тёмные тона осветляются для читаемости.</string>
-    <string name="recommend16_idle_title">Остров остаётся</string>
-    <string name="recommend16_idle">Оставьте пустую «таблетку» вокруг камеры, даже когда ничего не происходит: первое действие вырастет из неё.</string>
-    <string name="recommend16_hide_title">Скрывать по-своему</string>
-    <string name="recommend16_hide">Удерживайте маленькую «таблетку», чтобы скрыть её, или отключите скрытие свайпом вверх, чтобы не скрыть случайно.</string>
-    <string name="recommend16_perf_title">Облегчайте по одному эффекту</string>
-    <string name="recommend16_perf">Новая страница «Производительность» отключает отдельные эффекты, например свечение музыки, волну или анимированные значки, без всего режима низкой нагрузки.</string>
-    <string name="recommend16_colour_title">Цвета из ваших обоев</string>
-    <string name="recommend16_colour">Полосы прогресса и кнопки следуют цвету Material ваших обоев и меняются вместе с ними.</string>
 </resources>

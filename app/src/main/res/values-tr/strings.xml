@@ -685,4 +685,6 @@
     <string name="perf_covered">Yukarıdaki düşük performans modu bunların hepsini zaten uyguluyor.</string>
     <string name="perf_glow_link">Parıltıyı kapatın veya daha zayıf ve sakin yapın</string>
     <string name="perf_material_link">Buzlu cam yerine klasik malzeme çok daha hafif çizilir</string>
+    <string name="accent_system">Sistem rengi (Material You)</string>
+    <string name="accent_system_note">İlerleme çubukları ve düğmeler duvar kağıdınızın Material rengini izler ve onunla değişir. Koyu tonlar okunabilirlik için açılır.</string>
 </resources>

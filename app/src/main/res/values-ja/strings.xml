@@ -687,12 +687,4 @@
     <string name="perf_material_link">フロストガラスの代わりに標準の素材にすると描画がずっと軽くなります</string>
     <string name="accent_system">システムの色（Material You）</string>
     <string name="accent_system_note">進行バーとボタンが壁紙のMaterialカラーに従い、壁紙を変えると一緒に変わります。暗い色は読みやすく明るくなります。</string>
-    <string name="recommend16_idle_title">何もなくてもピルはそのまま</string>
-    <string name="recommend16_idle">何も起きていなくてもカメラの周りに空のピルを残せます。最初のアクティビティはそこから伸びて現れます。</string>
-    <string name="recommend16_hide_title">自分好みに隠す</string>
-    <string name="recommend16_hide">小さなピルを長押しして隠したり、上スワイプで隠す操作をオフにして誤って隠れるのを防げます。</string>
-    <string name="recommend16_perf_title">効果を1つずつ軽く</string>
-    <string name="recommend16_perf">新しいパフォーマンスページで、音楽のグローや波形、アニメーションアイコンなどを低負荷モードなしで1つずつ切れます。</string>
-    <string name="recommend16_colour_title">壁紙の色に合わせて</string>
-    <string name="recommend16_colour">進行バーとボタンが壁紙のMaterialカラーに従い、壁紙を変えると一緒に変わります。</string>
 </resources>

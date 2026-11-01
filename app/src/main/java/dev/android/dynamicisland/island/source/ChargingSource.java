@@ -202,9 +202,6 @@ public final class ChargingSource {
         if (!isOffering()) return;
         IslandItem item = new IslandItem("charging:info");
         item.kind = IslandItem.Kind.EVENT; // Same priority as the charging popup and the reviewed version.
-        item.eventLayout = IslandItem.EventLayout.BATTERY;
-        item.batteryPercent = level;
-        item.batteryCharging = status == BatteryManager.BATTERY_STATUS_CHARGING;
         item.title = text(status == BatteryManager.BATTERY_STATUS_FULL ? "island_charge_full"
                 : status == BatteryManager.BATTERY_STATUS_CHARGING ? "island_charging" : "island_charge_connected");
         item.icon = ModuleSettings.hideBatteryIcon() || level < 0 ? null : BatteryIcon.load(ctx, level, true);
@@ -214,15 +211,37 @@ public final class ChargingSource {
         if (power > 300) power = Double.NaN;
         item.trailingText = Double.isFinite(power) ? number(power, 0) + "W" : level >= 0 ? percent(level) : null;
         if (Double.isFinite(power) && level >= 0) item.compactLabel = item.trailingText;
-        item.subtitle = text("island_charge_live", value(currentMa, "mA"), value(power, "W"), value(temperature, "°C"));
         if (statistics && session != null) {
             item.descriptionMaxLines = 8;
             session.advance(SystemClock.elapsedRealtime());
-            item.description = text("island_charge_screen_on", duration(session.onMs), gains(session.onPercent, session.onUah))
-                    + "\n" + text("island_charge_screen_off", duration(session.offMs), gains(session.offPercent, session.offUah));
+            item.description = nowLine(power)
+                    + "\n" + gainLine("Screen On: ", session.onMs, session.onUah, session.onPercent)
+                    + "\n" + gainLine("Screen Off: ", session.offMs, session.offUah, session.offPercent);
+        } else {
+            item.subtitle = nowLine(power);
         }
         item.postTime = connectedAt;
         out.add(item);
+    }
+
+    /** "Now: 1552 mA (6.2 W) • 34.1°" - the live line, first on the card. */
+    private String nowLine(double power) {
+        StringBuilder b = new StringBuilder("Now: ");
+        b.append(Math.round(currentMa)).append(" mA");
+        if (Double.isFinite(power)) {
+            b.append(" (").append(String.format(java.util.Locale.US, "%.1f", power)).append(" W)");
+        }
+        if (Double.isFinite(temperature)) {
+            b.append(" • ").append(String.format(java.util.Locale.US, "%.1f", temperature)).append("°");
+        }
+        return b.toString();
+    }
+
+    /** "Screen On: 10s • 0% (5 mAh)" - time, the share of the charge, and the mAh behind it. */
+    private String gainLine(String label, long ms, double uah, double percent) {
+        long secs = ms / 1000;
+        String took = secs >= 60 ? (secs / 60) + "m " + (secs % 60) + "s" : secs + "s";
+        return label + took + " • " + Math.round(percent) + "% (" + Math.round(uah / 1000) + " mAh)";
     }
 
     private String gains(double percent, double uah) {
