@@ -36,6 +36,7 @@ public class IModeTest {
         final Scene scene;
         final List<IslandItem> items=new ArrayList<>();
         final List<String> closed=new ArrayList<>();
+        final List<String> shadePulls=new ArrayList<>();
         Fixture(int count) {
             ShadowChoreographer.setFrameDelay(Duration.ofMillis(16));
             ShadowChoreographer.setPaused(true);
@@ -45,6 +46,7 @@ public class IModeTest {
             IslandHost host=(IslandHost)java.lang.reflect.Proxy.newProxyInstance(getClass().getClassLoader(),
                     new Class<?>[]{IslandHost.class},(proxy,method,args)->switch(method.getName()) {
                         case "onPeekClosed" -> { closed.add((String)args[0]); yield null; }
+                        case "onShadeDragStart" -> { shadePulls.add("start"); yield null; }
                         case "hasMinimized", "onShadeFade" -> false;
                         default -> null;
                     });
@@ -985,6 +987,35 @@ public class IModeTest {
             org.robolectric.shadows.ShadowLooper.idleMainLooper(timeout+100,java.util.concurrent.TimeUnit.MILLISECONDS);
             assertTrue("held with the swipe switched off: still hidden",f.scene.iMode.hiddenByGesture());
             f.event(MotionEvent.ACTION_UP,main.centerX(),main.centerY());
+        }
+    }
+
+    @Test public void aPullDownThatBeganWithASidewaysWobbleStillReachesTheShade() {
+        try(Fixture f=new Fixture(3)) {
+            RectF main=new RectF();f.scene.iMode.mainBounds(main);
+            float x=main.centerX(),y=main.centerY();
+            f.event(MotionEvent.ACTION_DOWN,x,y);
+            f.event(MotionEvent.ACTION_MOVE,x+24,y+2);   // the first move is mostly sideways: the pill starts to page
+            assertTrue("the pill began to page",f.scene.iMode.hasCompactDrag());
+            f.event(MotionEvent.ACTION_MOVE,x+30,y+48);  // then the finger goes clearly down
+            assertEquals("the pull is handed to the shade",1,f.shadePulls.size());
+            assertFalse(f.scene.iMode.hasCompactDrag());
+            f.event(MotionEvent.ACTION_UP,x+30,y+120);
+            f.step(16,60);
+            assertEquals(Mode.COMPACT,f.scene.mode);
+        }
+    }
+
+    @Test public void aSidewaysDragStillPagesAndANearlyHorizontalOneIsNotAPullDown() {
+        try(Fixture f=new Fixture(3)) {
+            RectF main=new RectF();f.scene.iMode.mainBounds(main);
+            float x=main.centerX(),y=main.centerY();
+            f.event(MotionEvent.ACTION_DOWN,x,y);
+            f.event(MotionEvent.ACTION_MOVE,x+24,y+2);
+            f.event(MotionEvent.ACTION_MOVE,x+70,y+30);
+            assertTrue(f.scene.iMode.hasCompactDrag());
+            assertEquals(0,f.shadePulls.size());
+            f.event(MotionEvent.ACTION_UP,x+70,y+30);
         }
     }
 }

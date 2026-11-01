@@ -27,6 +27,8 @@ final class TouchController {
     private static final float SWIPE_MIN_DP = 26.0f;
     private static final float SWIPE_DOMINANCE = 1.2f;
     private static final float SWIPE_UP_DISMISS_DP = 40.0f;
+    /** How much more a move must go down than sideways to count as a pull down on a pill that began to page. */
+    private static final float PULL_DOWN_DOMINANCE = 1.5f;
     private static final float SWIPE_UP_CLOSE_DP = 30.0f;
     /** A flick this fast (dp per second) closes after a short move: speed counts for distance. */
     private static final float FLICK_UP_DP_PER_S = 900.0f;
@@ -329,7 +331,12 @@ final class TouchController {
         boolean onIsland = downOnPill || downOnBubble;
         if(scene.iMode!=null && downActivity!=null) {
             // Status-row paging owns horizontal drags; downward drags still open the system shade.
-            if(scene.iMode.hasCompactDrag()) scene.iMode.dragCompact(dx);
+            if(scene.iMode.hasCompactDrag() && dy>touchSlop*2 && dy>Math.abs(dx)*PULL_DOWN_DOMINANCE) {
+                // a sideways wobble at the start must not keep a clear pull down from reaching the shade
+                scene.iMode.cancelCompactPage();
+                handOverToShade(e);
+            }
+            else if(scene.iMode.hasCompactDrag()) scene.iMode.dragCompact(dx);
             else if(ModuleSettings.swipeUpHides() && swipedUp(dy) && -dy>Math.abs(dx)*SWIPE_DOMINANCE) {
                 scene.iMode.hideByGesture(upwardSpeed());ignoreGesture=true;return;
             }
