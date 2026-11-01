@@ -694,4 +694,6 @@
     <string name="perf_covered">Low-performance mode above already applies all of these.</string>
     <string name="perf_glow_link">Turn the glow off or make it fainter and calmer</string>
     <string name="perf_material_link">Classic material instead of frosted glass is much lighter to draw</string>
+    <string name="accent_system">System colour (Material You)</string>
+    <string name="accent_system_note">Progress bars and buttons follow the Material colour of your wallpaper and change with it. Dark tones are brightened for readability.</string>
 </resources>

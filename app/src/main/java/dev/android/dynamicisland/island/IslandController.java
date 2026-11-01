@@ -496,6 +496,10 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
     @Override
     public void onWindowConfigurationChanged() {
         main.post(placement::updateGeometry);
+        // the wallpaper colours reach the island as a configuration change: the system accent may have moved
+        main.post(() -> {
+            if (ModuleSettings.accentSystem() && ModuleSettings.refreshSystemAccent(ctx)) requestRefresh();
+        });
     }
 
     @Override

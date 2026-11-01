@@ -685,4 +685,6 @@
     <string name="perf_covered">上の低負荷モードがこれらをすべて適用しています。</string>
     <string name="perf_glow_link">グローをオフにする、または弱く穏やかにする</string>
     <string name="perf_material_link">フロストガラスの代わりに標準の素材にすると描画がずっと軽くなります</string>
+    <string name="accent_system">システムの色（Material You）</string>
+    <string name="accent_system_note">進行バーとボタンが壁紙のMaterialカラーに従い、壁紙を変えると一緒に変わります。暗い色は読みやすく明るくなります。</string>
 </resources>

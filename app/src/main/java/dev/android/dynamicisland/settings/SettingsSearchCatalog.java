@@ -140,7 +140,7 @@ final class SettingsSearchCatalog {
         add(Route.BEHAVIOR,R.string.setting_auto_collapse,0,R.string.search_terms_timing,0);
         add(Route.BEHAVIOR,R.string.setting_paused_timeout,0,R.string.search_terms_paused,0);
         add(Route.APPEARANCE,R.string.anim_title,R.string.anim_sum,R.string.search_terms_animation,0,R.string.anim_new,R.string.anim_legacy,R.string.imode_title,R.string.imode_desc);
-        add(Route.ACCENT,R.string.accent_enabled,R.string.accent_note,R.string.search_terms_colour,0,R.string.ui_default,R.string.ui_custom);
+        add(Route.ACCENT,R.string.accent_enabled,R.string.accent_note,R.string.search_terms_colour,0,R.string.ui_default,R.string.ui_custom,R.string.accent_system);
         add(Route.ACCENT,R.string.accent_custom,R.string.accent_note,R.string.search_terms_colour,R.string.accent_enabled);
         add(Route.GLOW,R.string.glow_title,R.string.glow_summary,R.string.search_terms_glow,0);
         add(Route.GLOW,R.string.glow_visibility,0,R.string.search_terms_glow,R.string.glow_title,R.string.glow_music_only,R.string.glow_all_activities);

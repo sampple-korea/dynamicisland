@@ -126,6 +126,8 @@ public final class ModuleSettings {
     public static final String KEY_HIDE_BATTERY_ICON = "hide_battery_icon";
     public static final String KEY_ACCENT_CUSTOM = "accent_custom";
     public static final String KEY_ACCENT_COLOR = "accent_color";
+    /** The accent follows the system's Material colour (the wallpaper colours), instead of a chosen one. */
+    public static final String KEY_ACCENT_SYSTEM = "accent_system";
     public static final int DEFAULT_ACCENT = 0xFF3E91FF;
     public static final String KEY_AMBIENT_GLOW = "ambient_glow";
     public static final String KEY_GLOW_STRENGTH = "ambient_glow_strength";
@@ -210,6 +212,9 @@ public final class ModuleSettings {
     private static volatile boolean compactEventIcons;
     private static volatile boolean accentCustom;
     private static volatile int accentColor = DEFAULT_ACCENT;
+    private static volatile boolean accentSystem;
+    /** The system's accent as last read by {@link #refreshSystemAccent}; 0 until it has been read. */
+    private static volatile int systemAccent;
     private static volatile boolean ambientGlow = true;
     private static volatile boolean glowMusicOnly = true;
     private static volatile boolean glowAlbum = true;
@@ -589,6 +594,7 @@ public final class ModuleSettings {
             hideBatteryIcon = source.getBoolean(KEY_HIDE_BATTERY_ICON, true);
             accentCustom = source.getBoolean(KEY_ACCENT_CUSTOM, false);
             accentColor = source.getInt(KEY_ACCENT_COLOR, DEFAULT_ACCENT) | 0xFF000000;
+            accentSystem = source.getBoolean(KEY_ACCENT_SYSTEM, false);
             readGlow(source);
             eventToggles = source.getBoolean(KEY_EVENT_TOGGLES, true);
             torchPill = source.getBoolean(KEY_TORCH_PILL, true);
@@ -643,6 +649,7 @@ public final class ModuleSettings {
         colorIcons = settings.getBoolean(KEY_COLOR_ICONS, false);
         accentCustom = settings.getBoolean(KEY_ACCENT_CUSTOM, false);
         accentColor = settings.getInt(KEY_ACCENT_COLOR, DEFAULT_ACCENT) | 0xFF000000;
+        accentSystem = settings.getBoolean(KEY_ACCENT_SYSTEM, false);
         compactEventIcons = settings.getBoolean(KEY_COMPACT_EVENT_ICONS, false);
         hideBatteryIcon = settings.getBoolean(KEY_HIDE_BATTERY_ICON, true);
         visualizer = settings.getBoolean(KEY_VISUALIZER, true);
@@ -669,7 +676,8 @@ public final class ModuleSettings {
     public static int glowStrength() { return glowStrength; }
     public static int glowMotion() { return glowMotion; }
     public static int glowColour() {
-        return glowFollowTheme ? (accentCustom ? accentColor : DEFAULT_ACCENT) : glowColour;
+        int accent = accentOverride();
+        return glowFollowTheme ? (accent != 0 ? accent : DEFAULT_ACCENT) : glowColour;
     }
 
     public static boolean lowPerformance() { ensureStarted(); return lowPerformance; }
@@ -734,12 +742,40 @@ public final class ModuleSettings {
     public static boolean compactEventIcons() { return compactEventIcons; }
     public static boolean hideBatteryIcon() { return hideBatteryIcon; }
     public static boolean accentCustom() { return accentCustom; }
+    public static boolean accentSystem() { return accentSystem; }
+
+    /**
+     * The colour the user wants for progress bars and ordinary buttons, or 0 for the default: the system's Material
+     * colour when that is chosen (and has been read), else the chosen custom colour.
+     */
+    public static int accentOverride() {
+        if (accentSystem) return systemAccent;
+        return accentCustom ? accentColor : 0;
+    }
+
+    /**
+     * Reads the system's accent colour (the one that follows the wallpaper) from {@code context}'s resources.
+     * It is a light tone of the system accent, which reads well on the island's dark surfaces.
+     *
+     * @return true when it changed since the last read, so the island has to be shown again
+     */
+    public static boolean refreshSystemAccent(android.content.Context context) {
+        int colour = 0;
+        try {
+            colour = context.getResources().getColor(android.R.color.system_accent1_200, null) | 0xFF000000;
+        } catch (RuntimeException unavailable) {
+            // no system colours on this build: the default accent stays
+        }
+        boolean changed = colour != systemAccent;
+        systemAccent = colour;
+        return changed;
+    }
     public static int accentColor() { return accentColor; }
 
     private static String lastSwitches;
 
     private static String switchSignature() {
-        return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/" + glowColour + lowPerformance + "/light=" + stillMusic + staticWaveform + limitFrameRate + stillIcons + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + progressNotifications + hideProgressOriginals
+        return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/" + glowColour + lowPerformance + "/light=" + stillMusic + staticWaveform + limitFrameRate + stillIcons + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + "/system=" + accentSystem + systemAccent + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + progressNotifications + hideProgressOriginals
                 + smartRules + privacyIndicator + privacyLocation + otpCard + otpAutoCopy + thirdPartyCalls + visualizer + colorIcons + shadeMedia + cardHeader
                 + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/" + headsetStay + "/hotspot=" + hotspotCard + "/unlock=" + unlockNotice + "/peekProgress=" + peekProgress + "/progressForeground=" + progressForeground + "/progressAny=" + progressAny + "/stockCharging=" + stockChargingAnimation + "/recordingInput=" + concurrentRecordingInput
                 + "/alwaysVisible=" + alwaysVisible + "/swipeUpHides=" + swipeUpHides + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/blur=" + transitionBlurMode + "/" + appFilter.onlyListed() + appFilter.size();

@@ -148,6 +148,7 @@ public final class SettingsActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        ModuleSettings.refreshSystemAccent(this); // the previews can show the system colour
         if (changeFeedback != null) changeFeedback.start();
         if (!stack.isEmpty()) {
             render();

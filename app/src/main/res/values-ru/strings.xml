@@ -685,4 +685,6 @@
     <string name="perf_covered">Режим низкой нагрузки выше уже применяет всё это.</string>
     <string name="perf_glow_link">Отключить свечение или сделать его слабее и спокойнее</string>
     <string name="perf_material_link">Классический материал вместо матового стекла рисуется гораздо легче</string>
+    <string name="accent_system">Системный цвет (Material You)</string>
+    <string name="accent_system_note">Полосы прогресса и кнопки следуют цвету Material обоев и меняются вместе с ними. Тёмные тона осветляются для читаемости.</string>
 </resources>

@@ -685,4 +685,6 @@
     <string name="perf_covered">上方的低性能模式已应用以上全部项目。</string>
     <string name="perf_glow_link">关闭光晕，或让它更弱更平静</string>
     <string name="perf_material_link">用经典材质代替磨砂玻璃，绘制负担小得多</string>
+    <string name="accent_system">系统颜色（Material You）</string>
+    <string name="accent_system_note">进度条和按钮跟随壁纸的 Material 颜色，并随壁纸变化。深色会适当提亮以便阅读。</string>
 </resources>

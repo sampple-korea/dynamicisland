@@ -685,4 +685,6 @@
     <string name="perf_covered">위의 저성능 모드가 이 항목을 모두 적용하고 있습니다.</string>
     <string name="perf_glow_link">글로우를 끄거나 더 약하고 차분하게</string>
     <string name="perf_material_link">프로스트 글라스 대신 기본 재질이 훨씬 가볍게 그려집니다</string>
+    <string name="accent_system">시스템 색상 (Material You)</string>
+    <string name="accent_system_note">진행 막대와 버튼이 배경화면의 Material 색상을 따르고, 배경화면이 바뀌면 함께 바뀝니다. 어두운 색은 읽기 쉽게 밝아집니다.</string>
 </resources>
