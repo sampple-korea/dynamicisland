@@ -67,6 +67,9 @@ final class TouchController {
     private int pointerId;
     /** A downward drag on the pill is being forwarded to the notification shade. */
     private boolean forwardingShade;
+    /** Holding the small pill still hides the island (iMotion), for when a swipe up is awkward to make. */
+    private final Runnable hideByHolding = this::hideByHolding;
+    private boolean holdPending;
     private Axis axis = Axis.UNDECIDED;
     private boolean stackDragging;
     private VelocityTracker velocity;
@@ -94,8 +97,31 @@ final class TouchController {
         return e.getY(index < 0 ? 0 : index);
     }
 
+    private void cancelHold() {
+        if (!holdPending) return;
+        holdPending = false;
+        view.removeCallbacks(hideByHolding);
+    }
+
+    /** The finger stayed on the small pill without moving: hide the island, like a swipe up would. */
+    private void hideByHolding() {
+        holdPending = false;
+        if (scene.iMode == null || dragging || ignoreGesture || forwardingShade || downActivity == null
+                || scene.mode != Mode.COMPACT || scene.iMode.hiddenByGesture()) {
+            return;
+        }
+        scene.iMode.releasePress();
+        sp.press.animateTo(1.0f, Motion.PRESS_UP);
+        scene.iMode.hideByGesture(0);
+        if (scene.iMode.hiddenByGesture()) ignoreGesture = true; // lifting the finger afterwards is not a tap
+        view.scheduleFrame();
+    }
+
     boolean handle(MotionEvent e) {
         int action = e.getActionMasked();
+        if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+            cancelHold();
+        }
         if(action==MotionEvent.ACTION_DOWN) {
             recycleVelocity();
             velocity=VelocityTracker.obtain();
@@ -177,7 +203,14 @@ final class TouchController {
         float margin = m.dp(TOUCH_MARGIN_DP);
         if(scene.iMode!=null) {
             downActivity=scene.iMode.hit(downX,downY,margin);
-            if(downActivity!=null) { downOnPill=true; scene.iMode.press(downActivity); director.cancelAutoCollapse(); return; }
+            if(downActivity!=null) {
+                downOnPill=true; scene.iMode.press(downActivity); director.cancelAutoCollapse();
+                if (scene.mode == Mode.COMPACT) {
+                    holdPending = true;
+                    view.postDelayed(hideByHolding, ViewConfiguration.getLongPressTimeout());
+                }
+                return;
+            }
         }
         if (scene.mode == Mode.EXPANDED) {
             downOnCards(margin);
@@ -285,6 +318,7 @@ final class TouchController {
         }
         if (!dragging && (Math.abs(dx) > touchSlop || Math.abs(dy) > touchSlop)) {
             dragging = true;
+            cancelHold();
             if(scene.iMode!=null) scene.iMode.releasePress();
             buttons.release();
             sp.press.animateTo(1.0f, Motion.PRESS_UP);

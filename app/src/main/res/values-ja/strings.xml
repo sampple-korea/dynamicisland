@@ -669,5 +669,5 @@
     <string name="always_visible_island">常に表示するアイランド</string>
     <string name="always_visible_island_desc">何も起きていないときもカメラの周りに空のピルを表示し続けます。ロック画面、画面オフ時、許可していない全画面アプリでは引き続き非表示です。</string>
     <string name="swipe_up_hides">上スワイプで隠す</string>
-    <string name="swipe_up_hides_desc">小さなピルを上にスワイプすると隠します(iMotion)。オフにすると誤って隠れません。開いたカードを上スワイプで閉じる操作は引き続き使えます。隠したピルはカメラ付近を下に引くと戻ります。</string>
+    <string name="swipe_up_hides_desc">小さなピルを上にスワイプすると隠します(iMotion)。オフにすると誤って隠れません。ピルを長押しして隠す操作と、開いたカードを上スワイプで閉じる操作は引き続き使えます。隠したピルはカメラ付近を下に引くと戻ります。</string>
 </resources>

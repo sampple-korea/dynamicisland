@@ -669,5 +669,5 @@
     <string name="always_visible_island">Adayı her zaman göster</string>
     <string name="always_visible_island_desc">Hiçbir şey olmasa da kameranın çevresinde boş bir hap görünür kalsın. Kilit ekranında, ekran kapalıyken ve izin verilmeyen tam ekran uygulamalarda yine gizlenir.</string>
     <string name="swipe_up_hides">Yukarı kaydırarak gizle</string>
-    <string name="swipe_up_hides_desc">Küçük hapı yukarı kaydırmak onu gizler (iMotion). Yanlışlıkla gizlenmesin diye kapatabilirsiniz; açık kartı yukarı kaydırarak kapatma yine çalışır. Gizlenen hapı geri getirmek için kameranın yakınında aşağı çekin.</string>
+    <string name="swipe_up_hides_desc">Küçük hapı yukarı kaydırmak onu gizler (iMotion). Yanlışlıkla gizlenmesin diye kapatabilirsiniz; hapa uzun basmak yine gizler, açık kartı yukarı kaydırarak kapatma da çalışır. Gizlenen hapı geri getirmek için kameranın yakınında aşağı çekin.</string>
 </resources>

@@ -942,4 +942,49 @@ public class IModeTest {
             assertTrue("switched on again: it hides",f.scene.iMode.hiddenByGesture());
         }
     }
+
+    @Test public void holdingTheSmallPillHidesItButATapOrADragDoesNot() {
+        try(Fixture f=new Fixture(3)) {
+            long timeout=android.view.ViewConfiguration.getLongPressTimeout();
+            RectF main=new RectF();f.scene.iMode.mainBounds(main);
+            // a short press is a tap: it opens the card instead
+            f.event(MotionEvent.ACTION_DOWN,main.centerX(),main.centerY());
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(timeout/3,java.util.concurrent.TimeUnit.MILLISECONDS);
+            f.event(MotionEvent.ACTION_UP,main.centerX(),main.centerY());
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(timeout*2,java.util.concurrent.TimeUnit.MILLISECONDS);
+            f.step(16,90);
+            assertFalse("a tap does not hide",f.scene.iMode.hiddenByGesture());
+            assertEquals(Mode.EXPANDED,f.scene.mode);
+            f.scene.iMode.collapse();f.step(16,90);
+            assertEquals(Mode.COMPACT,f.scene.mode);
+
+            // a drag past the touch slop cancels the hold
+            f.scene.iMode.mainBounds(main);
+            f.event(MotionEvent.ACTION_DOWN,main.centerX(),main.centerY());
+            f.event(MotionEvent.ACTION_MOVE,main.centerX()+60,main.centerY());
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(timeout*2,java.util.concurrent.TimeUnit.MILLISECONDS);
+            f.event(MotionEvent.ACTION_UP,main.centerX()+60,main.centerY());
+            f.step(16,90);
+            assertFalse("a drag does not hide",f.scene.iMode.hiddenByGesture());
+
+            // holding still hides it, and lifting the finger afterwards does not open anything
+            f.scene.iMode.mainBounds(main);
+            f.event(MotionEvent.ACTION_DOWN,main.centerX(),main.centerY());
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(timeout+100,java.util.concurrent.TimeUnit.MILLISECONDS);
+            assertTrue("held: hidden",f.scene.iMode.hiddenByGesture());
+            f.event(MotionEvent.ACTION_UP,main.centerX(),main.centerY());
+            f.step(16,90);
+            assertEquals(Mode.HIDDEN,f.scene.mode);
+
+            // and it stays available when the swipe up is switched off
+            f.scene.iMode.restoreByGesture();f.step(16,90);
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_SWIPE_UP_HIDES,false).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            f.scene.iMode.mainBounds(main);
+            f.event(MotionEvent.ACTION_DOWN,main.centerX(),main.centerY());
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(timeout+100,java.util.concurrent.TimeUnit.MILLISECONDS);
+            assertTrue("held with the swipe switched off: still hidden",f.scene.iMode.hiddenByGesture());
+            f.event(MotionEvent.ACTION_UP,main.centerX(),main.centerY());
+        }
+    }
 }

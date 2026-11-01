@@ -669,5 +669,5 @@
     <string name="always_visible_island">항상 보이는 아일랜드</string>
     <string name="always_visible_island_desc">진행 중인 활동이 없어도 카메라 둘레에 빈 알약을 계속 보여 줍니다. 잠금 화면, 화면이 꺼졌을 때, 전체 화면 앱(허용하지 않은 경우)에서는 여전히 숨겨집니다.</string>
     <string name="swipe_up_hides">위로 스와이프해 숨기기</string>
-    <string name="swipe_up_hides_desc">작은 알약을 위로 스와이프하면 숨깁니다(iMotion). 끄면 실수로 숨겨지지 않으며, 펼친 카드를 위로 스와이프해 접는 동작은 그대로 됩니다. 숨긴 알약은 카메라 근처를 아래로 당겨 되돌립니다.</string>
+    <string name="swipe_up_hides_desc">작은 알약을 위로 스와이프하면 숨깁니다(iMotion). 끄면 실수로 숨겨지지 않으며, 알약을 길게 누르면 숨기는 동작과 펼친 카드를 위로 스와이프해 접는 동작은 그대로 됩니다. 숨긴 알약은 카메라 근처를 아래로 당겨 되돌립니다.</string>
 </resources>
