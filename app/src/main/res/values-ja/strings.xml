@@ -448,7 +448,7 @@
     <string name="ui_appearance">外観</string>
     <string name="ui_appearance_summary">位置、サイズ、色、アイコン</string>
     <string name="ui_behavior">動作</string>
-    <string name="ui_behavior_summary">アニメーション、負荷、振動、カードの表示時間</string>
+    <string name="ui_behavior_summary">アニメーション、振動、カードの表示時間</string>
     <string name="ui_advanced">詳細設定とトラブル対処</string>
     <string name="ui_advanced_summary">ルール編集、カメラ補正、診断</string>
     <string name="ui_about">アプリ情報</string>
@@ -670,4 +670,19 @@
     <string name="always_visible_island_desc">何も起きていないときもカメラの周りに空のピルを表示し続けます。ロック画面、画面オフ時、許可していない全画面アプリでは引き続き非表示です。</string>
     <string name="swipe_up_hides">上スワイプで隠す</string>
     <string name="swipe_up_hides_desc">小さなピルを上にスワイプすると隠します(iMotion)。オフにすると誤って隠れません。ピルを長押しして隠す操作と、開いたカードを上スワイプで閉じる操作は引き続き使えます。隠したピルはカメラ付近を下に引くと戻ります。</string>
+    <string name="ui_performance">パフォーマンス</string>
+    <string name="ui_performance_summary">低負荷モードと効果の軽減</string>
+    <string name="perf_lighter">効果を軽くする</string>
+    <string name="perf_lighter_desc">低負荷モード全体を使わずに、電池とCPUを使う効果を1つずつ切ります。</string>
+    <string name="perf_still_music">静止した音楽カード</string>
+    <string name="perf_still_music_desc">動くグローの代わりにアルバムアートと固定の色味を使います。</string>
+    <string name="perf_static_waveform">静止した波形</string>
+    <string name="perf_static_waveform_desc">波形は動かず、そのための音声解析も行いません。</string>
+    <string name="perf_limit_frame_rate">フレームレートを制限</string>
+    <string name="perf_limit_frame_rate_desc">周囲のアニメは最大30fps、タッチは最大60fpsで描画します。</string>
+    <string name="perf_still_icons">静止したアニメーションアイコン</string>
+    <string name="perf_still_icons_desc">アニメーションアイコンを最後の姿で表示します。</string>
+    <string name="perf_covered">上の低負荷モードがこれらをすべて適用しています。</string>
+    <string name="perf_glow_link">グローをオフにする、または弱く穏やかにする</string>
+    <string name="perf_material_link">フロストガラスの代わりに標準の素材にすると描画がずっと軽くなります</string>
 </resources>

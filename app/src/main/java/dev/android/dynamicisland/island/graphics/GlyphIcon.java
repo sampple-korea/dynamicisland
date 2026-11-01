@@ -68,7 +68,7 @@ public final class GlyphIcon extends Drawable {
 
     /** True while the animation still moves, so the island keeps its frame loop running. */
     public boolean animating() {
-        if (ModuleSettings.lowPerformance()) return false;
+        if (ModuleSettings.stillIcons()) return false;
         LottiePlayer p = player(kind);
         if (p == null || frozen) {
             return false;
@@ -107,7 +107,7 @@ public final class GlyphIcon extends Drawable {
     }
 
     private float elapsedMillis(LottiePlayer p) {
-        if (frozen || ModuleSettings.lowPerformance()) {
+        if (frozen || ModuleSettings.stillIcons()) {
             return p.durationMillis();
         }
         long now = SystemClock.uptimeMillis();

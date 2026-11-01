@@ -448,7 +448,7 @@
     <string name="ui_appearance">Оформление</string>
     <string name="ui_appearance_summary">Положение, размер, цвета и значки</string>
     <string name="ui_behavior">Поведение</string>
-    <string name="ui_behavior_summary">Анимация, нагрузка, вибрация и время показа</string>
+    <string name="ui_behavior_summary">Анимация, вибрация и время показа</string>
     <string name="ui_advanced">Дополнительно и устранение неполадок</string>
     <string name="ui_advanced_summary">Редактор правил, калибровка камеры, диагностика</string>
     <string name="ui_about">О приложении</string>
@@ -670,4 +670,19 @@
     <string name="always_visible_island_desc">Показывать пустую «таблетку» вокруг камеры, пока ничего не происходит. На экране блокировки, при выключенном экране и в полноэкранных приложениях (если не разрешено) она по-прежнему скрыта.</string>
     <string name="swipe_up_hides">Скрывать свайпом вверх</string>
     <string name="swipe_up_hides_desc">Свайп вверх по маленькой «таблетке» скрывает её (iMotion). Выключите, чтобы не скрыть её случайно; долгое нажатие на неё по-прежнему скрывает, а свайп вверх по открытой карточке по-прежнему сворачивает её. Чтобы вернуть скрытую, потяните вниз у камеры.</string>
+    <string name="ui_performance">Производительность</string>
+    <string name="ui_performance_summary">Режим низкой нагрузки и облегчённые эффекты</string>
+    <string name="perf_lighter">Облегчённые эффекты</string>
+    <string name="perf_lighter_desc">Отключайте по одному эффекты, расходующие заряд и процессор, не включая весь режим низкой нагрузки.</string>
+    <string name="perf_still_music">Статичные карточки музыки</string>
+    <string name="perf_still_music_desc">Обложка и статичный оттенок вместо живого свечения.</string>
+    <string name="perf_static_waveform">Статичная волна</string>
+    <string name="perf_static_waveform_desc">Волна не движется, и звук для неё больше не анализируется.</string>
+    <string name="perf_limit_frame_rate">Ограничить частоту кадров</string>
+    <string name="perf_limit_frame_rate_desc">Фон до 30 кадр/с, отклик на касания до 60 кадр/с.</string>
+    <string name="perf_still_icons">Статичные анимированные значки</string>
+    <string name="perf_still_icons_desc">Анимированные значки показывают конечный кадр.</string>
+    <string name="perf_covered">Режим низкой нагрузки выше уже применяет всё это.</string>
+    <string name="perf_glow_link">Отключить свечение или сделать его слабее и спокойнее</string>
+    <string name="perf_material_link">Классический материал вместо матового стекла рисуется гораздо легче</string>
 </resources>

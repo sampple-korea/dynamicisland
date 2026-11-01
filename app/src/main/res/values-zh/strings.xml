@@ -448,7 +448,7 @@
     <string name="ui_appearance">外观</string>
     <string name="ui_appearance_summary">位置、尺寸、颜色和图标</string>
     <string name="ui_behavior">行为</string>
-    <string name="ui_behavior_summary">动画、性能、振动和卡片显示时间</string>
+    <string name="ui_behavior_summary">动画、振动和卡片显示时间</string>
     <string name="ui_advanced">高级与故障排查</string>
     <string name="ui_advanced_summary">规则编辑、相机校准和诊断</string>
     <string name="ui_about">应用信息</string>
@@ -670,4 +670,19 @@
     <string name="always_visible_island_desc">没有任何活动时，也在摄像头周围保留一个空的胶囊。锁屏、熄屏以及未允许的全屏应用中仍会隐藏。</string>
     <string name="swipe_up_hides">上滑隐藏</string>
     <string name="swipe_up_hides_desc">在小胶囊上向上滑动即可隐藏(iMotion)。关闭后不会误触隐藏;长按胶囊仍可隐藏，展开的卡片仍可上滑收起。隐藏后，在摄像头附近下拉即可恢复。</string>
+    <string name="ui_performance">性能</string>
+    <string name="ui_performance_summary">低性能模式和精简效果</string>
+    <string name="perf_lighter">精简效果</string>
+    <string name="perf_lighter_desc">不开启整个低性能模式，只逐项关闭耗电和占用 CPU 的效果。</string>
+    <string name="perf_still_music">静止的音乐卡片</string>
+    <string name="perf_still_music_desc">用专辑封面和固定色调代替流动光晕。</string>
+    <string name="perf_static_waveform">静态波形</string>
+    <string name="perf_static_waveform_desc">波形保持静止，也不再为此分析音频。</string>
+    <string name="perf_limit_frame_rate">限制帧率</string>
+    <string name="perf_limit_frame_rate_desc">环境动画最高 30 fps，触控反馈最高 60 fps。</string>
+    <string name="perf_still_icons">静止的动画图标</string>
+    <string name="perf_still_icons_desc">动画图标直接显示最终画面。</string>
+    <string name="perf_covered">上方的低性能模式已应用以上全部项目。</string>
+    <string name="perf_glow_link">关闭光晕，或让它更弱更平静</string>
+    <string name="perf_material_link">用经典材质代替磨砂玻璃，绘制负担小得多</string>
 </resources>

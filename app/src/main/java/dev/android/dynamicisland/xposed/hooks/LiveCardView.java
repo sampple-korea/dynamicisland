@@ -247,7 +247,7 @@ final class LiveCardView extends FrameLayout {
                 || item.kind == IslandItem.Kind.RECORDING
                 || (item.hasChronometer() && item.chronoPosition != 0);
         if (everyFrame) {
-            postOnAnimationDelayed(redraw, framePacer.delayMillis(ModuleSettings.lowPerformance(), tracking || renderer.shadeButtonAnimating(), System.nanoTime()));
+            postOnAnimationDelayed(redraw, framePacer.delayMillis(ModuleSettings.limitFrameRate(), tracking || renderer.shadeButtonAnimating(), System.nanoTime()));
         } else if (everySecond) {
             postDelayed(redraw, SECOND_MS - (SystemClock.uptimeMillis() % SECOND_MS));
         }

@@ -156,7 +156,7 @@ final class MediaPlayerBinding {
         }
         player.removeCallbacks(refresh);
         if (renderer.shadeButtonAnimating() || renderer.shadeMediaAnimating(item) || renderer.shadeMaterialAnimating()) {
-            long delay = framePacer.delayMillis(ModuleSettings.lowPerformance(), renderer.shadeButtonAnimating() || seeking, System.nanoTime());
+            long delay = framePacer.delayMillis(ModuleSettings.limitFrameRate(), renderer.shadeButtonAnimating() || seeking, System.nanoTime());
             player.postOnAnimationDelayed(refresh, delay);
         } else {
             player.postDelayed(refresh, IDLE_REDRAW_MS);

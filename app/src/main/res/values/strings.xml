@@ -457,7 +457,7 @@
     <string name="ui_appearance">Appearance</string>
     <string name="ui_appearance_summary">Position, size, colours and icons</string>
     <string name="ui_behavior">Behavior</string>
-    <string name="ui_behavior_summary">Animation, performance, haptics and card timing</string>
+    <string name="ui_behavior_summary">Animation, haptics and card timing</string>
     <string name="ui_advanced">Advanced &amp; troubleshooting</string>
     <string name="ui_advanced_summary">Rule editor, camera calibration and diagnostics</string>
     <string name="ui_about">App info</string>
@@ -679,4 +679,19 @@
     <string name="always_visible_island_desc">Keep an empty pill around the camera while nothing is happening. It still hides on the lock screen, with the screen off, and in full screen apps unless allowed there.</string>
     <string name="swipe_up_hides">Swipe up to hide</string>
     <string name="swipe_up_hides_desc">Swipe up on the small pill hides it (iMotion). Turn it off to keep the pill from being hidden by accident; holding the pill still hides it, and folding an open card with a swipe up still works. Pull down near the camera to bring a hidden pill back.</string>
+    <string name="ui_performance">Performance</string>
+    <string name="ui_performance_summary">Low-performance mode and lighter effects</string>
+    <string name="perf_lighter">Lighter effects</string>
+    <string name="perf_lighter_desc">Turn off single effects that cost battery and CPU, without the whole Low-performance mode.</string>
+    <string name="perf_still_music">Still music cards</string>
+    <string name="perf_still_music_desc">Album art and a still tint, no animated glow or moving colours.</string>
+    <string name="perf_static_waveform">Static waveform</string>
+    <string name="perf_static_waveform_desc">The waveform stays still and the audio is no longer analysed for it.</string>
+    <string name="perf_limit_frame_rate">Limit frame rate</string>
+    <string name="perf_limit_frame_rate_desc">Ambient animation at up to 30 fps, touch feedback at up to 60 fps.</string>
+    <string name="perf_still_icons">Still animated icons</string>
+    <string name="perf_still_icons_desc">Animated icons show their final frame.</string>
+    <string name="perf_covered">Low-performance mode above already applies all of these.</string>
+    <string name="perf_glow_link">Turn the glow off or make it fainter and calmer</string>
+    <string name="perf_material_link">Classic material instead of frosted glass is much lighter to draw</string>
 </resources>

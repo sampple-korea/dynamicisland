@@ -254,7 +254,7 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
     void scheduleFrame() {
         if (!frameScheduled && !renderingPaused) {
             frameScheduled = true;
-            long delay = framePacer.delayMillis(ModuleSettings.lowPerformance(), interactiveMotion(), System.nanoTime());
+            long delay = framePacer.delayMillis(ModuleSettings.limitFrameRate(), interactiveMotion(), System.nanoTime());
             choreographer.postFrameCallbackDelayed(this, delay);
         }
     }
@@ -767,10 +767,12 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
             return false;
         }
         IslandItem music = scene.musicForGlow();
-        if(music != null && music.playing && ModuleSettings.ambientGlow() && ModuleSettings.glowMotion() > 0) return true;
+        if(music != null && music.playing && ModuleSettings.ambientGlow() && ModuleSettings.glowMotion() > 0
+                && !ModuleSettings.stillMusicEffects()) return true;
         if(scene.iMode!=null) {
             for(IslandItem item:scene.iMode.visibleItems())
-                if(item.playing && item.trailing==IslandItem.Trailing.WAVEFORM && ModuleSettings.visualizer()) return true;
+                if(item.playing && item.trailing==IslandItem.Trailing.WAVEFORM && ModuleSettings.visualizer()
+                        && !ModuleSettings.staticWaveform()) return true;
             return false;
         }
         return needsAudio(scene.mainIn) || (springs.split.value() > .003f && needsAudio(scene.bubbleIn));
@@ -816,7 +818,8 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
     private boolean needsAudio(Layer layer) {
         if (layer == null) return false;
         IslandItem item = layer.content.item;
-        return item.playing && item.trailing == IslandItem.Trailing.WAVEFORM && ModuleSettings.visualizer();
+        return item.playing && item.trailing == IslandItem.Trailing.WAVEFORM && ModuleSettings.visualizer()
+                && !ModuleSettings.staticWaveform();
     }
 
     public void getCoverageBounds(RectF out) {
@@ -838,7 +841,7 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
     public void doFrame(long frameTimeNanos) {
         frameScheduled = false;
         if (renderingPaused) return;
-        if (!framePacer.allow(ModuleSettings.lowPerformance(), interactiveMotion(), frameTimeNanos)) {
+        if (!framePacer.allow(ModuleSettings.limitFrameRate(), interactiveMotion(), frameTimeNanos)) {
             scheduleFrame();
             return;
         }
@@ -847,7 +850,7 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         try {
             step(frameTimeNanos);
             failedFrames = 0;
-            boostFrameRate(!ModuleSettings.lowPerformance() && interactiveMotion());
+            boostFrameRate(!ModuleSettings.limitFrameRate() && interactiveMotion());
         } catch (Throwable t) {
             lastFrameNanos = 0L;
             XLog.once("IslandView.doFrame", t);
@@ -970,7 +973,7 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         for (Card c : scene.cards) {
             need |= c.item.pulsingDot || c.item.progressIndeterminate || runningStopwatch(c.item) || iconPlaying(c.item)
                     || c.body.animating(now())
-                    || c.material.animating(now()) || (scene.mode == Mode.EXPANDED && c.item.isMedia && !ModuleSettings.lowPerformance());
+                    || c.material.animating(now()) || (scene.mode == Mode.EXPANDED && c.item.isMedia && !ModuleSettings.stillMusicEffects());
         }
         if(scene.iMode!=null) {
             waveItem=null;
@@ -1235,7 +1238,7 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         if (item == null || !item.isMedia) {
             return false;
         }
-        return !ModuleSettings.lowPerformance() && (item.playing || mediaFx.animating(item));
+        return !ModuleSettings.stillMusicEffects() && (item.playing || mediaFx.animating(item));
     }
 
     boolean buttonAnimating() {

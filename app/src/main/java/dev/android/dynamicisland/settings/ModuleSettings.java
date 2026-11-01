@@ -45,6 +45,11 @@ public final class ModuleSettings {
     public static final String KEY_HAPTICS = "haptics";
     /** Rendering overrides only; individual preferences are retained. */
     public static final String KEY_LOW_PERFORMANCE = "low_performance_mode";
+    /** Single lighter-effects switches: each does what low-performance mode does for that effect, without the rest. */
+    public static final String KEY_STILL_MUSIC = "perf_still_music";
+    public static final String KEY_STATIC_WAVEFORM = "perf_static_waveform";
+    public static final String KEY_LIMIT_FRAME_RATE = "perf_limit_frame_rate";
+    public static final String KEY_STILL_ICONS = "perf_still_icons";
     public static final String KEY_MATERIAL_STYLE = "material_style";
     public static final int MATERIAL_FROSTED = 0, MATERIAL_CLASSIC = 1;
     /** Keep active content visible when a portrait app hides the status bar. */
@@ -188,6 +193,7 @@ public final class ModuleSettings {
     private static volatile boolean eventBluetooth = true;
     private static volatile boolean haptics = true;
     private static volatile boolean lowPerformance;
+    private static volatile boolean stillMusic, staticWaveform, limitFrameRate, stillIcons;
     private static volatile int materialStyle = MATERIAL_CLASSIC;
     private static volatile boolean showInFullscreen;
     private static volatile boolean legacyAnimation;
@@ -520,6 +526,10 @@ public final class ModuleSettings {
             eventBluetooth = source.getBoolean(KEY_EVENT_BLUETOOTH, true);
             haptics = source.getBoolean(KEY_HAPTICS, true);
             lowPerformance = source.getBoolean(KEY_LOW_PERFORMANCE, false);
+            stillMusic = source.getBoolean(KEY_STILL_MUSIC, false);
+            staticWaveform = source.getBoolean(KEY_STATIC_WAVEFORM, false);
+            limitFrameRate = source.getBoolean(KEY_LIMIT_FRAME_RATE, false);
+            stillIcons = source.getBoolean(KEY_STILL_ICONS, false);
             materialStyle = readMaterialStyle(source);
             legacyAnimation = source.getBoolean(KEY_LEGACY_ANIMATION, false);
             iMode = source.getBoolean(KEY_I_MODE, false);
@@ -619,6 +629,10 @@ public final class ModuleSettings {
         pillOutlineMode = readPillOutlineMode(settings);
         transitionBlurMode = readTransitionBlurMode(settings);
         lowPerformance = settings.getBoolean(KEY_LOW_PERFORMANCE, false);
+        stillMusic = settings.getBoolean(KEY_STILL_MUSIC, false);
+        staticWaveform = settings.getBoolean(KEY_STATIC_WAVEFORM, false);
+        limitFrameRate = settings.getBoolean(KEY_LIMIT_FRAME_RATE, false);
+        stillIcons = settings.getBoolean(KEY_STILL_ICONS, false);
         materialStyle = readMaterialStyle(settings);
         torchStyle = settings.getInt(KEY_TORCH_STYLE, 0) == 1 ? 1 : 0;
         showInFullscreen = settings.getBoolean(KEY_SHOW_IN_FULLSCREEN, false);
@@ -659,6 +673,18 @@ public final class ModuleSettings {
     }
 
     public static boolean lowPerformance() { ensureStarted(); return lowPerformance; }
+
+    /** Music cards without the animated glow, art flip and moving colours (low-performance mode, or just this). */
+    public static boolean stillMusicEffects() { ensureStarted(); return lowPerformance || stillMusic; }
+
+    /** A waveform that stays still, with no audio analysis for it (low-performance mode, or just this). */
+    public static boolean staticWaveform() { ensureStarted(); return lowPerformance || staticWaveform; }
+
+    /** Ambient animation at up to 30 fps and touch feedback at up to 60 fps (low-performance mode, or just this). */
+    public static boolean limitFrameRate() { ensureStarted(); return lowPerformance || limitFrameRate; }
+
+    /** Animated icons that show their settled frame (low-performance mode, or just this). */
+    public static boolean stillIcons() { ensureStarted(); return lowPerformance || stillIcons; }
     public static int readMaterialStyle(SharedPreferences source) {
         return source.getInt(KEY_MATERIAL_STYLE, MATERIAL_CLASSIC) == MATERIAL_FROSTED ? MATERIAL_FROSTED : MATERIAL_CLASSIC;
     }
@@ -713,7 +739,7 @@ public final class ModuleSettings {
     private static String lastSwitches;
 
     private static String switchSignature() {
-        return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/" + glowColour + lowPerformance + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + progressNotifications + hideProgressOriginals
+        return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/" + glowColour + lowPerformance + "/light=" + stillMusic + staticWaveform + limitFrameRate + stillIcons + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + progressNotifications + hideProgressOriginals
                 + smartRules + privacyIndicator + privacyLocation + otpCard + otpAutoCopy + thirdPartyCalls + visualizer + colorIcons + shadeMedia + cardHeader
                 + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/" + headsetStay + "/hotspot=" + hotspotCard + "/unlock=" + unlockNotice + "/peekProgress=" + peekProgress + "/progressForeground=" + progressForeground + "/progressAny=" + progressAny + "/stockCharging=" + stockChargingAnimation + "/recordingInput=" + concurrentRecordingInput
                 + "/alwaysVisible=" + alwaysVisible + "/swipeUpHides=" + swipeUpHides + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/blur=" + transitionBlurMode + "/" + appFilter.onlyListed() + appFilter.size();

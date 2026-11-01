@@ -448,7 +448,7 @@
     <string name="ui_appearance">Görünüm</string>
     <string name="ui_appearance_summary">Konum, boyut, renkler ve simgeler</string>
     <string name="ui_behavior">Davranış</string>
-    <string name="ui_behavior_summary">Animasyon, performans, titreşim ve kart süreleri</string>
+    <string name="ui_behavior_summary">Animasyon, titreşim ve kart süreleri</string>
     <string name="ui_advanced">Gelişmiş ayarlar ve sorun giderme</string>
     <string name="ui_advanced_summary">Kural düzenleyici, kamera kalibrasyonu ve tanılama</string>
     <string name="ui_about">Uygulama bilgisi</string>
@@ -670,4 +670,19 @@
     <string name="always_visible_island_desc">Hiçbir şey olmasa da kameranın çevresinde boş bir hap görünür kalsın. Kilit ekranında, ekran kapalıyken ve izin verilmeyen tam ekran uygulamalarda yine gizlenir.</string>
     <string name="swipe_up_hides">Yukarı kaydırarak gizle</string>
     <string name="swipe_up_hides_desc">Küçük hapı yukarı kaydırmak onu gizler (iMotion). Yanlışlıkla gizlenmesin diye kapatabilirsiniz; hapa uzun basmak yine gizler, açık kartı yukarı kaydırarak kapatma da çalışır. Gizlenen hapı geri getirmek için kameranın yakınında aşağı çekin.</string>
+    <string name="ui_performance">Performans</string>
+    <string name="ui_performance_summary">Düşük performans modu ve hafif efektler</string>
+    <string name="perf_lighter">Hafif efektler</string>
+    <string name="perf_lighter_desc">Düşük performans modunun tamamını açmadan pil ve işlemci harcayan efektleri tek tek kapatın.</string>
+    <string name="perf_still_music">Durağan müzik kartları</string>
+    <string name="perf_still_music_desc">Hareketli parıltı yerine albüm kapağı ve sabit renk tonu.</string>
+    <string name="perf_static_waveform">Durağan dalga biçimi</string>
+    <string name="perf_static_waveform_desc">Dalga biçimi sabit kalır ve bunun için ses analiz edilmez.</string>
+    <string name="perf_limit_frame_rate">Kare hızını sınırla</string>
+    <string name="perf_limit_frame_rate_desc">Ortam animasyonu en çok 30 fps, dokunma tepkisi en çok 60 fps.</string>
+    <string name="perf_still_icons">Durağan animasyonlu simgeler</string>
+    <string name="perf_still_icons_desc">Animasyonlu simgeler son karelerini gösterir.</string>
+    <string name="perf_covered">Yukarıdaki düşük performans modu bunların hepsini zaten uyguluyor.</string>
+    <string name="perf_glow_link">Parıltıyı kapatın veya daha zayıf ve sakin yapın</string>
+    <string name="perf_material_link">Buzlu cam yerine klasik malzeme çok daha hafif çizilir</string>
 </resources>
