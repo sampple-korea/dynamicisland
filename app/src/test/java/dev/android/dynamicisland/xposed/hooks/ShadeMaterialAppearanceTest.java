@@ -86,6 +86,46 @@ public class ShadeMaterialAppearanceTest {
         }
     }
 
+    @Test public void aLeasedRowsOutlineMayNotBeSwitchedBackOnAndTheStockStateReturnsWithTheLastClient() {
+        Context context=RuntimeEnvironment.getApplication();
+        ExpandableNotificationRow row=new ExpandableNotificationRow(context);row.setClipToOutline(true);
+        FrameLayout content=new FrameLayout(context);row.addView(content);content.setClipToOutline(true);
+        View player=new View(context);content.addView(player);player.setClipToOutline(true);
+        View other=new View(context);content.addView(other);
+        ShadeMaterialAppearance a=new ShadeMaterialAppearance();
+        assertFalse("nothing is leased yet",ShadeMaterialAppearance.keepsOutlineOff(row));
+        a.sync(player,true);
+        assertTrue(ShadeMaterialAppearance.keepsOutlineOff(row));assertTrue(ShadeMaterialAppearance.keepsOutlineOff(content));
+        assertTrue(ShadeMaterialAppearance.keepsOutlineOff(player));
+        assertFalse("views the lease did not touch are left alone",ShadeMaterialAppearance.keepsOutlineOff(other));
+        assertFalse("so is another row",ShadeMaterialAppearance.keepsOutlineOff(new ExpandableNotificationRow(context)));
+        a.clear();
+        assertFalse("the last client gone: the system may clip again",ShadeMaterialAppearance.keepsOutlineOff(row));
+        assertTrue(row.getClipToOutline());assertTrue(content.getClipToOutline());assertTrue(player.getClipToOutline());
+    }
+
+    @Test public void theStockClipAndTheFlagsAboveItAreReportedForDiagnostics() {
+        Context context=RuntimeEnvironment.getApplication();
+        ExpandableNotificationRow row=new ExpandableNotificationRow(context);
+        FrameLayout content=new FrameLayout(context);row.addView(content);
+        View host=new View(context);content.addView(host);
+        row.layout(0,0,360,120);content.layout(0,0,360,120);host.layout(0,0,360,120);
+        ShadeMaterialAppearance a=new ShadeMaterialAppearance();a.sync(host,true);
+        try {
+            Path nativeClip=row.getClipPath(false);
+            java.lang.reflect.Method m=null;
+            for(Class<?> c:ShadeMaterialAppearance.class.getDeclaredClasses()) if(c.getSimpleName().equals("State")) {
+                java.util.Map<?,?> rows=org.robolectric.util.ReflectionHelpers.getStaticField(ShadeMaterialAppearance.class,"ROWS");
+                Object state=rows.get(row);assertNotNull(state);
+                org.robolectric.util.ReflectionHelpers.callInstanceMethod(state,"rectangularClip",
+                        org.robolectric.util.ReflectionHelpers.ClassParameter.from(Path.class,nativeClip));
+            }
+            String line=dev.android.dynamicisland.xposed.Diagnostics.report();
+            assertTrue(line,line.contains("shade material clip stock clip 7,8-353,112, card 0,0-360,120 (row 360x120)"));
+            assertTrue(line,line.contains("; chain [ExpandableNotificationRow"));
+        } finally { a.clear(); }
+    }
+
     private static Bitmap paint(Path clip) {
         Bitmap bitmap=Bitmap.createBitmap(360,120,Bitmap.Config.ARGB_8888);
         Canvas canvas=new Canvas(bitmap);canvas.clipPath(clip);
