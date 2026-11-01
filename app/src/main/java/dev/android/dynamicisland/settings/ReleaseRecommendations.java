@@ -214,6 +214,34 @@ final class ReleaseRecommendations {
                     canvas.drawRoundRect(11,36,23,54,5,5,paint);canvas.drawRoundRect(49,36,61,54,5,5,paint);
                     paint.setColor(0xff94c2ff);canvas.drawRoundRect(15,40,19,50,2,2,paint);canvas.drawRoundRect(53,40,57,50,2,2,paint);
                 }
+                case IDLE -> {
+                    paint.setColor(ui.dark ? 0xff080e19 : 0xff2b4b78);canvas.drawRoundRect(8,26,64,46,10,10,paint);
+                    paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(2);paint.setColor(ui.accent);canvas.drawRoundRect(8,26,64,46,10,10,paint);
+                    paint.setStyle(Paint.Style.FILL);paint.setColor(0xff94c2ff);canvas.drawCircle(36,36,4.2f,paint);
+                    paint.setColor(ui.dark ? 0xff4372ac : 0xff98bceb);canvas.drawRoundRect(20,52,52,57,2.5f,2.5f,paint);
+                }
+                case HOLD -> {
+                    paint.setColor(ui.dark ? 0xff080e19 : 0xff2b4b78);canvas.drawRoundRect(14,12,58,26,7,7,paint);
+                    paint.setColor(0xff94c2ff);canvas.drawCircle(23,19,2.8f,paint);
+                    paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(2.2f);
+                    paint.setColor(ui.dark ? 0x664372ac : 0x6698bceb);canvas.drawCircle(36,47,17,paint);
+                    paint.setColor(ui.dark ? 0xaa4372ac : 0xaa98bceb);canvas.drawCircle(36,47,12,paint);
+                    paint.setStyle(Paint.Style.FILL);paint.setColor(ui.accent);canvas.drawCircle(36,47,6.5f,paint);
+                }
+                case PERFORMANCE -> {
+                    for(int i=0;i<3;i++) {
+                        float y=16+i*17;boolean on=i!=1;
+                        paint.setColor(ui.dark ? 0xff3a5f90 : 0xffa9c6ee);canvas.drawRoundRect(10,y+3,32,y+7,2,2,paint);
+                        paint.setColor(on ? ui.accent : (ui.dark ? 0xff254369 : 0xff9db9e4));canvas.drawRoundRect(40,y,62,y+10,5,5,paint);
+                        paint.setColor(ui.dark ? 0xffeaf3ff : 0xffffffff);canvas.drawCircle(on ? 57 : 45,y+5,3.6f,paint);
+                    }
+                }
+                case PALETTE -> {
+                    int[] tones={0xff94c2ff,0xffb8a1ff,0xff7fd6c2,0xffffb4a8};float[][] at={{27,27},{45,27},{27,45},{45,45}};
+                    for(int i=0;i<tones.length;i++) {paint.setColor(tones[i]);canvas.drawCircle(at[i][0],at[i][1],9.5f,paint);}
+                    paint.setColor(ui.dark ? 0xff080e19 : 0xff2b4b78);canvas.drawCircle(36,36,7,paint);
+                    paint.setColor(ui.accent);canvas.drawCircle(36,36,4.4f,paint);
+                }
                 case GLASS -> {
                     paint.setColor(0xff699cf0);canvas.drawCircle(25,29,18,paint);paint.setColor(0xffa98be3);canvas.drawCircle(48,47,18,paint);
                     paint.setShader(new LinearGradient(14,14,57,59,ui.dark ? 0xaadecaff : 0xccffffff,ui.dark ? 0x443d6296 : 0x7783ace9,Shader.TileMode.CLAMP));

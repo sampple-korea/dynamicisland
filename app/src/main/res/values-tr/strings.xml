@@ -687,4 +687,12 @@
     <string name="perf_material_link">Buzlu cam yerine klasik malzeme çok daha hafif çizilir</string>
     <string name="accent_system">Sistem rengi (Material You)</string>
     <string name="accent_system_note">İlerleme çubukları ve düğmeler duvar kağıdınızın Material rengini izler ve onunla değişir. Koyu tonlar okunabilirlik için açılır.</string>
+    <string name="recommend16_idle_title">Ada boşken de kalsın</string>
+    <string name="recommend16_idle">Hiçbir şey olmasa da kameranın çevresinde boş bir hap tutun; ilk etkinlik ondan büyüyerek çıkar.</string>
+    <string name="recommend16_hide_title">Kendi tarzınızda gizleyin</string>
+    <string name="recommend16_hide">Küçük hapa uzun basarak gizleyin ya da yanlışlıkla gizlenmesin diye yukarı kaydırarak gizlemeyi kapatın.</string>
+    <string name="recommend16_perf_title">Efektleri tek tek hafifletin</string>
+    <string name="recommend16_perf">Yeni Performans sayfası, düşük performans modunun tamamı olmadan müzik parıltısı, dalga biçimi veya animasyonlu simgeler gibi efektleri tek tek kapatır.</string>
+    <string name="recommend16_colour_title">Duvar kağıdınızın renkleri</string>
+    <string name="recommend16_colour">İlerleme çubukları ve düğmeler duvar kağıdınızın Material rengini izler ve onunla değişir.</string>
 </resources>
