@@ -13,6 +13,7 @@ import dev.android.dynamicisland.island.graphics.Motion;
 import dev.android.dynamicisland.island.view.card.Btn;
 import dev.android.dynamicisland.island.view.card.MediaBody;
 import dev.android.dynamicisland.island.view.card.SliderBody;
+import dev.android.dynamicisland.settings.ModuleSettings;
 
 /**
  * Turns touches on the island into actions: pressing and tapping the pill, swiping it away or back, handing a
@@ -295,7 +296,7 @@ final class TouchController {
         if(scene.iMode!=null && downActivity!=null) {
             // Status-row paging owns horizontal drags; downward drags still open the system shade.
             if(scene.iMode.hasCompactDrag()) scene.iMode.dragCompact(dx);
-            else if(swipedUp(dy) && -dy>Math.abs(dx)*SWIPE_DOMINANCE) {
+            else if(ModuleSettings.swipeUpHides() && swipedUp(dy) && -dy>Math.abs(dx)*SWIPE_DOMINANCE) {
                 scene.iMode.hideByGesture(upwardSpeed());ignoreGesture=true;return;
             }
             else if(dy>touchSlop && Math.abs(dy)>Math.abs(dx)) handOverToShade(e);

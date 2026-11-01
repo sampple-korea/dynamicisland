@@ -918,4 +918,28 @@ public class IModeTest {
             assertTrue("a flick hides it after a short move",f.scene.iMode.hiddenByGesture());
         }
     }
+
+    @Test public void theSwipeUpToHideCanBeTurnedOffAndFoldingStillWorks() {
+        try(Fixture f=new Fixture(4)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_SWIPE_UP_HIDES,false).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            RectF main=new RectF();f.scene.iMode.mainBounds(main);
+            f.swipeUp(main.centerX(),main.centerY(),80,60);
+            f.step(16,90);
+            assertFalse("switched off: even a long fast swipe leaves the pill alone",f.scene.iMode.hiddenByGesture());
+            assertEquals(Mode.COMPACT,f.scene.mode);
+
+            f.scene.iMode.open("item0",true);f.step(16,80);
+            assertEquals(Mode.EXPANDED,f.scene.mode);
+            RectF card=f.bounds(f.active());
+            f.swipeUp(card.centerX(),card.centerY(),60,500);f.step(16,90);
+            assertEquals("folding an open card is not part of the switch",Mode.COMPACT,f.scene.mode);
+
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_SWIPE_UP_HIDES,true).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            f.scene.iMode.mainBounds(main);
+            f.swipeUp(main.centerX(),main.centerY(),24,12);f.step(16,90);
+            assertTrue("switched on again: it hides",f.scene.iMode.hiddenByGesture());
+        }
+    }
 }

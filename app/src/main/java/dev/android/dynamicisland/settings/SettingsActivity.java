@@ -461,6 +461,8 @@ public final class SettingsActivity extends Activity {
         LinearLayout visibility = ui.card(page);
         toggle(visibility, R.string.always_visible_island, R.string.always_visible_island_desc,
                 ModuleSettings.KEY_ALWAYS_VISIBLE, false);
+        toggle(visibility, R.string.swipe_up_hides, R.string.swipe_up_hides_desc,
+                ModuleSettings.KEY_SWIPE_UP_HIDES, true);
         toggle(visibility, R.string.show_in_fullscreen, R.string.show_in_fullscreen_desc,
                 ModuleSettings.KEY_SHOW_IN_FULLSCREEN, false);
         boolean low = flag(ModuleSettings.KEY_LOW_PERFORMANCE, false);
