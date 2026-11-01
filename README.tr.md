@@ -52,7 +52,7 @@ Bu kararlı sürüm isteğe bağlı **iMotion** sunar: tek genişletilmiş etkin
 - **Sistem olayları:** şarj, düşük pil, ses modu, Bluetooth, hızlı ayar değişiklikleri ve gizlilik göstergeleri.
 - **El feneri:** desteklenen cihazlarda parlaklık kaydırıcısı ve kapatma düğmesi.
 - **Özelleştirme:** konum, boyut, kamera deliği, vurgu rengi, simgeler, animasyon ve kart süreleri.
-- **Altı dil:** İngilizce, Korece, Japonca, Basitleştirilmiş Çince, Rusça ve Türkçe. Açık ve koyu tema.
+- **Diller:** İngilizce, Korece, Japonca, Basitleştirilmiş Çince ve Rusça burada sürdürülür; Türkçe ve Brezilya Portekizcesi topluluk çevirileridir, eksik metinler İngilizce görünür. Açık ve koyu tema.
 - **Çevrimdışı:** ağ izni yoktur; veriler cihazdan çıkmaz.
 
 ## Ayrıntılı özellikler

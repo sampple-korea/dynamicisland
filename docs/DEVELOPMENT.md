@@ -112,7 +112,7 @@ To release: raise `versionCode` / `versionName` in `app/build.gradle` and `Crash
 ./gradlew testReleaseUnitTest
 ```
 
-The default suite runs behavior, lifecycle, pixel and layout regressions. It checks every settings page once and compares the Android resources with the System UI catalog in all six languages. It does not export PNGs or repeat the entire settings layout for every language.
+The default suite runs behavior, lifecycle, pixel and layout regressions. It checks every settings page once and compares the Android resources with the System UI catalog in every registered language. It does not export PNGs or repeat the entire settings layout for every language.
 
 ```bash
 ./gradlew testReleaseUnitTest -Prender        # also run visual captures and export PNGs
