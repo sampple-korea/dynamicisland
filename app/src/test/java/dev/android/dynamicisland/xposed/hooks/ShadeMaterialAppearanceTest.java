@@ -126,6 +126,32 @@ public class ShadeMaterialAppearanceTest {
         } finally { a.clear(); }
     }
 
+    @Test public void theMediaPlayersOwnRoundClipIsOffWhileACardDrawsAndBackAfterwards() {
+        Context context=RuntimeEnvironment.getApplication();
+        ExpandableNotificationRow row=new ExpandableNotificationRow(context);
+        FrameLayout content=new FrameLayout(context);row.addView(content);
+        QSMediaCornerRoundedView player=new QSMediaCornerRoundedView(context);content.addView(player);
+        QSMediaCornerRoundedView other=new QSMediaCornerRoundedView(context);content.addView(other);
+        assertTrue(player.mIsCornerRound);
+        ShadeMaterialAppearance a=new ShadeMaterialAppearance();
+        a.sync(player,true);
+        assertFalse("the clip that cut the card's corners is off",player.mIsCornerRound);
+        assertTrue("a player that is not leased keeps its own look",other.mIsCornerRound);
+        player.mIsCornerRound=true;                 // System UI switches it on again
+        a.sync(player,true);
+        assertFalse("the next frame switches it off again",player.mIsCornerRound);
+        a.clear();
+        assertTrue("without the card the stock round clip returns",player.mIsCornerRound);
+        player.mIsCornerRound=false;                // a player that was square to begin with stays so
+        a.sync(player,true);a.clear();
+        assertFalse("what was off before the lease is not turned on",player.mIsCornerRound);
+    }
+
+    static final class QSMediaCornerRoundedView extends FrameLayout {
+        public boolean mIsCornerRound=true;
+        QSMediaCornerRoundedView(Context c){super(c);}
+    }
+
     private static Bitmap paint(Path clip) {
         Bitmap bitmap=Bitmap.createBitmap(360,120,Bitmap.Config.ARGB_8888);
         Canvas canvas=new Canvas(bitmap);canvas.clipPath(clip);
