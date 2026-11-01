@@ -675,4 +675,6 @@
     <string name="recommend15_headset">Keep the card on the island while a wired or USB headset is plugged in.</string>
     <string name="recommend15_search_title">Search as you type</string>
     <string name="recommend15_search">Results appear while you type, and each one opens the exact setting. Try “hotspot” or “unlock”.</string>
+    <string name="always_visible_island">Always visible island</string>
+    <string name="always_visible_island_desc">Keep an empty pill around the camera while nothing is happening. It still hides on the lock screen, with the screen off, and in full screen apps unless allowed there.</string>
 </resources>

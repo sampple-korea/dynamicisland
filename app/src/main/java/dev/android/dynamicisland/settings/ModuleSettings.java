@@ -52,6 +52,8 @@ public final class ModuleSettings {
     /** Plays the animations of version 0.1.3 and before instead of the smoothed ones. */
     public static final String KEY_LEGACY_ANIMATION = "legacy_animation";
     public static final String KEY_I_MODE = "i_mode";
+    /** Keeps an empty pill around the camera while nothing is happening (default off). */
+    public static final String KEY_ALWAYS_VISIBLE = "always_visible_island";
     /** Where the island sits: {@link #ANCHOR_AUTO} (on the camera hole), the middle, the left or the right of the status bar. */
     public static final String KEY_PILL_ANCHOR = "pill_anchor";
     /** Outline policy: automatic contrast detection, always visible, or never drawn. */
@@ -188,6 +190,7 @@ public final class ModuleSettings {
     private static volatile boolean showInFullscreen;
     private static volatile boolean legacyAnimation;
     private static volatile boolean iMode;
+    private static volatile boolean alwaysVisible;
     private static volatile boolean headsUpIsland = true;
     private static volatile boolean allNotifications;
     private static volatile boolean foregroundNotifications;
@@ -517,6 +520,7 @@ public final class ModuleSettings {
             materialStyle = readMaterialStyle(source);
             legacyAnimation = source.getBoolean(KEY_LEGACY_ANIMATION, false);
             iMode = source.getBoolean(KEY_I_MODE, false);
+            alwaysVisible = source.getBoolean(KEY_ALWAYS_VISIBLE, false);
             pillOutlineMode = readPillOutlineMode(source);
             transitionBlurMode = readTransitionBlurMode(source);
             headsUpIsland = source.getBoolean(KEY_HEADS_UP_ISLAND, true);
@@ -606,6 +610,7 @@ public final class ModuleSettings {
         previewProcess = true;
         legacyAnimation = settings.getBoolean(KEY_LEGACY_ANIMATION, false);
         iMode = settings.getBoolean(KEY_I_MODE, false);
+        alwaysVisible = settings.getBoolean(KEY_ALWAYS_VISIBLE, false);
         pillOutlineMode = readPillOutlineMode(settings);
         transitionBlurMode = readTransitionBlurMode(settings);
         lowPerformance = settings.getBoolean(KEY_LOW_PERFORMANCE, false);
@@ -706,7 +711,7 @@ public final class ModuleSettings {
         return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/" + glowColour + lowPerformance + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + progressNotifications + hideProgressOriginals
                 + smartRules + privacyIndicator + privacyLocation + otpCard + otpAutoCopy + thirdPartyCalls + visualizer + colorIcons + shadeMedia + cardHeader
                 + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/" + headsetStay + "/hotspot=" + hotspotCard + "/unlock=" + unlockNotice + "/peekProgress=" + peekProgress + "/progressForeground=" + progressForeground + "/progressAny=" + progressAny + "/stockCharging=" + stockChargingAnimation + "/recordingInput=" + concurrentRecordingInput
-                + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/blur=" + transitionBlurMode + "/" + appFilter.onlyListed() + appFilter.size();
+                + "/alwaysVisible=" + alwaysVisible + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/blur=" + transitionBlurMode + "/" + appFilter.onlyListed() + appFilter.size();
     }
 
     /** One line in the event log whenever the values the module runs on differ from the last read. */
@@ -878,6 +883,9 @@ public final class ModuleSettings {
 
     /** The animations of 0.1.3 and before instead of the smoothed ones (default off). */
     public static boolean iMode() { ensureStarted(); return iMode; }
+
+    /** An empty pill stays around the camera while there is nothing to show (default off). */
+    public static boolean alwaysVisible() { ensureStarted(); return alwaysVisible; }
 
     public static boolean legacyAnimation() {
         ensureStarted();

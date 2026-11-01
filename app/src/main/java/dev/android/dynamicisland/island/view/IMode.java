@@ -144,15 +144,37 @@ final class IMode {
         outline.snapTo(scene.pillOutlineTarget());
     }
 
+    /** The empty pill drawn while there is nothing to show (the "always visible" setting). */
+    private void idleBounds(RectF out) {
+        float width = m.idleWidth();
+        out.set(m.cx - width / 2, m.cy - m.pillH / 2, m.cx + width / 2, m.cy + m.pillH / 2);
+    }
+
+    /** True when the empty pill should stay: nothing is shown, the user wants it, and they did not hide the island. */
+    private boolean keepsIdle() {
+        return ModuleSettings.alwaysVisible() && !gestureHidden;
+    }
+
     void update() {
         syncOutlineTarget();
+        boolean wasIdle = scene.restingShown() && scene.springs.visibility.value() > .5f;
         activities.clear();
         for (Node node : nodes.values()) node.removed=true;
         for (IslandItem item : scene.stackItems(Integer.MAX_VALUE)) {
             Node node=nodes.get(item.key);
             if (node!=null && !node.removed) continue; // a minimized source must not duplicate a live one
             activities.add(item);
-            if (node==null) { node=new Node(view,item); seed(node); nodes.put(item.key,node); }
+            if (node==null) {
+                node=new Node(view,item); seed(node);
+                if (wasIdle && activities.size()==1) {
+                    // the first activity grows out of the empty pill that is already there
+                    idleBounds(rect);
+                    node.x.snapTo(rect.centerX()); node.y.snapTo(rect.centerY());
+                    node.w.snapTo(rect.width()); node.h.snapTo(rect.height());
+                    node.alpha.snapTo(1); node.presence.snapTo(1); node.iconOnly.snapTo(0);
+                }
+                nodes.put(item.key,node);
+            }
             else node.refresh(view,item);
             node.removed=false;
         }
@@ -165,7 +187,7 @@ final class IMode {
             director.cancelAutoCollapse();
             closeCards();
             layout();
-            scene.springs.visibility.animateTo(0,.36f,1);
+            scene.springs.visibility.animateTo(keepsIdle() ? 1 : 0,.36f,1);
         } else {
             if (scene.mode==Mode.HIDDEN && !gestureHidden) scene.mode=Mode.COMPACT;
             scene.springs.visibility.animateTo(gestureHidden ? 0 : 1,.30f,1);
@@ -263,9 +285,13 @@ final class IMode {
             if(n.slot>=0 && !n.removed && !gestureHidden) visible.add(n.item);
             float visible=n.slot>=0 && !n.removed && scene.mode!=Mode.HIDDEN ? 1 : 0;
             if(n.removed) {
-                // Depart from the last position, rather than flying across the row to its bubble slot.
-                n.target.set(n.x.value()-n.w.value()/2,n.y.value()-n.h.value()/2,
-                        n.x.value()+n.w.value()/2,n.y.value()+n.h.value()/2);
+                if(scene.items.isEmpty() && keepsIdle()) {
+                    idleBounds(n.target); // the last activity folds into the empty pill
+                } else {
+                    // Depart from the last position, rather than flying across the row to its bubble slot.
+                    n.target.set(n.x.value()-n.w.value()/2,n.y.value()-n.h.value()/2,
+                            n.x.value()+n.w.value()/2,n.y.value()+n.h.value()/2);
+                }
             } else if(gestureHidden) {
                 float diameter=Math.max(m.dp(8),m.holeD);
                 n.target.set(m.cx-diameter/2,m.cy-diameter/2,m.cx+diameter/2,m.cy+diameter/2);
@@ -470,7 +496,7 @@ final class IMode {
         syncOutlineTarget();
         gestureHidden=false;selected=null;
         scene.mode=scene.items.isEmpty() ? Mode.HIDDEN : Mode.COMPACT;
-        layout(true);scene.springs.visibility.animateTo(scene.items.isEmpty() ? 0 : 1,.30f,1);
+        layout(true);scene.springs.visibility.animateTo(scene.items.isEmpty() && !keepsIdle() ? 0 : 1,.30f,1);
         resizeWindow();Haptics.perform(view,HapticFeedbackConstants.CONTEXT_CLICK);changed();
     }
 
@@ -760,7 +786,23 @@ final class IMode {
         return card!=null && !card.iModePreview && !card.iModePaging;
     }
 
+    /** The empty pill: a plain black capsule around the camera, outlined like the rest. */
+    private void drawIdle(Canvas canvas) {
+        idleBounds(rect);
+        shadeBounds(rect,rect);
+        float radius=rect.height()/2;
+        paint.setStyle(Paint.Style.FILL); paint.setColor(Colors.BLACK);
+        canvas.drawRoundRect(rect,radius,radius,paint);
+        if(scene.pillOutlineOpacity()>.01f) {
+            paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(m.outlineW);
+            paint.setColor(Colors.withAlpha(Colors.PILL_OUTLINE,scene.pillOutlineOpacity()));
+            canvas.drawRoundRect(rect,radius,radius,paint);
+            paint.setStyle(Paint.Style.FILL);
+        }
+    }
+
     void draw(Canvas canvas,long time) {
+        if(scene.restingShown()) drawIdle(canvas);
         drawMovingGlows(canvas);
         drawMovingOutlines(canvas);
         if(activities.size()>3 && scene.mode==Mode.EXPANDED && selected!=null) {

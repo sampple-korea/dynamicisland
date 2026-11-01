@@ -666,4 +666,6 @@
     <string name="recommend15_headset">有線・USBヘッドセットが接続されている間、カードをアイランドに表示し続けます。</string>
     <string name="recommend15_search_title">入力しながら検索</string>
     <string name="recommend15_search">入力中に結果が表示され、タップすると該当の設定へ移動します。「テザリング」や「ロック解除」を試してみてください。</string>
+    <string name="always_visible_island">常に表示するアイランド</string>
+    <string name="always_visible_island_desc">何も起きていないときもカメラの周りに空のピルを表示し続けます。ロック画面、画面オフ時、許可していない全画面アプリでは引き続き非表示です。</string>
 </resources>

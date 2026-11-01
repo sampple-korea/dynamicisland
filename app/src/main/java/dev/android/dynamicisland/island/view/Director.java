@@ -312,9 +312,14 @@ final class Director {
         view.removeCallbacks(fadePillBlob);
         sp.pillBlob.snapTo(1.0f);
         float start = m.restWidth();
-        sp.width.snapTo(start);
-        // starts as a flattened drop so the pill visibly lands and bounces instead of only widening
-        sp.height.snapTo(Math.min(start, m.pillH) * APPEAR_HEIGHT_FROM);
+        // an empty pill that is already on screen grows into the first activity instead of dropping in again
+        boolean fromResting = ModuleSettings.alwaysVisible() && sp.visibility.value() > 0.5f
+                && Math.abs(sp.width.value() - m.idleWidth()) < m.dp(2.0f);
+        if (!fromResting) {
+            sp.width.snapTo(start);
+            // starts as a flattened drop so the pill visibly lands and bounces instead of only widening
+            sp.height.snapTo(Math.min(start, m.pillH) * APPEAR_HEIGHT_FROM);
+        }
         if (m.holeD > 0.0f) {
             sp.visibility.snapTo(1.0f);
         } else {
@@ -342,6 +347,7 @@ final class Director {
         sp.pillBlob.animateTo(1.0f, 0.1f, 1.0f);
         boolean wasExpanded = scene.mode == Mode.EXPANDED;
         if (scene.mode == Mode.HIDDEN) {
+            settleResting();
             return;
         }
         scene.mode = Mode.HIDDEN;
@@ -354,21 +360,35 @@ final class Director {
             scene.bubbleOut = scene.bubbleIn.toOutgoing(t, 0);
         }
         scene.bubbleIn = null;
-        float end = m.restWidth();
-        sp.width.animateTo(end, Motion.PILL_SHRINK);
-        sp.height.animateTo(Math.min(end, m.pillH), Motion.PILL_SHRINK);
+        restingSize();
         sp.split.animateTo(0.0f, Motion.BUBBLE_MERGE);
         if (toLeft) {
             sp.offsetX.impulse(-m.dp(HIDE_TO_LEFT_IMPULSE_DP));
-        }
-        if (m.holeD <= 0.0f) {
-            sp.visibility.animateTo(0.0f, 0.22f, 1.0f);
         }
         view.scheduleFrame();
         if (wasExpanded) {
             host.onExpandedChanged(false);
         }
         view.notifyHost();
+    }
+
+    /** Where the pill ends up with nothing to show: the empty pill if the user wants one, else the hole (and out). */
+    private void restingSize() {
+        boolean empty = scene.restingShown();
+        float end = empty ? m.idleWidth() : m.restWidth();
+        sp.width.animateTo(end, Motion.PILL_SHRINK);
+        sp.height.animateTo(empty ? m.pillH : Math.min(end, m.pillH), Motion.PILL_SHRINK);
+        if (empty) {
+            sp.visibility.animateTo(1.0f, 0.22f, 1.0f);
+        } else if (m.holeD <= 0.0f) {
+            sp.visibility.animateTo(0.0f, 0.22f, 1.0f);
+        }
+    }
+
+    /** Nothing is shown and nothing was: only a change of the "always visible" setting can alter how that looks. */
+    private void settleResting() {
+        restingSize();
+        view.scheduleFrame();
     }
 
     // ---- the card stack ------------------------------------------------------------------------------------------

@@ -666,4 +666,6 @@
     <string name="recommend15_headset">有线或 USB 耳机插着时，卡片会一直留在灵动岛上。</string>
     <string name="recommend15_search_title">边输入边搜索</string>
     <string name="recommend15_search">输入时即时显示结果，点按直达对应设置。试试搜索“热点”或“解锁”。</string>
+    <string name="always_visible_island">始终显示灵动岛</string>
+    <string name="always_visible_island_desc">没有任何活动时，也在摄像头周围保留一个空的胶囊。锁屏、熄屏以及未允许的全屏应用中仍会隐藏。</string>
 </resources>

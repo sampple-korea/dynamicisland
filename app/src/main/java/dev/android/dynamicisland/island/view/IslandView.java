@@ -873,7 +873,7 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         boolean active = springs.step(dt) | buttons.animating();
         applyShadeFade();
         if (scene.mode == Mode.HIDDEN && metrics.holeD > 0.0f && springs.visibility.target() > 0.0f
-                && springs.width.value() <= metrics.restWidth() + metrics.dp(5.0f)) {
+                && !scene.restingShown() && springs.width.value() <= metrics.restWidth() + metrics.dp(5.0f)) {
             springs.visibility.animateTo(0.0f, 0.12f, 1.0f);
             active = true;
         }

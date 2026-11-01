@@ -83,6 +83,8 @@ final class Metrics {
     }
 
     /** How wide the pill may get when the widest is left on automatic: a little over half the screen, at most 232 dp. */
+    /** Room the empty pill leaves around the camera hole, in total. */
+    static final float IDLE_MARGIN_DP = 16.0f;
     static final float AUTO_MAX_SCREEN_SHARE = 0.56f;
     static final float AUTO_MAX_PHONE_DP = 232.0f;
     static final float AUTO_MAX_TABLET_DP = 300.0f;
@@ -119,6 +121,11 @@ final class Metrics {
     /** Width of the resting (empty) pill: just inside the camera hole, or a small blob without one. */
     float restWidth() {
         return holeD > 0.0f ? holeD * 0.92f : pillH * 0.45f;
+    }
+
+    /** Width of the empty pill that is kept on screen when the user wants the island always visible: a little wider than the camera. */
+    float idleWidth() {
+        return Math.max(minPillW, holeD + dp(IDLE_MARGIN_DP));
     }
 
     float cardWidth() {

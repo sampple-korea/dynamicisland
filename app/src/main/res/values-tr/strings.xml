@@ -666,4 +666,6 @@
     <string name="recommend15_headset">Kablolu veya USB kulaklık takılıyken kart adada kalır.</string>
     <string name="recommend15_search_title">Yazdıkça arama</string>
     <string name="recommend15_search">Sonuçlar yazarken çıkar ve her biri doğrudan ilgili ayarı açar. “Erişim noktası” veya “kilit açma” deneyin.</string>
+    <string name="always_visible_island">Adayı her zaman göster</string>
+    <string name="always_visible_island_desc">Hiçbir şey olmasa da kameranın çevresinde boş bir hap görünür kalsın. Kilit ekranında, ekran kapalıyken ve izin verilmeyen tam ekran uygulamalarda yine gizlenir.</string>
 </resources>

@@ -119,7 +119,7 @@ final class PillPainter {
             if (hasBubble) bubbleGlow.draw(canvas, bubble, glowMotion, alpha, ModuleSettings.glowStrength());
             canvas.restoreToCount(save);
         }
-        boolean outlinePill = pillVisible && scene.mode == Mode.COMPACT && bodyAlpha > IslandView.MIN_VISIBLE_ALPHA;
+        boolean outlinePill = pillVisible && (scene.mode == Mode.COMPACT || scene.restingShown()) && bodyAlpha > IslandView.MIN_VISIBLE_ALPHA;
         if ((outlinePill || hasBubble) && sp.outlineFade.value() > IslandView.MIN_VISIBLE_ALPHA
                 && scene.pillOutlineOpacity() > IslandView.MIN_VISIBLE_ALPHA) {
             drawOutline(canvas, pill, r, outlinePill, bodyAlpha, hasBubble, hasNeck, neckAlpha, bubbleX, bubbleY, bubbleRadius);
@@ -179,6 +179,8 @@ final class PillPainter {
             return false;
         }
         if (scene.mode != Mode.COMPACT && sp.pillBlob.value() <= IslandView.MIN_VISIBLE_ALPHA) return false;
+        // the empty pill that stays on screen has nothing to glow about
+        if (scene.restingShown() && Math.abs(sp.width.value() - m.idleWidth()) < m.dp(1.0f)) return false;
         IslandItem music = scene.musicForGlow();
         boolean show = music != null || !ModuleSettings.glowMusicOnly();
         glowPresence.set(show ? 1 : 0, now);

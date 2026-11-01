@@ -69,6 +69,11 @@ final class Scene {
         return !item.hasTeams() || item.pillColor == 0 ? 0xFF000000 : item.pillColor;
     }
 
+    /** Nothing to show, yet the user asked for an empty pill around the camera (not while they hid the island by hand). */
+    boolean restingShown() {
+        return mode == Mode.HIDDEN && ModuleSettings.alwaysVisible() && !(iMode != null && iMode.hiddenByGesture());
+    }
+
     float pillOutlineOpacity() {
         return iMode!=null ? iMode.outlineOpacity() : pillOutlineTarget();
     }

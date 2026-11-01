@@ -666,4 +666,6 @@
     <string name="recommend15_headset">유선·USB 이어폰이 꽂혀 있는 동안 카드를 아일랜드에 계속 둡니다.</string>
     <string name="recommend15_search_title">입력하는 즉시 검색</string>
     <string name="recommend15_search">입력하는 동안 결과가 나오고, 누르면 해당 설정으로 바로 이동합니다. “핫스팟”이나 “잠금 해제”를 검색해 보세요.</string>
+    <string name="always_visible_island">항상 보이는 아일랜드</string>
+    <string name="always_visible_island_desc">진행 중인 활동이 없어도 카메라 둘레에 빈 알약을 계속 보여 줍니다. 잠금 화면, 화면이 꺼졌을 때, 전체 화면 앱(허용하지 않은 경우)에서는 여전히 숨겨집니다.</string>
 </resources>
