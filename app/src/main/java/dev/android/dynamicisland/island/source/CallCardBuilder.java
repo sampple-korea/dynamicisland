@@ -121,10 +121,19 @@ final class CallCardBuilder {
         phoneRinging = probe;
     }
 
+    /** The telephony call state, or the ringtone audio mode when the state cannot be read. */
     private boolean telephonyRinging() {
         try {
             TelephonyManager telephony = ctx.getSystemService(TelephonyManager.class);
-            return telephony != null && telephony.getCallState() == TelephonyManager.CALL_STATE_RINGING;
+            if (telephony != null && telephony.getCallState() == TelephonyManager.CALL_STATE_RINGING) {
+                return true;
+            }
+        } catch (Throwable t) {
+            // no permission to read it: the audio mode below still tells
+        }
+        try {
+            AudioManager audio = ctx.getSystemService(AudioManager.class);
+            return audio != null && audio.getMode() == AudioManager.MODE_RINGTONE;
         } catch (Throwable t) {
             return false;
         }
@@ -272,14 +281,20 @@ final class CallCardBuilder {
     private void addRingingButtons(IslandItem it, boolean telecom, PendingIntent decline, PendingIntent answerAction) {
         if (telecom || answerAction != null) {
             IslandItem.Action answer = new IslandItem.Action(IslandText.get(ctx, "island_answer_call"), null, null,
-                    () -> answerCall(telecom, answerAction), false);
+                    () -> {
+                        answerCall(telecom, answerAction);
+                        afterSpeakerToggle.run();
+                    }, false);
             answer.glyph = Glyphs.ANSWER;
             answer.affirmative = true;
             it.actions.add(answer);
         }
         if (telecom || decline != null) {
             IslandItem.Action reject = new IslandItem.Action(IslandText.get(ctx, "island_decline_call"), null, null,
-                    () -> endCall(telecom, decline), true);
+                    () -> {
+                        endCall(telecom, decline);
+                        afterSpeakerToggle.run();
+                    }, true);
             reject.glyph = GLYPH_END_CALL;
             it.actions.add(reject);
         }
