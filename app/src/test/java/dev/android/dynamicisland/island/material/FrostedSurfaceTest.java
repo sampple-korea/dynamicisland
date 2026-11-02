@@ -114,6 +114,10 @@ public class FrostedSurfaceTest {
     }
     /** Mean lightness (0..1) of the lower third of a card drawn over a flat backdrop of this colour. */
     private static float lowerLightness(int backdrop,boolean music) throws Exception {
+        return lowerLightness(backdrop,music,0);
+    }
+
+    private static float lowerLightness(int backdrop,boolean music,int palette) throws Exception {
         SharedPreferences prefs=RuntimeEnvironment.getApplication().getSharedPreferences("frosted-bright",0);
         prefs.edit().clear().putInt(ModuleSettings.KEY_MATERIAL_STYLE,ModuleSettings.MATERIAL_FROSTED).commit();
         ModuleSettings.configurePreview(prefs);
@@ -132,7 +136,8 @@ public class FrostedSurfaceTest {
             dev.android.dynamicisland.island.model.IslandItem item=new dev.android.dynamicisland.island.model.IslandItem("m");
             item.kind=dev.android.dynamicisland.island.model.IslandItem.Kind.EVENT;item.isMedia=true;item.playing=true;
             item.title="Ballad";item.subtitle="Unknown";item.mediaDuration=189000;item.mediaPosition=57000;
-            item.mediaPalette=dev.android.dynamicisland.island.graphics.ArtworkPalette.fromPixels(null);
+            item.mediaPalette=palette==0 ? dev.android.dynamicisland.island.graphics.ArtworkPalette.fromPixels(null)
+                    : dev.android.dynamicisland.island.graphics.ArtworkPalette.solid(palette);
             fx=new dev.android.dynamicisland.island.view.card.MediaBody(owner,item,1094).materialMusic();
             for(long k=0;k<=4000;k+=100)fx.advance(k);
         }
@@ -162,6 +167,13 @@ public class FrostedSurfaceTest {
             assertTrue((music ? "music" : "card")+", light grey backdrop: lower card "+grey,grey<=.50f);
             assertTrue((music ? "music" : "card")+", a dark backdrop stays under the knee, so it is unchanged: "+dark,dark<.38f);
         }
+    }
+
+    /** The look before the lightness limit existed (measured with that shader): a dark backdrop must keep it. */
+    @Test public void brightAlbumColoursOverADarkBackdropKeepTheirLook() throws Exception {
+        assertEquals(.40868f,lowerLightness(0xff404040,true,0xffffe066),.0005f);
+        assertEquals(.41343f,lowerLightness(0xff404040,true,0xff7fffd4),.0005f);
+        assertEquals(.46294f,lowerLightness(0xff404040,true,0xffffffff),.0005f);
     }
 
     private static Bitmap paintedShell(FrostedSurface surface,int w,int h) {
