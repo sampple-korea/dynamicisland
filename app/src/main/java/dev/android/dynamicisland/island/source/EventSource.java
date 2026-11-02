@@ -365,6 +365,9 @@ public final class EventSource {
         it.progress = percent / 100f;
         it.trailing = IslandItem.Trailing.TEXT;
         it.trailingText = percent + "%";
+        // with Samsung's own charging effect switched off here the pill covers the whole width it may have,
+        // so that no part of that effect shows beside it
+        it.fullWidth = !ModuleSettings.stockChargingAnimation();
         return it;
     }
 

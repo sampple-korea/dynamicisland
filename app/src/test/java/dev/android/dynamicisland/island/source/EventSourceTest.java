@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import dev.android.dynamicisland.settings.ModuleSettings;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.shadows.ShadowSystemClock;
@@ -160,4 +161,24 @@ public class EventSourceTest {
         }
     }
 
+    @Test
+    public void theChargingPopupTakesTheFullWidthWhileSamsungsOwnEffectIsOff() throws Exception {
+        android.content.SharedPreferences prefs = RuntimeEnvironment.getApplication().getSharedPreferences("charging-width", 0);
+        try {
+            for (boolean stock : new boolean[] {false, true}) {
+                prefs.edit().clear().putBoolean(ModuleSettings.KEY_STOCK_CHARGING_ANIMATION, stock).commit();
+                ModuleSettings.configurePreview(prefs);
+                EventSource s = source(new int[1]);
+                List<IslandItem> out = new ArrayList<>();
+                s.onBattery(battery(54, 0));
+                s.onBattery(battery(54, BatteryManager.BATTERY_PLUGGED_AC));
+                s.collect(out);
+                assertEquals(1, out.size());
+                assertEquals("Samsung's effect " + (stock ? "on" : "off"), !stock, out.get(0).fullWidth);
+            }
+        } finally {
+            prefs.edit().clear().commit();
+            ModuleSettings.configurePreview(prefs);
+        }
+    }
 }

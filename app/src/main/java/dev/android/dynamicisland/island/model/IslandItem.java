@@ -280,6 +280,9 @@ public final class IslandItem {
         this.key = key;
     }
 
+    /** The pill takes the widest size it may have, e.g. to cover an animation that plays under it (the charging popup). */
+    public boolean fullWidth;
+
     public boolean hasTeams() {
         return leftImage != null && rightImage != null;
     }
@@ -332,7 +335,7 @@ public final class IslandItem {
 
     /** True when the compact pill would look the same for both items, so it need not animate a swap. */
     public boolean sameCompactLook(IslandItem o) {
-        return o != null && Objects.equals(key, o.key) && trailing == o.trailing && (accent == o.accent || (isMedia && o.isMedia)) && iconIsImage == o.iconIsImage && pulsingDot == o.pulsingDot && pillColor == o.pillColor && customAccent == o.customAccent && hasTeams() == o.hasTeams() && voiceRecording == o.voiceRecording && voiceRecordingPaused == o.voiceRecordingPaused;
+        return o != null && Objects.equals(key, o.key) && trailing == o.trailing && (accent == o.accent || (isMedia && o.isMedia)) && iconIsImage == o.iconIsImage && pulsingDot == o.pulsingDot && pillColor == o.pillColor && customAccent == o.customAccent && hasTeams() == o.hasTeams() && fullWidth == o.fullWidth && voiceRecording == o.voiceRecording && voiceRecordingPaused == o.voiceRecordingPaused;
     }
 
     @Override

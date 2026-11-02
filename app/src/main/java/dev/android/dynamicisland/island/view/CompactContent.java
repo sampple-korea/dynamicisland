@@ -130,6 +130,9 @@ public final class CompactContent extends Content {
         } else {
             width = (trailW > 0.0f ? owner.innerGap + trailW : 0.0f) + (owner.padding * 2.0f) + leadingWidth();
         }
+        if (item.fullWidth) {
+            width = owner.maxPillW;
+        }
         return Math.max(owner.minPillW, Math.min(width, owner.maxPillW));
     }
 
