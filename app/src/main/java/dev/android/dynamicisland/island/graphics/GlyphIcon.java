@@ -161,9 +161,13 @@ public final class GlyphIcon extends Drawable {
         return INTRINSIC_SIZE_PX;
     }
 
+    /** Bounds of the drawing in progress; an icon is drawn on one thread, so one rectangle serves every frame. */
+    private final RectF drawBounds = new RectF();
+
     @Override
     public void draw(Canvas c) {
-        RectF bounds = new RectF(getBounds());
+        RectF bounds = drawBounds;
+        bounds.set(getBounds());
         if (bounds.isEmpty()) {
             return;
         }
