@@ -52,6 +52,8 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
 
     /** Never re-run a deferred refresh sooner than one frame. */
     private static final long MIN_DEFERRED_REFRESH_MS = 16L;
+    /** From this much of the shade pulled down, the island is under it. */
+    private static final float SHADE_OPEN_FRACTION = 0.02f;
 
     private static IslandController instance;
 
@@ -89,7 +91,10 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
             IslandView current = placement.view();
             return current == null ? null : new ShadeWatch.Target() {
                 @Override public boolean needsWatching() { return current.shadeNeedsWatching(); }
-                @Override public void shade(float fraction) { current.setShadeFraction(fraction); }
+                @Override public void shade(float fraction) {
+                    current.setShadeFraction(fraction);
+                    sources.events.setShadeOpen(fraction > SHADE_OPEN_FRACTION); // a missed closing report must not hold the popups back for good
+                }
             };
         }, dev.android.dynamicisland.xposed.hooks.SystemUiHooks::shadeFraction);
         placement.setOnUnlocked(sources.unlock::onUnlocked);
@@ -322,6 +327,8 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
     }
 
     public void setShadeExpansion(float fraction) {
+        if (Looper.myLooper() != main.getLooper()) { main.post(() -> setShadeExpansion(fraction)); return; }
+        sources.events.setShadeOpen(fraction > SHADE_OPEN_FRACTION);
         IslandView view = placement.view();
         if (view != null) {
             view.setShadeFraction(fraction);

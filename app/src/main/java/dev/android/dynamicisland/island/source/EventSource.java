@@ -51,6 +51,8 @@ public final class EventSource {
     private static final int GREY = 0xFF8E8E93;
 
     private static final long TOGGLE_MS = 2200;
+    /** A popup that came while the shade was open waits for it to close; one older than this is no longer news. */
+    private static final long DEFER_MAX_MS = 30_000;
     /** Hidden WifiManager broadcast and the values of its {@code wifi_state} extra. */
     private static final String HOTSPOT_ACTION = "android.net.wifi.WIFI_AP_STATE_CHANGED";
     private static final int HOTSPOT_ENABLED = 13;
@@ -67,6 +69,9 @@ public final class EventSource {
         }
     };
     private final Map<String, IslandItem> events = new LinkedHashMap<>();
+    /** How long each popup is shown once it is on screen. */
+    private final Map<String, Long> shownFor = new java.util.HashMap<>();
+    private boolean shadeOpen;
     /** Last known on/off state per quick-setting name, to announce only real changes. */
     private final Map<String, Boolean> toggleState = new LinkedHashMap<>();
     /** Torch state per camera id; the flashlight counts as on while any camera's torch is on. */
@@ -275,6 +280,12 @@ public final class EventSource {
             return;
         }
         long now = SystemClock.uptimeMillis();
+        if (shadeOpen) {
+            // the island is under the shade: the popups wait for it to close, with their time not started
+            events.values().removeIf(item -> now - item.postTime > DEFER_MAX_MS);
+            shownFor.keySet().retainAll(events.keySet());
+            return;
+        }
         long next = Long.MAX_VALUE;
         for (Iterator<IslandItem> it = events.values().iterator(); it.hasNext(); ) {
             IslandItem item = it.next();
@@ -295,8 +306,42 @@ public final class EventSource {
         }
     }
 
+    /**
+     * The shade opened or closed. Popups that come while it is open would show up under it and be missed: they wait,
+     * and when it closes each one is shown for its full time. A quick setting switched in the shade itself shows its
+     * state on its own tile, so that one is not announced at all.
+     */
+    public void setShadeOpen(boolean open) {
+        if (open == shadeOpen) {
+            return;
+        }
+        long now = SystemClock.uptimeMillis();
+        if (open) {
+            events.values().removeIf(item -> item.expiresAtUptime <= now); // what already ran out does not come back
+            shownFor.keySet().retainAll(events.keySet());
+            shadeOpen = true;
+            return;
+        }
+        shadeOpen = false;
+        for (Iterator<IslandItem> it = events.values().iterator(); it.hasNext(); ) {
+            IslandItem item = it.next();
+            if (now - item.postTime > DEFER_MAX_MS) {
+                it.remove();
+            } else {
+                item.expiresAtUptime = now + shownFor.getOrDefault(item.key, ModuleSettings.popupMillis());
+            }
+        }
+        shownFor.keySet().retainAll(events.keySet());
+        onChange.run();
+    }
+
     private void show(IslandItem item, long ttlMs) {
-        item.expiresAtUptime = SystemClock.uptimeMillis() + Math.max(ttlMs, ModuleSettings.popupMillis());
+        if (shadeOpen && item.key.startsWith("event:toggle:")) {
+            return;
+        }
+        long shown = Math.max(ttlMs, ModuleSettings.popupMillis());
+        shownFor.put(item.key, shown);
+        item.expiresAtUptime = SystemClock.uptimeMillis() + shown;
         item.postTime = SystemClock.uptimeMillis();
         item.transientPopup = true;
         events.remove(item.key);

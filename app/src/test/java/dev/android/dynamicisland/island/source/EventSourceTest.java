@@ -181,4 +181,69 @@ public class EventSourceTest {
             ModuleSettings.configurePreview(prefs);
         }
     }
+
+    @Test
+    public void popupsThatComeWhileTheShadeIsOpenWaitForItToClose() throws Exception {
+        EventSource s = source(new int[1]);
+        List<IslandItem> out = new ArrayList<>();
+        s.onBattery(battery(54, 0));
+        s.setShadeOpen(true);
+        s.onBattery(battery(54, BatteryManager.BATTERY_PLUGGED_AC));
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(10)); // far longer than the popup lasts
+        s.collect(out);
+        assertTrue("nothing is shown under the shade", out.isEmpty());
+
+        s.setShadeOpen(false);
+        s.collect(out);
+        assertEquals("it shows when the shade is closed", 1, out.size());
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(3));
+        out.clear();
+        s.collect(out);
+        assertEquals("and for its full time", 1, out.size());
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(2));
+        out.clear();
+        s.collect(out);
+        assertTrue(out.isEmpty());
+    }
+
+    @Test
+    public void aQuickSettingSwitchedInTheShadeIsNotAnnounced() throws Exception {
+        EventSource s = source(new int[1]);
+        List<IslandItem> out = new ArrayList<>();
+        s.onToggle("dnd", false);
+        s.setShadeOpen(true);
+        s.onToggle("dnd", true);
+        s.setShadeOpen(false);
+        s.collect(out);
+        assertTrue("the tile already shows it", out.isEmpty());
+        s.onToggle("dnd", false);
+        s.collect(out);
+        assertEquals("outside the shade it is announced as before", 1, out.size());
+    }
+
+    @Test
+    public void aPopupThatWaitedTooLongIsDropped() throws Exception {
+        EventSource s = source(new int[1]);
+        List<IslandItem> out = new ArrayList<>();
+        s.onBattery(battery(54, 0));
+        s.setShadeOpen(true);
+        s.onBattery(battery(54, BatteryManager.BATTERY_PLUGGED_AC));
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(40));
+        s.setShadeOpen(false);
+        s.collect(out);
+        assertTrue("news from 40 seconds ago is not shown", out.isEmpty());
+    }
+
+    @Test
+    public void aPopupThatWasAlreadyOverWhenTheShadeOpenedDoesNotComeBack() throws Exception {
+        EventSource s = source(new int[1]);
+        List<IslandItem> out = new ArrayList<>();
+        s.onBattery(battery(54, 0));
+        s.onBattery(battery(54, BatteryManager.BATTERY_PLUGGED_AC));
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(6));
+        s.setShadeOpen(true);
+        s.setShadeOpen(false);
+        s.collect(out);
+        assertTrue(out.isEmpty());
+    }
 }
