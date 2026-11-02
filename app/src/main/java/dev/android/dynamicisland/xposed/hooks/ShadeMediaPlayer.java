@@ -45,6 +45,7 @@ public final class ShadeMediaPlayer {
     static void install(ClassLoader cl) {
         XLog.i("shade media hooks installing v1");
         dev.android.dynamicisland.xposed.Diagnostics.live("shade media player", HeldCard::summary);
+        dev.android.dynamicisland.xposed.Diagnostics.live("shade music glass", () -> MediaPlayerBinding.TRACE.summary(android.os.SystemClock.uptimeMillis()));
         MediaRowBackground.install(cl);
         // the base picker declares getMediaPlayerExpandHeight abstract (nothing to hook there); the concrete
         // pickers implement it, and which of them exist differs between System UI builds

@@ -23,6 +23,12 @@ final class HeldCard {
 
     private IslandItem last;
     private long lastAt;
+    private boolean holding;
+
+    /** Whether the card {@link #pick} returned last was the held one. */
+    boolean holding() {
+        return holding;
+    }
 
     /**
      * The card to draw: {@code live} when there is one, else the card shown last while it is recent and the miss
@@ -31,6 +37,7 @@ final class HeldCard {
      * @param reason why {@code live} is null, one of the constants above (ignored when it is not null)
      */
     IslandItem pick(IslandItem live, int reason, long now) {
+        holding = false;
         if (live != null) {
             last = live;
             lastAt = now;
@@ -39,6 +46,7 @@ final class HeldCard {
         MISSES[reason]++;
         boolean bridge = reason >= NO_SOURCE && last != null && now - lastAt < HOLD_MS;
         if (bridge) {
+            holding = true;
             bridged++;
             return last;
         }

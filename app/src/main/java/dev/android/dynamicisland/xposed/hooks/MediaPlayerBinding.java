@@ -40,6 +40,8 @@ final class MediaPlayerBinding {
     private Runnable refresh;
     private final FramePacer framePacer = new FramePacer();
     private final HeldCard held = new HeldCard();
+    /** What the glass of every shade music card did lately, for the diagnostics report. */
+    static final dev.android.dynamicisland.island.material.GlassTrace TRACE = new dev.android.dynamicisland.island.material.GlassTrace();
 
     /** Scale and vertical offset the card was drawn with, to map touches back into card coordinates. */
     private float scale = 1.0f;
@@ -150,13 +152,40 @@ final class MediaPlayerBinding {
             ShadeMaterialBackdrop.screenBounds(player,materialLocal,materialScreen);
             canvas.translate(player.getWidth() * (1.0f - scale) / 2.0f, offsetY);
             canvas.scale(scale, scale);
-            materialAppearance.sync(player,renderer.drawShadeCard(canvas,item,player.getWidth(),frame,materialScreen));
+            boolean frosted=renderer.drawShadeCard(canvas,item,player.getWidth(),frame,materialScreen);
+            materialAppearance.sync(player,frosted);
+            trace(player,canvas,item,frame,frosted);
         } finally {
             canvas.restoreToCount(save);
         }
         if (player.isShown() && player.getWindowVisibility() == View.VISIBLE) {
             scheduleRedraw(player, item);
         }
+    }
+
+    /** Notes what the glass of this frame did (see {@link dev.android.dynamicisland.island.material.GlassTrace}). */
+    private void trace(View player, Canvas canvas, IslandItem item, MaterialFrame frame, boolean frosted) {
+        int flags = 0;
+        if (frosted) flags |= dev.android.dynamicisland.island.material.GlassTrace.FROSTED;
+        if (canvas.isHardwareAccelerated()) flags |= dev.android.dynamicisland.island.material.GlassTrace.HARDWARE;
+        if (frame != null) flags |= dev.android.dynamicisland.island.material.GlassTrace.BACKDROP;
+        if (dev.android.dynamicisland.island.material.FrostedSurface.requested()) flags |= dev.android.dynamicisland.island.material.GlassTrace.AVAILABLE;
+        if (held.holding()) flags |= dev.android.dynamicisland.island.material.GlassTrace.HELD;
+        if (player.isShown()) flags |= dev.android.dynamicisland.island.material.GlassTrace.SHOWN;
+        if (renderer.shadeMaterialBlending()) flags |= dev.android.dynamicisland.island.material.GlassTrace.BLENDING;
+        if (darkTone(item)) flags |= dev.android.dynamicisland.island.material.GlassTrace.DARK_TONE;
+        TRACE.record(android.os.SystemClock.uptimeMillis(), flags, renderer.shadeMaterialResponse());
+    }
+
+    /** True when a stop of the card's artwork palette is nearly black. */
+    static boolean darkTone(IslandItem item) {
+        dev.android.dynamicisland.island.graphics.ArtworkPalette palette = item.mediaPalette;
+        if (palette == null) return nearlyBlack(item.accent);
+        return nearlyBlack(palette.first) || nearlyBlack(palette.middle) || nearlyBlack(palette.last);
+    }
+
+    private static boolean nearlyBlack(int colour) {
+        return Math.max((colour >> 16) & 255, Math.max((colour >> 8) & 255, colour & 255)) < 16;
     }
 
     /**

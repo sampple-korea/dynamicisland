@@ -188,6 +188,13 @@ public final class FrostedSurface {
         if(total<=0){out[offset]=solid;out[offset+1]=fade;return;}
         float ratio=(w-(bw-total*bp))/np;out[offset]=solid*ratio/total;out[offset+1]=fade*ratio/total;
     }
+    /** Mean backdrop response of the frame in use, or a negative number while there is none (for the trace). */
+    public float responseMean() {
+        Input in=current;
+        return in==null||in.frame==null ? -1f : in.responseMean;
+    }
+    /** True while a new capture is blending in (for the trace). */
+    public boolean blendingNow() { return blending; }
     public boolean animating(long now) {
         return requested()&&(blending||(missingSince>=0&&now-missingSince<MISSING_FRAME_GRACE_MS));
     }
