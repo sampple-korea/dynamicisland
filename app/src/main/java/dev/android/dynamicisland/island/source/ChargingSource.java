@@ -222,24 +222,41 @@ public final class ChargingSource {
         if (statistics && session != null) {
             item.descriptionMaxLines = 8;
             session.advance(SystemClock.elapsedRealtime());
-            item.description = text("island_charge_screen_on", duration(session.onMs), gains(session.onPercent, session.onUah))
-                    + "\n" + text("island_charge_screen_off", duration(session.offMs), gains(session.offPercent, session.offUah));
-            // as lines of text the live reading leads the block, the way the card was laid out before the gauge
             if (textLines) {
-                item.description = live + "\n" + item.description;
+                // as lines of text the live reading leads the block, the way the card was laid out before the gauge
+                item.description = live
+                        + "\n" + textGainLine("island_charge_text_on", session.onMs, session.onPercent, session.onUah)
+                        + "\n" + textGainLine("island_charge_text_off", session.offMs, session.offPercent, session.offUah);
                 item.subtitle = null;
+            } else {
+                item.description = text("island_charge_screen_on", duration(session.onMs), gains(session.onPercent, session.onUah))
+                        + "\n" + text("island_charge_screen_off", duration(session.offMs), gains(session.offPercent, session.offUah));
             }
         }
         item.postTime = connectedAt;
         out.add(item);
     }
 
-    /** "Now: 1552 mA (6.2 W) • 34.1 °C"; what is not known yet is left out, the current shows "—". */
+    /** "Now: 1552 mA (6.2 W) • 34.1°"; what is not known yet is left out, the current shows "—". */
     private String nowLine(double power) {
         StringBuilder reading = new StringBuilder(value(currentMa, "mA"));
         if (Double.isFinite(power)) reading.append(" (").append(value(power, "W")).append(')');
-        if (Double.isFinite(temperature)) reading.append(" • ").append(value(temperature, "°C"));
+        if (Double.isFinite(temperature)) reading.append(" • ").append(number(temperature, 1)).append('°');
         return text("island_charge_now", reading.toString());
+    }
+
+    /** "Screen On: 10s • 0% (5 mAh)": the time, the share of the charge in whole percent, the mAh behind it. */
+    private String textGainLine(String key, long ms, double percent, double uah) {
+        String line = text(key, shortDuration(ms), session.lastLevel >= 0 ? number(Math.round(percent), 0) + "%" : "—");
+        return session.hasCounter ? line + " (" + number(Math.round(uah / 1000), 0) + " mAh)" : line;
+    }
+
+    /** "10s", "1m 5s", "1h 5m". */
+    static String shortDuration(long ms) {
+        long seconds = ms / 1000;
+        if (seconds < 60) return seconds + "s";
+        if (seconds < 3600) return (seconds / 60) + "m " + (seconds % 60) + "s";
+        return (seconds / 3600) + "h " + ((seconds / 60) % 60) + "m";
     }
 
     private String gains(double percent, double uah) {

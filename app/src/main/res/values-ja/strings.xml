@@ -707,4 +707,6 @@
     <string name="setting_charging_text">充電カードをテキスト行で</string>
     <string name="setting_charging_text_desc">充電の詳細をバッテリーゲージの代わりに文字の行で表示します。最初に現在の値、その下に画面オン時とオフ時の統計が並びます。</string>
     <string name="island_charge_now">現在: %1$s</string>
+    <string name="island_charge_text_on">画面オン: %1$s • %2$s</string>
+    <string name="island_charge_text_off">画面オフ: %1$s • %2$s</string>
 </resources>

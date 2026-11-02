@@ -716,4 +716,6 @@
     <string name="setting_charging_text">Charging card as text lines</string>
     <string name="setting_charging_text_desc">Show the charging details as lines of text instead of the battery gauge: the live reading first, then the screen-on and screen-off statistics.</string>
     <string name="island_charge_now">Now: %1$s</string>
+    <string name="island_charge_text_on">Screen On: %1$s • %2$s</string>
+    <string name="island_charge_text_off">Screen Off: %1$s • %2$s</string>
 </resources>

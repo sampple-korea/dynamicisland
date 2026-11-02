@@ -707,4 +707,6 @@
     <string name="setting_charging_text">Карточка зарядки текстом</string>
     <string name="setting_charging_text_desc">Показывать подробности зарядки строками текста вместо индикатора батареи: сначала текущие значения, затем статистика при включённом и выключенном экране.</string>
     <string name="island_charge_now">Сейчас: %1$s</string>
+    <string name="island_charge_text_on">Экран вкл.: %1$s • %2$s</string>
+    <string name="island_charge_text_off">Экран выкл.: %1$s • %2$s</string>
 </resources>

@@ -707,4 +707,6 @@
     <string name="setting_charging_text">충전 카드를 텍스트 줄로</string>
     <string name="setting_charging_text_desc">충전 상세 정보를 배터리 게이지 대신 글자 줄로 보여 줍니다. 현재 값이 맨 위에 나오고, 그 아래에 화면 켠 때와 끈 때의 통계가 이어집니다.</string>
     <string name="island_charge_now">지금: %1$s</string>
+    <string name="island_charge_text_on">화면 켜짐: %1$s • %2$s</string>
+    <string name="island_charge_text_off">화면 꺼짐: %1$s • %2$s</string>
 </resources>

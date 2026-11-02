@@ -152,14 +152,17 @@ public class ChargingSourceTest {
             assertEquals(IslandItem.EventLayout.DEFAULT, lines.eventLayout);
             assertNull("the live reading moves into the text block", lines.subtitle);
             String block = lines.description.toString();
-            assertTrue(block, block.startsWith("Now: 1000 mA (4.0 W) \u2022 31.0 \u00b0C\n"));
-            assertTrue(block, block.contains("\nScreen on: "));
-            assertTrue(block, block.contains("\nScreen off: "));
+            assertTrue(block, block.startsWith("Now: 1000 mA (4.0 W) \u2022 31.0\u00b0\n"));
+            String[] rows = block.split("\n");
+            assertEquals(block, 3, rows.length);
+            assertTrue(rows[1], rows[1].matches("Screen On: \\d+s \u2022 (\\d+%|\u2014) \\(\\d+ mAh\\)"));
+            assertTrue(rows[2], rows[2].matches("Screen Off: \\d+s \u2022 (\\d+%|\u2014) \\(\\d+ mAh\\)"));
+            assertTrue("the gauge card keeps its own wording", gauge.description.toString().startsWith("Screen on: "));
             assertEquals("the pill shows the same power as before", gauge.trailingText.toString(), lines.trailingText.toString());
             assertEquals(gauge.title.toString(), lines.title.toString());
 
             IslandItem noStats = collect(prefs, false, true, 1_000_000).get(0);
-            assertEquals("without statistics the reading is the subtitle", "Now: 1000 mA (4.0 W) \u2022 31.0 \u00b0C", noStats.subtitle.toString());
+            assertEquals("without statistics the reading is the subtitle", "Now: 1000 mA (4.0 W) \u2022 31.0\u00b0", noStats.subtitle.toString());
             assertNull(noStats.description);
         } finally { prefs.edit().clear().apply(); ModuleSettings.configurePreview(prefs); }
     }
@@ -168,7 +171,7 @@ public class ChargingSourceTest {
         SharedPreferences prefs = ModuleSettings.openStore(RuntimeEnvironment.getApplication());
         try {
             IslandItem unknown = collect(prefs, false, true, 0).get(0);
-            assertEquals("no reading yet: a dash and no power", "Now: \u2014 \u2022 31.0 \u00b0C", unknown.subtitle.toString());
+            assertEquals("no reading yet: a dash and no power", "Now: \u2014 \u2022 31.0\u00b0", unknown.subtitle.toString());
             assertFalse(unknown.subtitle.toString().contains("0 mA"));
         } finally { prefs.edit().clear().apply(); ModuleSettings.configurePreview(prefs); }
     }
@@ -178,5 +181,15 @@ public class ChargingSourceTest {
                 .putExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_CHARGING)
                 .putExtra(BatteryManager.EXTRA_LEVEL, 50).putExtra(BatteryManager.EXTRA_SCALE, 100)
                 .putExtra(BatteryManager.EXTRA_VOLTAGE, 4000).putExtra(BatteryManager.EXTRA_TEMPERATURE, 310);
+    }
+
+    @Test public void theTextLinesWriteTimesTheShortWay() {
+        assertEquals("0s", ChargingSource.shortDuration(0));
+        assertEquals("10s", ChargingSource.shortDuration(10_999));
+        assertEquals("59s", ChargingSource.shortDuration(59_000));
+        assertEquals("1m 5s", ChargingSource.shortDuration(65_000));
+        assertEquals("59m 59s", ChargingSource.shortDuration(3_599_000));
+        assertEquals("1h 5m", ChargingSource.shortDuration(3_900_000));
+        assertEquals("26h 3m", ChargingSource.shortDuration(93_800_000));
     }
 }
