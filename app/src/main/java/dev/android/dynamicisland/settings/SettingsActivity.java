@@ -581,7 +581,9 @@ public final class SettingsActivity extends Activity {
         LinearLayout privacy = ui.card(page);
         Switch indicator = toggle(privacy, R.string.setting_privacy, R.string.setting_privacy_desc, ModuleSettings.KEY_PRIVACY, true);
         Switch location = toggle(privacy, R.string.setting_privacy_location, R.string.setting_privacy_location_desc, ModuleSettings.KEY_PRIVACY_LOCATION, false);
+        Switch inApp = toggle(privacy, R.string.setting_privacy_in_app, R.string.setting_privacy_in_app_desc, ModuleSettings.KEY_PRIVACY_IN_APP, false);
         dependent(indicator, OneUi.rowOf(location));
+        dependent(indicator, OneUi.rowOf(inApp));
     }
 
     private void advancedPage() {

@@ -23,6 +23,8 @@
     <string name="setting_privacy">隐私使用指示器</string>
     <string name="setting_privacy_desc">统一控制相机、麦克风及可选的位置信息指示器。</string>
     <string name="setting_privacy_location">位置使用状态</string>
+    <string name="setting_privacy_in_app">应用在前台时也显示</string>
+    <string name="setting_privacy_in_app_desc">当前使用的应用占用摄像头和麦克风时也显示指示。在该应用中这是预期行为，因此默认关闭。</string>
     <string name="setting_privacy_location_desc">同时提示位置访问。导航和天气应用会持续使用位置，因此默认关闭。</string>
     <string name="setting_event_toggles">设置变更</string>
     <string name="setting_event_toggles_desc">提示勿扰、飞行、省电、手电筒、热点和自动旋转的切换状态。</string>

@@ -23,6 +23,8 @@
     <string name="setting_privacy">Индикаторы использования данных</string>
     <string name="setting_privacy_desc">Общий переключатель камеры, микрофона и необязательного индикатора геолокации.</string>
     <string name="setting_privacy_location">Использование геопозиции</string>
+    <string name="setting_privacy_in_app">Показывать и в открытом приложении</string>
+    <string name="setting_privacy_in_app_desc">Показывать индикатор камеры и микрофона и для приложения, которым вы пользуетесь. По умолчанию выключено: там это ожидаемо.</string>
     <string name="setting_privacy_location_desc">Также сообщать об использовании геопозиции. По умолчанию выключено: навигация и погода используют её постоянно.</string>
     <string name="setting_event_toggles">Изменения настроек</string>
     <string name="setting_event_toggles_desc">Сообщать о переключении режима «Не беспокоить», авиарежима, энергосбережения, фонарика, точки доступа и автоповорота.</string>

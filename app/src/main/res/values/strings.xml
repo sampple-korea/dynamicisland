@@ -29,6 +29,8 @@
     <string name="setting_privacy">Privacy usage indicators</string>
     <string name="setting_privacy_desc">Master switch for camera, microphone and optional location indicators.</string>
     <string name="setting_privacy_location">Location in use</string>
+    <string name="setting_privacy_in_app">Also while the app is on screen</string>
+    <string name="setting_privacy_in_app_desc">Show the camera and microphone indicator even for the app you are using. Off by default, since it is expected there.</string>
     <string name="setting_privacy_location_desc">Also announce location use. Off by default: navigation and weather apps use it constantly.</string>
     <string name="setting_event_toggles">Setting changes</string>
     <string name="setting_event_toggles_desc">Confirm Do Not Disturb, airplane mode, power saving, flashlight, hotspot and auto-rotate being switched.</string>

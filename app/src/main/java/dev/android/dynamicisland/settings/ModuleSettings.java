@@ -159,6 +159,7 @@ public final class ModuleSettings {
     public static final String KEY_TORCH_STYLE = "torch_style";
     public static final String KEY_PRIVACY = "privacy_indicator";
     public static final String KEY_PRIVACY_LOCATION = "privacy_location";
+    public static final String KEY_PRIVACY_IN_APP = "privacy_in_app";
     public static final String KEY_OTP_CARD = "otp_card";
     public static final String KEY_OTP_AUTO_COPY = "otp_auto_copy";
     public static final String KEY_THIRD_PARTY_CALLS = "third_party_calls";
@@ -264,6 +265,7 @@ public final class ModuleSettings {
     private static volatile int torchStyle;
     private static volatile boolean privacyIndicator = true;
     private static volatile boolean privacyLocation = false;
+    private static volatile boolean privacyInApp = false;
     private static volatile boolean otpCard = true;
     private static volatile boolean otpAutoCopy = false;
     private static volatile boolean thirdPartyCalls = true;
@@ -612,6 +614,7 @@ public final class ModuleSettings {
             torchStyle = source.getInt(KEY_TORCH_STYLE, 0) == 1 ? 1 : 0;
             privacyIndicator = source.getBoolean(KEY_PRIVACY, true);
             privacyLocation = source.getBoolean(KEY_PRIVACY_LOCATION, false);
+            privacyInApp = source.getBoolean(KEY_PRIVACY_IN_APP, false);
             otpCard = source.getBoolean(KEY_OTP_CARD, true);
             otpAutoCopy = source.getBoolean(KEY_OTP_AUTO_COPY, false);
             thirdPartyCalls = source.getBoolean(KEY_THIRD_PARTY_CALLS, true);
@@ -671,6 +674,7 @@ public final class ModuleSettings {
         autoCollapseS = settings.getInt(KEY_AUTO_COLLAPSE_S, DEF_AUTO_COLLAPSE_S);
         eventToggles = settings.getBoolean(KEY_EVENT_TOGGLES, true);
         torchPill = settings.getBoolean(KEY_TORCH_PILL, true);
+        privacyInApp = settings.getBoolean(KEY_PRIVACY_IN_APP, false);
         readGlow(settings);
     }
 
@@ -790,7 +794,7 @@ public final class ModuleSettings {
 
     private static String switchSignature() {
         return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/" + glowColour + lowPerformance + "/light=" + stillMusic + staticWaveform + limitFrameRate + stillIcons + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + "/system=" + accentSystem + systemAccent + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + progressNotifications + hideProgressOriginals
-                + smartRules + privacyIndicator + privacyLocation + otpCard + otpAutoCopy + thirdPartyCalls + visualizer + colorIcons + shadeMedia + cardHeader
+                + smartRules + privacyIndicator + privacyLocation + privacyInApp + otpCard + otpAutoCopy + thirdPartyCalls + visualizer + colorIcons + shadeMedia + cardHeader
                 + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/" + headsetStay + "/hotspot=" + hotspotCard + "/unlock=" + unlockNotice + "/peekProgress=" + peekProgress + "/progressForeground=" + progressForeground + "/progressAny=" + progressAny + "/stockCharging=" + stockChargingAnimation + "/recordingInput=" + concurrentRecordingInput
                 + "/alwaysVisible=" + alwaysVisible + "/notch=" + notchStyle + "/popup=" + popupSeconds + "/chargingText=" + chargingText + "/swipeUpHides=" + swipeUpHides + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/blur=" + transitionBlurMode + "/" + appFilter.onlyListed() + appFilter.size();
     }
@@ -960,6 +964,12 @@ public final class ModuleSettings {
     public static boolean privacyLocation() {
         ensureStarted();
         return privacyLocation;
+    }
+
+    /** Also announce camera and microphone use by the app that is on screen (default off: it is expected there). */
+    public static boolean privacyInApp() {
+        ensureStarted();
+        return privacyInApp;
     }
 
     /** The animations of 0.1.3 and before instead of the smoothed ones (default off). */

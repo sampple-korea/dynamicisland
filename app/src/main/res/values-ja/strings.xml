@@ -23,6 +23,8 @@
     <string name="setting_privacy">プライバシー使用状況の表示</string>
     <string name="setting_privacy_desc">カメラ、マイク、任意の位置情報の表示をまとめて切り替えます。</string>
     <string name="setting_privacy_location">位置情報の使用状況</string>
+    <string name="setting_privacy_in_app">アプリ使用中も表示</string>
+    <string name="setting_privacy_in_app_desc">使用中のアプリがカメラやマイクを使うときも表示します。そのアプリでは当然のことなので、初期設定はオフです。</string>
     <string name="setting_privacy_location_desc">位置情報の使用も通知します。ナビや天気アプリが常に使うため、初期設定ではオフです。</string>
     <string name="setting_event_toggles">設定の変更</string>
     <string name="setting_event_toggles_desc">おやすみモード・機内モード・省電力・ライト・テザリング・自動回転の切り替えを表示します。</string>

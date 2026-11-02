@@ -124,6 +124,7 @@ final class SettingsSearchCatalog {
                 R.string.torch_style_classic,R.string.torch_style_beam);
         add(Route.EVENTS,R.string.setting_privacy,R.string.setting_privacy_desc,R.string.search_terms_privacy,0);
         add(Route.EVENTS,R.string.setting_privacy_location,R.string.setting_privacy_location_desc,R.string.search_terms_location,R.string.setting_privacy);
+        add(Route.EVENTS,R.string.setting_privacy_in_app,R.string.setting_privacy_in_app_desc,R.string.search_terms_privacy,R.string.setting_privacy);
         add(Route.APPS,R.string.apps_mode,R.string.apps_only_listed_desc,R.string.search_terms_apps,0,R.string.apps_blacklist,R.string.apps_whitelist);
         add(Route.APPS,R.string.ui_excluded_apps,R.string.apps_choose_sum,R.string.search_terms_apps,R.string.apps_mode);
         add(Route.APPS,R.string.ui_allowed_apps,R.string.apps_choose_sum,R.string.search_terms_apps,R.string.apps_mode);
