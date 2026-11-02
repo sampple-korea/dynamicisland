@@ -93,8 +93,8 @@ public final class MaterialPixels {
     private MaterialPixels resize(int w, int h, Scratch scratch, boolean keepResult) {
         if (keepResult && scratch != null) scratch.freshBytes += 4L * w * h * 3; // the result is always a new array
         float[] tmp = take(scratch, w*height*3), out = keepResult ? new float[w*h*3] : take(scratch, w*h*3);
-        resample(rgb, tmp, width, height, w, true);
-        resample(tmp, out, w, height, h, false);
+        resample(rgb, tmp, width, height, w, true, scratch);
+        resample(tmp, out, w, height, h, false, scratch);
         give(scratch, tmp);
         return new MaterialPixels(w,h,out);
     }
@@ -102,33 +102,43 @@ public final class MaterialPixels {
     public void release(Scratch scratch) {
         give(scratch, rgb);
     }
-    private static void resample(float[] in, float[] out, int w, int h, int size, boolean horizontal) {
+    private static void resample(float[] in, float[] out, int w, int h, int size, boolean horizontal, Scratch scratch) {
         int old = horizontal ? w : h, lines = horizontal ? h : w;
-        float scale = old / (float) size, support = Math.max(1,scale);
+        float scale = old / (float) size, support = Math.max(1, scale);
+        float[] weights = take(scratch, (int)Math.ceil(support * 2) + 2);
         for (int pos = 0; pos < size; pos++) {
-            float centre = (pos+.5f)*scale;
-            int from = Math.max(0,(int)Math.floor(centre-support+.5f));
-            int to = Math.min(old,(int)Math.floor(centre+support+.5f));
+            float centre = (pos + .5f) * scale;
+            int from = Math.max(0, (int)Math.floor(centre - support + .5f));
+            int to = Math.min(old, (int)Math.floor(centre + support + .5f));
             float sum = 0;
-            for (int k=from;k<to;k++) sum += Math.max(0,1-Math.abs((k+.5f-centre)/support));
-            for (int line=0;line<lines;line++) for(int c=0;c<3;c++) {
-                float v=0;
-                for(int k=from;k<to;k++) {
-                    float weight=Math.max(0,1-Math.abs((k+.5f-centre)/support))/sum;
-                    v += in[((horizontal ? line*w+k : k*w+line)*3)+c]*weight;
-                }
-                out[((horizontal ? line*size+pos : pos*w+line)*3)+c]=v;
+            for (int k = from; k < to; k++) sum += Math.max(0, 1 - Math.abs((k + .5f - centre) / support));
+            for (int k = from; k < to; k++) weights[k - from] = Math.max(0, 1 - Math.abs((k + .5f - centre) / support)) / sum;
+            for (int line = 0; line < lines; line++) for (int c = 0; c < 3; c++) {
+                float v = 0;
+                for (int k = from; k < to; k++) v += in[((horizontal ? line * w + k : k * w + line) * 3) + c] * weights[k - from];
+                out[((horizontal ? line * size + pos : pos * w + line) * 3) + c] = v;
             }
         }
+        give(scratch, weights);
     }
     private MaterialPixels taps(boolean up, Scratch scratch) {
         float[] out = take(scratch, width * height * 3);
-        for(int y=0;y<height;y++) for(int x=0;x<width;x++) for(int c=0;c<3;c++) {
-            float diagonal=at(x-1,y-1,c)+at(x+1,y-1,c)+at(x-1,y+1,c)+at(x+1,y+1,c);
-            float axial=up ? at(x-2,y,c)+at(x+2,y,c)+at(x,y-2,c)+at(x,y+2,c) : 4*at(x,y,c);
-            out[(y*width+x)*3+c]=(diagonal+axial)/8;
+        for (int y = 0; y < height; y++) {
+            int ym1 = Math.max(0, y - 1) * width * 3, yp1 = Math.min(height - 1, y + 1) * width * 3;
+            int ym2 = Math.max(0, y - 2) * width * 3, yp2 = Math.min(height - 1, y + 2) * width * 3;
+            int row = y * width * 3;
+            for (int x = 0; x < width; x++) {
+                int xm1 = Math.max(0, x - 1) * 3, xp1 = Math.min(width - 1, x + 1) * 3;
+                int xm2 = Math.max(0, x - 2) * 3, xp2 = Math.min(width - 1, x + 2) * 3;
+                int x3 = x * 3;
+                for (int c = 0; c < 3; c++) {
+                    float diagonal = rgb[ym1 + xm1 + c] + rgb[ym1 + xp1 + c] + rgb[yp1 + xm1 + c] + rgb[yp1 + xp1 + c];
+                    float axial = up ? rgb[row + xm2 + c] + rgb[row + xp2 + c] + rgb[ym2 + x3 + c] + rgb[yp2 + x3 + c] : 4 * rgb[row + x3 + c];
+                    out[row + x3 + c] = (diagonal + axial) / 8;
+                }
+            }
         }
-        return new MaterialPixels(width,height,out);
+        return new MaterialPixels(width, height, out);
     }
     private float at(int x,int y,int c) {
         return rgb[(Math.max(0,Math.min(height-1,y))*width+Math.max(0,Math.min(width-1,x)))*3+c];
@@ -168,20 +178,50 @@ public final class MaterialPixels {
         return result;
     }
     static float linear(float c) { return c<=.04045f ? c/12.92f : (float)Math.pow((c+.055f)/1.055f,2.4); }
+    /** Reused on the drawing thread; no array here is ever handed to a GPU bitmap without copying. */
+    public static final class ResponseScratch {
+        private static final float[] KERNEL = gaussianKernel();
+        private float[] luma, square, horizontal, mean, second;
+        private int[] field;
+
+        private void ensure(int size) {
+            if (luma == null || luma.length < size) {
+                int capacity = luma == null ? size : Math.max(size, luma.length * 2);
+                luma = new float[capacity];square = new float[capacity];horizontal = new float[capacity];
+                mean = new float[capacity];second = new float[capacity];
+            }
+            if (field == null || field.length != size) field = new int[size];
+        }
+
+        public void clear() {
+            luma = square = horizontal = mean = second = null;
+            field = null;
+        }
+    }
+
     /** Response field for exactly one card, using the review's local float mean/variance equations. */
     public int[] response(float left,float top,float w,float h,int fw,int fh) {
-        float[] luma=new float[fw*fh];
+        return response(left,top,w,h,fw,fh,new ResponseScratch());
+    }
+
+    /** The returned array belongs to scratch and is overwritten by its next call; copy before retaining. */
+    public int[] response(float left,float top,float w,float h,int fw,int fh,ResponseScratch scratch) {
+        int size=fw*fh;scratch.ensure(size);
+        float[] luma=scratch.luma;
         float total=0;
         for(int y=0;y<fh;y++) for(int x=0;x<fw;x++) {
             float sx=left+(x+.5f)*w/fw-.5f,sy=top+(y+.5f)*h/fh-.5f;
             float lum=.2126f*linear(sample(sx,sy,0))+.7152f*linear(sample(sx,sy,1))+.0722f*linear(sample(sx,sy,2));
             luma[y*fw+x]=lum;total+=lum;
         }
-        float average=total/luma.length;
-        float[] square=luma.clone();for(int i=0;i<square.length;i++) square[i]*=square[i];
-        float[] mean=gaussian(luma,fw,fh),second=gaussian(square,fw,fh);
-        int[] field=new int[luma.length];
-        for(int i=0;i<field.length;i++) {
+        float average=total/size;
+        float[] square=scratch.square;
+        for(int i=0;i<size;i++)square[i]=luma[i]*luma[i];
+        gaussian(luma,fw,fh,scratch.horizontal,scratch.mean);
+        gaussian(square,fw,fh,scratch.horizontal,scratch.second);
+        float[] mean=scratch.mean,second=scratch.second;
+        int[] field=scratch.field;
+        for(int i=0;i<size;i++) {
             float variance=Math.max(0,second[i]-mean[i]*mean[i]);
             // Broad card exposure drives the material. A colourful launcher
             // icon must not turn one side into a different transparency preset.
@@ -195,13 +235,16 @@ public final class MaterialPixels {
         }
         return field;
     }
-    private static float[] gaussian(float[] source,int w,int h) {
+    private static float[] gaussianKernel() {
         int r=9;float[] k=new float[2*r+1];float sum=0;
         for(int i=-r;i<=r;i++){k[i+r]=(float)Math.exp(-.5*i*i/(2.2*2.2));sum+=k[i+r];}
-        for(int i=0;i<k.length;i++) k[i]/=sum;
-        float[] a=new float[source.length],b=new float[source.length];
+        for(int i=0;i<k.length;i++)k[i]/=sum;
+        return k;
+    }
+    private static void gaussian(float[] source,int w,int h,float[] a,float[] b) {
+        int r=9;float[] k=ResponseScratch.KERNEL;
+        java.util.Arrays.fill(a,0,w*h,0f);java.util.Arrays.fill(b,0,w*h,0f);
         for(int y=0;y<h;y++) for(int x=0;x<w;x++) for(int j=-r;j<=r;j++) a[y*w+x]+=source[y*w+Math.max(0,Math.min(w-1,x+j))]*k[j+r];
         for(int y=0;y<h;y++) for(int x=0;x<w;x++) for(int j=-r;j<=r;j++) b[y*w+x]+=a[Math.max(0,Math.min(h-1,y+j))*w+x]*k[j+r];
-        return b;
     }
 }

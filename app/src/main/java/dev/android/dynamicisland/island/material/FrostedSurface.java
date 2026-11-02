@@ -26,9 +26,14 @@ public final class FrostedSurface {
     private boolean blending;
     private long blendStartedAt,missingSince=-1,lastTime,lastInputReport;
     private final RectF lastBounds=new RectF();
+    private final MaterialPixels.ResponseScratch responseScratch=new MaterialPixels.ResponseScratch();
+    private static final float LIGHT_DENSITY=3*.34f;
+    private final float[] fades=new float[4];
     private float lastCorner=-1,lastCornerPower=-1,phase;
     private boolean primed;
-    private final float[] common=new float[12],edge=new float[16],shadow=new float[16];
+    private final float[] common={0,0,0,0,0,0,0,0,0,0,0,1};
+    private final float[] edge={1,1,1,2,4,2,4,.7f*.6f,.6f*.6f,0,0,0,0,0,4,.8f};
+    private final float[] shadow={1,1,1,.6f*.3f,0,0,86*LIGHT_DENSITY,0,10*LIGHT_DENSITY,0,0,4,.7f,LIGHT_DENSITY,1,0};
 
     public static boolean requested() {
         return !unavailable&&ModuleSettings.frostedMaterial()&&!ModuleSettings.lowPerformance();
@@ -73,13 +78,13 @@ public final class FrostedSurface {
             if(!blending&&next!=current.frame) {
                 previous=current;current=new Input(next);blendStartedAt=now;blending=true;bind=true;
             }
-            boolean beforeChanged=previous.update(bounds,screenBounds);
-            boolean afterChanged=current==previous ? beforeChanged : current.update(bounds,screenBounds);
+            boolean beforeChanged=previous.update(bounds,screenBounds,responseScratch);
+            boolean afterChanged=current==previous ? beforeChanged : current.update(bounds,screenBounds,responseScratch);
             if(bind||beforeChanged)previous.bind(shader,true);
             if(bind||afterChanged)current.bind(shader,false);
             float scale=bounds.width()/1072f,w=bounds.width()/scale,h=bounds.height()/scale,corner=radius/scale;
             cornerPower=Math.max(2,Math.min(2.4f,cornerPower));
-            if(!lastBounds.equals(bounds)||lastCorner!=radius||lastCornerPower!=cornerPower) {
+            if(lastBounds.width()!=bounds.width()||lastBounds.height()!=bounds.height()||lastCorner!=radius||lastCornerPower!=cornerPower) {
                 shader.setFloatUniform("designScale",scale);shader.setFloatUniform("cornerRadius",corner);
                 configureLight(w,h,corner,cornerPower);lastBounds.set(bounds);lastCorner=radius;lastCornerPower=cornerPower;
             }
@@ -129,7 +134,7 @@ public final class FrostedSurface {
             backdrop.setFilterMode(BitmapShader.FILTER_MODE_LINEAR);
             if(frame==null)field=new BitmapShader(EmptyBackdrop.PIXEL,Shader.TileMode.CLAMP,Shader.TileMode.CLAMP);
         }
-        boolean update(RectF local,RectF screen) {
+        boolean update(RectF local,RectF screen,MaterialPixels.ResponseScratch scratch) {
             if(localW==local.width()&&localH==local.height()&&lastScreen.equals(screen))return false;
             localW=local.width();localH=local.height();lastScreen.set(screen);
             if(frame==null)return true;
@@ -137,7 +142,7 @@ public final class FrostedSurface {
             offsetX=(screen.left-frame.screenBounds.left)*sx;offsetY=(screen.top-frame.screenBounds.top)*sy;
             scaleX=sx*screen.width()/localW;scaleY=sy*screen.height()/localH;
             fw=40;fh=Math.max(8,Math.round(localH*40/localW));
-            int[] response=frame.pixels.response(offsetX,offsetY,screen.width()*sx,screen.height()*sy,fw,fh);
+            int[] response=frame.pixels.response(offsetX,offsetY,screen.width()*sx,screen.height()*sy,fw,fh,scratch);
             float total=0;responseMin=1;responseMax=0;
             for(int encoded:response) {
                 float value=(((encoded>>16)&255)*256+(encoded>>8&255))/65535f;
@@ -161,26 +166,26 @@ public final class FrostedSurface {
     }
     /** Approved COUI style-2 binding in reference units. */
     private void configureLight(float w,float h,float corner,float cornerPower) {
-        float density=3*.34f,mw=w/density,mh=h/density;
-        float[] ab=fade(.18f,.35f,600,200,mw,mh),cd=fade(.25f,.25f,600,200,mw,mh);
-        float[] e={1,1,1,2,4,2,4,.7f*.6f,.6f*.6f,ab[0],ab[0]+ab[1],cd[0],cd[0]+cd[1],0,4,.8f};
-        float[] s={1,1,1,.6f*.3f,0,0,86*density,0,10*density,1+.1f*600/mw,1+.07f*600/mh,4,.7f,density,1,0};
-        System.arraycopy(e,0,edge,0,16);System.arraycopy(s,0,shadow,0,16);
-        float[] c={w,h,0,0,w,h,corner,corner,corner,corner,cornerPower,1};System.arraycopy(c,0,common,0,12);
+        float density=LIGHT_DENSITY,mw=w/density,mh=h/density;
+        fade(.18f,.35f,600,200,mw,mh,fades,0);fade(.25f,.25f,600,200,mw,mh,fades,2);
+        edge[9]=fades[0];edge[10]=fades[0]+fades[1];edge[11]=fades[2];edge[12]=fades[2]+fades[3];
+        shadow[9]=1+.1f*600/mw;shadow[10]=1+.07f*600/mh;
+        common[0]=common[4]=w;common[1]=common[5]=h;
+        common[6]=common[7]=common[8]=common[9]=corner;common[10]=cornerPower;
         shader.setFloatUniform("u_commonArray",common);shader.setFloatUniform("u_edgeArray",edge);shader.setFloatUniform("u_shadowArray",shadow);
         shader.setFloatUniform("u_edge",1);shader.setFloatUniform("u_shadow",1);
     }
-    private static float[] fade(float solid,float fade,float bw,float bh,float w,float h) {
+    private static void fade(float solid,float fade,float bw,float bh,float w,float h,float[] out,int offset) {
         float bp=2*(bw+bh),np=2*(w+h),total=solid+fade;
-        if(total*bp>bw)return new float[]{((total*bp-bw+w)-fade*bp)/np,fade*bp/np};
-        if(total<=0)return new float[]{solid,fade};
-        float ratio=(w-(bw-total*bp))/np;return new float[]{solid*ratio/total,fade*ratio/total};
+        if(total*bp>bw){out[offset]=((total*bp-bw+w)-fade*bp)/np;out[offset+1]=fade*bp/np;return;}
+        if(total<=0){out[offset]=solid;out[offset+1]=fade;return;}
+        float ratio=(w-(bw-total*bp))/np;out[offset]=solid*ratio/total;out[offset+1]=fade*ratio/total;
     }
     public boolean animating(long now) {
         return requested()&&(blending||(missingSince>=0&&now-missingSince<MISSING_FRAME_GRACE_MS));
     }
     public void clear() {
-        previous=current=null;shader=null;paint.setShader(null);blending=false;missingSince=-1;
+        responseScratch.clear();previous=current=null;shader=null;paint.setShader(null);blending=false;missingSince=-1;
         lastBounds.setEmpty();lastCorner=lastCornerPower=-1;lastTime=lastInputReport=0;primed=false;
     }
 }

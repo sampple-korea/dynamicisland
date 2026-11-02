@@ -169,6 +169,7 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
     private final RectF samplingPill = new RectF();
     private final RectF samplingBubble = new RectF();
     private final int[] samplingLocation = new int[2];
+    private final int[] materialLocation = new int[2];
     private Runnable pillSamplingStateChanged;
 
     public void setPillSamplingStateChanged(Runnable listener) {
@@ -391,9 +392,8 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
             bottom = Math.max(bottom, Math.max(card.cy.value() + card.h.value() / 2f,
                     card.targetCy + card.body.h / 2f));
         }
-        int[] location = new int[2];
-        getLocationOnScreen(location);
-        out.set(0, 0, metrics.screenW, (int)Math.ceil((bottom + location[1] + dp(64)) / 128f) * 128);
+        getLocationOnScreen(materialLocation);
+        out.set(0, 0, metrics.screenW, (int)Math.ceil((bottom + materialLocation[1] + dp(64)) / 128f) * 128);
         return !out.isEmpty();
     }
 
