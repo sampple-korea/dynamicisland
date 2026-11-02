@@ -280,6 +280,12 @@ public final class IslandItem {
         this.key = key;
     }
 
+    /**
+     * A popup that goes away by itself after a few seconds (charging, a mode change, an unlock, a headset, a peek). It
+     * comes before everything else on the island, calls included, and what was on the island returns when it is gone.
+     */
+    public boolean transientPopup;
+
     /** The pill takes the widest size it may have, e.g. to cover an animation that plays under it (the charging popup). */
     public boolean fullWidth;
 

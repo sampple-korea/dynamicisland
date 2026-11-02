@@ -139,6 +139,7 @@ public final class UnlockSource {
         item.postTime = now;
         long shown = Math.max(SHOW_MS, ModuleSettings.popupMillis());
         item.expiresAtUptime = now + REVEAL_SLACK_MS + shown;
+        item.transientPopup = true;
         card = item;
         main.removeCallbacks(expire);
         main.postDelayed(expire, REVEAL_SLACK_MS + shown);

@@ -98,6 +98,7 @@ public final class HeadsetSource {
             IslandItem item = card(added, name);
             item.postTime = lastAnnouncement = Math.max(now, lastAnnouncement + 1);
             item.expiresAtUptime = now + ttl;
+            item.transientPopup = true;
             item.peekMillis = Math.min(Math.max(4_000, ModuleSettings.popupMillis()), ttl);
             announcement = item;
             main.removeCallbacks(expire);
