@@ -19,6 +19,49 @@ import org.robolectric.annotation.GraphicsMode;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk=35)
 public class FrostedSurfaceTest {
+    @Test public void responseTexturesAreReusedOnlyWhenTheirSizeAndPixelsMatch() throws Exception {
+        SharedPreferences prefs=RuntimeEnvironment.getApplication().getSharedPreferences("frosted-response-reuse",0);
+        prefs.edit().clear().putInt(ModuleSettings.KEY_MATERIAL_STYLE,ModuleSettings.MATERIAL_FROSTED).commit();
+        ModuleSettings.configurePreview(prefs);
+        int w=116,h=160;
+        int[] pixels=new int[w*h];
+        // Identical dark patches above and below; a bright patch farther down changes the response.
+        java.util.Arrays.fill(pixels,0xff000000);
+        for(int y=80;y<h;y++)java.util.Arrays.fill(pixels,y*w,(y+1)*w,0xffffffff);
+        MaterialPixels data=MaterialPixels.fromArgb(pixels,w,h);
+        MaterialFrame frame=new MaterialFrame(Bitmap.createBitmap(pixels,w,h,Bitmap.Config.ARGB_8888),
+                data,new Rect(0,0,1164,1600),1164);
+        RenderNode node=new RenderNode("Response texture reuse");node.setPosition(0,0,1164,1600);
+        Canvas canvas=node.beginRecording();
+        FrostedSurface surface=new FrostedSurface();
+        RectF local=new RectF(0,0,1072,247),screen=new RectF(46,153,1118,400);
+        try {
+            assertTrue(surface.draw(canvas,frame,local,screen,100,1,null,1000));
+            Object input=org.robolectric.util.ReflectionHelpers.getField(surface,"current");
+            Object first=org.robolectric.util.ReflectionHelpers.getField(input,"field");
+            Bitmap original=paintedShell(surface,1072,247);
+            screen.offset(0,16);
+            assertTrue(surface.draw(canvas,frame,local,screen,100,1,null,1016));
+            assertSame("same pixels reuse the GPU texture",first,org.robolectric.util.ReflectionHelpers.getField(input,"field"));
+            assertEquals("source coordinates still follow the card",169*160/1600f,
+                    (float)org.robolectric.util.ReflectionHelpers.getField(input,"offsetY"),.00001f);
+            assertTrue("identical backdrop still renders identically",original.sameAs(paintedShell(surface,1072,247)));
+            screen.offset(0,800);
+            assertTrue(surface.draw(canvas,frame,local,screen,100,1,null,1032));
+            Object bright=org.robolectric.util.ReflectionHelpers.getField(input,"field");
+            assertNotSame("different response pixels require a fresh texture",first,bright);
+            assertFalse(original.sameAs(paintedShell(surface,1072,247)));
+            // 40x9 and 40x8 are both uniform white, but their texture sizes must remain correct.
+            local.bottom=200;screen.bottom=screen.top+200;
+            assertTrue(surface.draw(canvas,frame,local,screen,80,1,null,1048));
+            assertNotSame("a new field size must not reuse the old texture",bright,
+                    org.robolectric.util.ReflectionHelpers.getField(input,"field"));
+        } finally {
+            node.endRecording();node.discardDisplayList();surface.clear();
+            prefs.edit().clear().commit();ModuleSettings.configurePreview(prefs);
+        }
+    }
+
     @Test public void materialPaintsWhileCaptureLoadsAndBlendsPixelsWithoutRestartingLighting() throws Exception {
         SharedPreferences prefs=RuntimeEnvironment.getApplication().getSharedPreferences("frosted-loading-test",0);
         prefs.edit().clear().putInt(ModuleSettings.KEY_MATERIAL_STYLE,ModuleSettings.MATERIAL_FROSTED).commit();ModuleSettings.configurePreview(prefs);

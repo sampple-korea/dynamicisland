@@ -124,6 +124,8 @@ public final class FrostedSurface {
         final MaterialFrame frame;
         final BitmapShader backdrop;
         BitmapShader field;
+        private int[] fieldPixels;
+        private int fieldWidth,fieldHeight;
         final RectF lastScreen=new RectF();
         float localW=-1,localH=-1,offsetX,offsetY,scaleX,scaleY;
         int fw=1,fh=1;
@@ -143,6 +145,9 @@ public final class FrostedSurface {
             scaleX=sx*screen.width()/localW;scaleY=sy*screen.height()/localH;
             fw=40;fh=Math.max(8,Math.round(localH*40/localW));
             int[] response=frame.pixels.response(offsetX,offsetY,screen.width()*sx,screen.height()*sy,fw,fh,scratch);
+            // Geometry still needs rebinding, but identical response pixels need no new GPU texture.
+            // Keep an independent CPU copy: scratch is shared with the other capture-blend input.
+            if(fieldWidth==fw&&fieldHeight==fh&&java.util.Arrays.equals(fieldPixels,response))return true;
             float total=0;responseMin=1;responseMax=0;
             for(int encoded:response) {
                 float value=(((encoded>>16)&255)*256+(encoded>>8&255))/65535f;
@@ -151,6 +156,8 @@ public final class FrostedSurface {
             responseMean=total/response.length;
             Bitmap map=Bitmap.createBitmap(response,fw,fh,Bitmap.Config.ARGB_8888);
             field=new BitmapShader(map,Shader.TileMode.CLAMP,Shader.TileMode.CLAMP);
+            if(fieldPixels==null||fieldPixels.length!=response.length)fieldPixels=new int[response.length];
+            System.arraycopy(response,0,fieldPixels,0,response.length);fieldWidth=fw;fieldHeight=fh;
             field.setFilterMode(BitmapShader.FILTER_MODE_LINEAR);return true;
         }
         void bind(RuntimeShader shader,boolean old) {
