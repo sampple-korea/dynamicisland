@@ -55,7 +55,7 @@ public final class FrostedSurface {
     public boolean draw(Canvas canvas,MaterialFrame next,RectF bounds,RectF screenBounds,float radius,
             float amount,MediaFx music,long now,float cornerPower) {
         if(!requested()){clear();return false;}
-        if(!canvas.isHardwareAccelerated()||bounds.width()<1||bounds.height()<1)return false;
+        if(!canvas.isHardwareAccelerated()||!isFinite(bounds)||bounds.width()<1||bounds.height()<1)return false;
         if(!canUse(next,screenBounds))next=null;
         try {
             boolean bind=false;
@@ -135,15 +135,24 @@ public final class FrostedSurface {
             this.frame=frame;
             backdrop=new BitmapShader(frame==null ? EmptyBackdrop.PIXEL : frame.bitmap,Shader.TileMode.CLAMP,Shader.TileMode.CLAMP);
             backdrop.setFilterMode(BitmapShader.FILTER_MODE_LINEAR);
-            if(frame==null)field=new BitmapShader(EmptyBackdrop.PIXEL,Shader.TileMode.CLAMP,Shader.TileMode.CLAMP);
+            field=new BitmapShader(EmptyBackdrop.PIXEL,Shader.TileMode.CLAMP,Shader.TileMode.CLAMP);
         }
         boolean update(RectF local,RectF screen,MaterialPixels.ResponseScratch scratch) {
             if(localW==local.width()&&localH==local.height()&&lastScreen.equals(screen))return false;
-            localW=local.width();localH=local.height();lastScreen.set(screen);
-            if(frame==null)return true;
+            if(!isFinite(local)||!isFinite(screen)||local.width()<=0||local.height()<=0) {
+                reject("card "+local+" on screen "+screen);return false;
+            }
+            if(frame==null) {
+                localW=local.width();localH=local.height();lastScreen.set(screen);return true;
+            }
             float sx=frame.bitmap.getWidth()/(float)frame.screenBounds.width(),sy=frame.bitmap.getHeight()/(float)frame.screenBounds.height();
-            offsetX=(screen.left-frame.screenBounds.left)*sx;offsetY=(screen.top-frame.screenBounds.top)*sy;
-            scaleX=sx*screen.width()/localW;scaleY=sy*screen.height()/localH;
+            float nextOffsetX=(screen.left-frame.screenBounds.left)*sx,nextOffsetY=(screen.top-frame.screenBounds.top)*sy;
+            float nextScaleX=sx*screen.width()/local.width(),nextScaleY=sy*screen.height()/local.height();
+            if(!isFinite(nextOffsetX)||!isFinite(nextOffsetY)||!isFinite(nextScaleX)||!isFinite(nextScaleY)) {
+                reject("capture "+frame.screenBounds+" "+frame.bitmap.getWidth()+"x"+frame.bitmap.getHeight()+" card "+local+" on screen "+screen);return false;
+            }
+            localW=local.width();localH=local.height();lastScreen.set(screen);
+            offsetX=nextOffsetX;offsetY=nextOffsetY;scaleX=nextScaleX;scaleY=nextScaleY;
             fw=40;fh=Math.max(8,Math.round(localH*40/localW));
             int[] response=frame.pixels.response(offsetX,offsetY,screen.width()*sx,screen.height()*sy,fw,fh,scratch);
             // Geometry still needs rebinding, but identical response pixels need no new GPU texture.
@@ -192,6 +201,20 @@ public final class FrostedSurface {
     private float lastLive=-1;
     /** How alive the music glow was in the last draw (negative: not a music card), for the trace. */
     public float liveNow() { return lastLive; }
+    private static int rejections;
+    private static String lastRejection;
+    static boolean isFinite(float value) { return !Float.isNaN(value)&&!Float.isInfinite(value); }
+    static boolean isFinite(RectF r) { return isFinite(r.left)&&isFinite(r.top)&&isFinite(r.right)&&isFinite(r.bottom); }
+    /** Geometry that is NaN or infinite is never sent to the GPU: it turns the whole card black and stays that way. */
+    static void reject(String what) {
+        if(rejections++==0) {
+            lastRejection=what;
+            Diagnostics.fact("card material rejected geometry","first: "+what);
+            XLog.once("frosted material geometry rejected",new IllegalArgumentException(what));
+        }
+    }
+    /** How many times geometry was refused so far (for the trace). */
+    public static int rejectionsNow() { return rejections; }
     /** A shader uniform must never be NaN or infinite: one such value turns the whole card black on a GPU. */
     static float finite(float value) { return Float.isNaN(value)||Float.isInfinite(value) ? 0 : value; }
     /** Mean backdrop response of the frame in use, or a negative number while there is none (for the trace). */

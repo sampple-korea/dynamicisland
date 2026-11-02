@@ -8,7 +8,7 @@ import org.junit.Test;
 
 public class GlassTraceTest {
     private static final int ALL = GlassTrace.FROSTED | GlassTrace.HARDWARE | GlassTrace.BACKDROP | GlassTrace.AVAILABLE
-            | GlassTrace.SHOWN;
+            | GlassTrace.SHOWN | GlassTrace.CLEAN_GEOMETRY;
 
     @Test public void framesThatLookTheSameAreCountedNotStored() {
         GlassTrace trace = new GlassTrace();

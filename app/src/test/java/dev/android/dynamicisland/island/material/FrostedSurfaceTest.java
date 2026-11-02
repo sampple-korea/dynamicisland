@@ -176,6 +176,51 @@ public class FrostedSurfaceTest {
         assertEquals(.46294f,lowerLightness(0xff404040,true,0xffffffff),.0005f);
     }
 
+    /**
+     * A card whose screen position turns NaN (a view transform in the middle of an animation) used to send NaN to the
+     * shader's sampling uniforms; on the GPU that made the whole card black, and it stayed black until the geometry
+     * changed. The geometry is now refused and the card keeps the last good one.
+     */
+    @Test public void nonFiniteGeometryIsRefusedAndTheLastGoodOneStays() throws Exception {
+        SharedPreferences prefs=RuntimeEnvironment.getApplication().getSharedPreferences("frosted-nan",0);
+        prefs.edit().clear().putInt(ModuleSettings.KEY_MATERIAL_STYLE,ModuleSettings.MATERIAL_FROSTED).commit();
+        ModuleSettings.configurePreview(prefs);
+        int w=116,h=160;
+        int[] pixels=new int[w*h];java.util.Arrays.fill(pixels,0xffbdbdbd);
+        MaterialPixels data=MaterialPixels.fromArgb(pixels,w,h).blur();
+        MaterialFrame frame=new MaterialFrame(Bitmap.createBitmap(data.argb(),w,h,Bitmap.Config.ARGB_8888),data,new Rect(0,0,1164,1600),1164);
+        RenderNode node=new RenderNode("nan");node.setPosition(0,0,1164,1600);
+        Canvas canvas=node.beginRecording();
+        FrostedSurface surface=new FrostedSurface();
+        try {
+            RectF local=new RectF(0,0,1072,420),good=new RectF(46,153,1118,573);
+            assertTrue(surface.draw(canvas,frame,local,good,100,1,null,4000));
+            int before=FrostedSurface.rejectionsNow();
+            float first=lightnessOf(surface);
+            RectF[] bad={new RectF(Float.NaN,153,1118,573),new RectF(46,Float.POSITIVE_INFINITY,1118,573),
+                    new RectF(46,153,Float.NaN,Float.NaN)};
+            for(RectF screen:bad) assertTrue(surface.draw(canvas,frame,local,screen,100,1,null,4100));
+            
+            assertTrue("the geometry was refused",FrostedSurface.rejectionsNow()>before);
+            assertEquals("the card looks as before",first,lightnessOf(surface),.001f);
+            // and a good rectangle is taken again afterwards
+            assertTrue(surface.draw(canvas,frame,local,new RectF(46,200,1118,620),100,1,null,4200));
+        } finally {
+            node.endRecording();node.discardDisplayList();surface.clear();
+            prefs.edit().clear().commit();ModuleSettings.configurePreview(prefs);
+        }
+    }
+
+    private static float lightnessOf(FrostedSurface surface) {
+        Bitmap shell=paintedShell(surface,1072,420);
+        double sum=0;int n=0;
+        for(int y=100;y<400;y+=9)for(int x=200;x<880;x+=17){
+            int c=shell.getPixel(x,y);
+            sum+=(.2126*android.graphics.Color.red(c)+.7152*android.graphics.Color.green(c)+.0722*android.graphics.Color.blue(c))/255.0;n++;
+        }
+        return (float)(sum/n);
+    }
+
     private static Bitmap paintedShell(FrostedSurface surface,int w,int h) {
         Bitmap bitmap=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888);
         Canvas canvas=new Canvas(bitmap);

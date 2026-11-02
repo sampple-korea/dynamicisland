@@ -24,9 +24,11 @@ public final class GlassTrace {
     public static final int BLENDING = 1 << 6;
     /** The artwork palette has a near-black stop. */
     public static final int DARK_TONE = 1 << 7;
+    /** No geometry was ever refused for being NaN or infinite. */
+    public static final int CLEAN_GEOMETRY = 1 << 8;
 
     private static final int KEEP = 40;
-    private static final String[] FLAGS = {"frosted", "hardware", "backdrop", "available", "held", "shown", "blending", "darkTone"};
+    private static final String[] FLAGS = {"frosted", "hardware", "backdrop", "available", "held", "shown", "blending", "darkTone", "cleanGeometry"};
 
     private final long[] at = new long[KEEP];
     private final int[] bits = new int[KEEP];
