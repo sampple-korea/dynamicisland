@@ -139,8 +139,8 @@ public class ReleaseRecommendationsTest {
     }
 
     @Test public void release0116HasFourCardsAndEachOpensItsRealSetting() throws Exception {
-        pin("0.1.16-dev2");clearHistory();
-        var release=ReleaseHighlights.forVersion("0.1.16-dev2");
+        pin("0.1.16-dev3");clearHistory();
+        var release=ReleaseHighlights.forVersion("0.1.16-dev3");
         assertNotNull("the pre-release of the family shows the cards",release);
         assertSame("and so does the stable one",release,ReleaseHighlights.forVersion("0.1.16"));
         assertEquals(java.util.Set.of("idle","hide","performance","colour"),
