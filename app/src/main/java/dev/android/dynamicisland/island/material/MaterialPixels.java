@@ -102,39 +102,92 @@ public final class MaterialPixels {
     public void release(Scratch scratch) {
         give(scratch, rgb);
     }
+    /**
+     * One pass of the triangle filter. The taps of each output position are worked out once; the sums run over the
+     * source positions in the same order as ever, so the result does not change by a single bit, but the memory
+     * is read along its rows (the vertical pass used to jump a whole row for every tap).
+     */
     private static void resample(float[] in, float[] out, int w, int h, int size, boolean horizontal, Scratch scratch) {
-        int old = horizontal ? w : h, lines = horizontal ? h : w;
+        int old = horizontal ? w : h;
         float scale = old / (float) size, support = Math.max(1, scale);
-        float[] weights = take(scratch, (int)Math.ceil(support * 2) + 2);
+        int stride = (int)Math.ceil(support * 2) + 2;
+        float[] weights = take(scratch, size * stride);
+        int[] from = new int[size], to = new int[size];
         for (int pos = 0; pos < size; pos++) {
             float centre = (pos + .5f) * scale;
-            int from = Math.max(0, (int)Math.floor(centre - support + .5f));
-            int to = Math.min(old, (int)Math.floor(centre + support + .5f));
+            from[pos] = Math.max(0, (int)Math.floor(centre - support + .5f));
+            to[pos] = Math.min(old, (int)Math.floor(centre + support + .5f));
             float sum = 0;
-            for (int k = from; k < to; k++) sum += Math.max(0, 1 - Math.abs((k + .5f - centre) / support));
-            for (int k = from; k < to; k++) weights[k - from] = Math.max(0, 1 - Math.abs((k + .5f - centre) / support)) / sum;
-            for (int line = 0; line < lines; line++) for (int c = 0; c < 3; c++) {
-                float v = 0;
-                for (int k = from; k < to; k++) v += in[((horizontal ? line * w + k : k * w + line) * 3) + c] * weights[k - from];
-                out[((horizontal ? line * size + pos : pos * w + line) * 3) + c] = v;
+            for (int k = from[pos]; k < to[pos]; k++) sum += Math.max(0, 1 - Math.abs((k + .5f - centre) / support));
+            for (int k = from[pos]; k < to[pos]; k++) {
+                weights[pos * stride + k - from[pos]] = Math.max(0, 1 - Math.abs((k + .5f - centre) / support)) / sum;
+            }
+        }
+        if (horizontal) {
+            for (int line = 0; line < h; line++) {
+                int source = line * w * 3, target = line * size * 3;
+                for (int pos = 0; pos < size; pos++) {
+                    float r = 0, g = 0, b = 0;
+                    int tap = pos * stride - from[pos];
+                    for (int k = from[pos]; k < to[pos]; k++) {
+                        float weight = weights[tap + k];
+                        int at = source + k * 3;
+                        r += in[at] * weight;
+                        g += in[at + 1] * weight;
+                        b += in[at + 2] * weight;
+                    }
+                    int at = target + pos * 3;
+                    out[at] = r;
+                    out[at + 1] = g;
+                    out[at + 2] = b;
+                }
+            }
+        } else {
+            int row = w * 3;
+            for (int pos = 0; pos < size; pos++) {
+                int target = pos * row;
+                java.util.Arrays.fill(out, target, target + row, 0f);
+                int tap = pos * stride - from[pos];
+                for (int k = from[pos]; k < to[pos]; k++) {
+                    float weight = weights[tap + k];
+                    int source = k * row;
+                    for (int i = 0; i < row; i++) out[target + i] += in[source + i] * weight;
+                }
             }
         }
         give(scratch, weights);
     }
     private MaterialPixels taps(boolean up, Scratch scratch) {
         float[] out = take(scratch, width * height * 3);
+        // the edge clamps of each column, worked out once instead of for every pixel of every row
+        int[] xm1 = new int[width], xp1 = new int[width], xm2 = new int[width], xp2 = new int[width];
+        for (int x = 0; x < width; x++) {
+            xm1[x] = Math.max(0, x - 1) * 3;
+            xp1[x] = Math.min(width - 1, x + 1) * 3;
+            xm2[x] = Math.max(0, x - 2) * 3;
+            xp2[x] = Math.min(width - 1, x + 2) * 3;
+        }
+        float[] rgb = this.rgb;
         for (int y = 0; y < height; y++) {
             int ym1 = Math.max(0, y - 1) * width * 3, yp1 = Math.min(height - 1, y + 1) * width * 3;
             int ym2 = Math.max(0, y - 2) * width * 3, yp2 = Math.min(height - 1, y + 2) * width * 3;
             int row = y * width * 3;
-            for (int x = 0; x < width; x++) {
-                int xm1 = Math.max(0, x - 1) * 3, xp1 = Math.min(width - 1, x + 1) * 3;
-                int xm2 = Math.max(0, x - 2) * 3, xp2 = Math.min(width - 1, x + 2) * 3;
-                int x3 = x * 3;
-                for (int c = 0; c < 3; c++) {
-                    float diagonal = rgb[ym1 + xm1 + c] + rgb[ym1 + xp1 + c] + rgb[yp1 + xm1 + c] + rgb[yp1 + xp1 + c];
-                    float axial = up ? rgb[row + xm2 + c] + rgb[row + xp2 + c] + rgb[ym2 + x3 + c] + rgb[yp2 + x3 + c] : 4 * rgb[row + x3 + c];
-                    out[row + x3 + c] = (diagonal + axial) / 8;
+            if (up) {
+                for (int x = 0; x < width; x++) {
+                    int a = xm1[x], b = xp1[x], c2 = xm2[x], d = xp2[x], x3 = x * 3;
+                    for (int c = 0; c < 3; c++) {
+                        float diagonal = rgb[ym1 + a + c] + rgb[ym1 + b + c] + rgb[yp1 + a + c] + rgb[yp1 + b + c];
+                        float axial = rgb[row + c2 + c] + rgb[row + d + c] + rgb[ym2 + x3 + c] + rgb[yp2 + x3 + c];
+                        out[row + x3 + c] = (diagonal + axial) / 8;
+                    }
+                }
+            } else {
+                for (int x = 0; x < width; x++) {
+                    int a = xm1[x], b = xp1[x], x3 = x * 3;
+                    for (int c = 0; c < 3; c++) {
+                        float diagonal = rgb[ym1 + a + c] + rgb[ym1 + b + c] + rgb[yp1 + a + c] + rgb[yp1 + b + c];
+                        out[row + x3 + c] = (diagonal + 4 * rgb[row + x3 + c]) / 8;
+                    }
                 }
             }
         }
