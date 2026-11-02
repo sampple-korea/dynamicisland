@@ -472,6 +472,11 @@ half4 main(float2 position) {
     }
     float3 surface=transmitted*(1.0-opacity)+depthTint*opacity;
     if(musicSurface)surface=vividMusic(surface);
+    // Bright surroundings: the glass may be as light as the backdrop makes it, but not lighter than the light
+    // text on the card can bear. Dark and ordinary scenes never reach this knee, so they are unchanged.
+    float surfaceLight=dot(surface,float3(.2126,.7152,.0722));
+    const float lightCap=.40;
+    if(surfaceLight>lightCap)surface*=(lightCap+(surfaceLight-lightCap)*.2)/surfaceLight;
     float depth=max(-d,0.0);
     float nx=(materialSdf(centred+float2(1,0),size*.5,cornerRadius)-materialSdf(centred-float2(1,0),size*.5,cornerRadius))*.5;
     float ny=(materialSdf(centred+float2(0,1),size*.5,cornerRadius)-materialSdf(centred-float2(0,1),size*.5,cornerRadius))*.5;

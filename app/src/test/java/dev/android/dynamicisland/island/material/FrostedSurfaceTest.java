@@ -112,6 +112,58 @@ public class FrostedSurfaceTest {
         assertFalse(unsupported.animating(1600));
         node.endRecording();node.discardDisplayList();surface.clear();unsupported.clear();
     }
+    /** Mean lightness (0..1) of the lower third of a card drawn over a flat backdrop of this colour. */
+    private static float lowerLightness(int backdrop,boolean music) throws Exception {
+        SharedPreferences prefs=RuntimeEnvironment.getApplication().getSharedPreferences("frosted-bright",0);
+        prefs.edit().clear().putInt(ModuleSettings.KEY_MATERIAL_STYLE,ModuleSettings.MATERIAL_FROSTED).commit();
+        ModuleSettings.configurePreview(prefs);
+        int w=116,h=160;
+        int[] pixels=new int[w*h];java.util.Arrays.fill(pixels,backdrop);
+        MaterialPixels data=MaterialPixels.fromArgb(pixels,w,h).blur();
+        MaterialFrame frame=new MaterialFrame(Bitmap.createBitmap(data.argb(),w,h,Bitmap.Config.ARGB_8888),data,new Rect(0,0,1164,1600),1164);
+        RenderNode node=new RenderNode("Bright backdrop");node.setPosition(0,0,1164,1600);
+        Canvas canvas=node.beginRecording();
+        FrostedSurface surface=new FrostedSurface();
+        dev.android.dynamicisland.island.view.media.MediaFx fx=null;
+        if(music) {
+            dev.android.dynamicisland.island.view.IslandView owner=new dev.android.dynamicisland.island.view.IslandView(
+                    RuntimeEnvironment.getApplication(),dev.android.dynamicisland.island.view.IslandHost.NONE);
+            owner.setGeometry(1164,582,40,24,false);
+            dev.android.dynamicisland.island.model.IslandItem item=new dev.android.dynamicisland.island.model.IslandItem("m");
+            item.kind=dev.android.dynamicisland.island.model.IslandItem.Kind.EVENT;item.isMedia=true;item.playing=true;
+            item.title="Ballad";item.subtitle="Unknown";item.mediaDuration=189000;item.mediaPosition=57000;
+            item.mediaPalette=dev.android.dynamicisland.island.graphics.ArtworkPalette.fromPixels(null);
+            fx=new dev.android.dynamicisland.island.view.card.MediaBody(owner,item,1094).materialMusic();
+            for(long k=0;k<=4000;k+=100)fx.advance(k);
+        }
+        try {
+            RectF local=new RectF(0,0,1072,420),screen=new RectF(46,153,1118,573);
+            assertTrue(surface.draw(canvas,frame,local,screen,100,1,fx,4000));
+            assertTrue(surface.draw(canvas,frame,local,screen,100,1,fx,4200));
+            Bitmap shell=paintedShell(surface,1072,420);
+            double sum=0;int n=0;
+            for(int y=280;y<400;y++)for(int x=200;x<880;x+=7){
+                int c=shell.getPixel(x,y);
+                sum+=(.2126*android.graphics.Color.red(c)+.7152*android.graphics.Color.green(c)+.0722*android.graphics.Color.blue(c))/255.0;n++;
+            }
+            return (float)(sum/n);
+        } finally {
+            node.endRecording();node.discardDisplayList();surface.clear();
+            prefs.edit().clear().commit();ModuleSettings.configurePreview(prefs);
+        }
+    }
+
+    @Test public void glassOnABrightBackdropStaysDarkEnoughForItsLightText() throws Exception {
+        for(boolean music:new boolean[]{false,true}) {
+            float white=lowerLightness(0xffffffff,music);
+            float grey=lowerLightness(0xffbdbdbd,music);
+            float dark=lowerLightness(0xff171719,music);
+            assertTrue((music ? "music" : "card")+", white backdrop: lower card "+white,white<=.50f);
+            assertTrue((music ? "music" : "card")+", light grey backdrop: lower card "+grey,grey<=.50f);
+            assertTrue((music ? "music" : "card")+", a dark backdrop stays under the knee, so it is unchanged: "+dark,dark<.38f);
+        }
+    }
+
     private static Bitmap paintedShell(FrostedSurface surface,int w,int h) {
         Bitmap bitmap=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888);
         Canvas canvas=new Canvas(bitmap);
