@@ -95,10 +95,11 @@ public final class FrostedSurface {
                         current.responseMean,current.responseMin,current.responseMax));lastInputReport=now;
             }
             float dt=lastTime==0 ? 0 : Math.max(0,Math.min(.05f,(now-lastTime)/1000f));lastTime=now;
-            float live=music==null ? 0 : music.liveness(now);
+            float live=music==null ? 0 : finite(music.liveness(now));
+            lastLive=music==null ? -1 : live;
             float motion=Math.max(0,Math.min(2,ModuleSettings.glowMotion()/50f));
             if(!primed){phase=(now%10000)/10000f*(float)(Math.PI*2);primed=true;}
-            phase=(phase+dt*(float)(Math.PI*2)/10*live)%(float)(Math.PI*2);
+            phase=(phase+dt*(float)(Math.PI*2)/10*live)%(float)(Math.PI*2);phase=finite(phase);
             shader.setFloatUniform("phase",phase);shader.setFloatUniform("motionAmount",motion*live);
             shader.setFloatUniform("paletteAmount",music==null ? 0 : .18f+.82f*live);
             if(music!=null) {
@@ -188,6 +189,11 @@ public final class FrostedSurface {
         if(total<=0){out[offset]=solid;out[offset+1]=fade;return;}
         float ratio=(w-(bw-total*bp))/np;out[offset]=solid*ratio/total;out[offset+1]=fade*ratio/total;
     }
+    private float lastLive=-1;
+    /** How alive the music glow was in the last draw (negative: not a music card), for the trace. */
+    public float liveNow() { return lastLive; }
+    /** A shader uniform must never be NaN or infinite: one such value turns the whole card black on a GPU. */
+    static float finite(float value) { return Float.isNaN(value)||Float.isInfinite(value) ? 0 : value; }
     /** Mean backdrop response of the frame in use, or a negative number while there is none (for the trace). */
     public float responseMean() {
         Input in=current;

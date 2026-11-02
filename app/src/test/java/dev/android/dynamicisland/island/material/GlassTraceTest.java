@@ -44,6 +44,21 @@ public class GlassTraceTest {
         assertTrue(trace.summary(100), trace.summary(100).contains("resp none"));
     }
 
+    @Test public void livenessShowsAndNaNIsCalledOut() {
+        GlassTrace trace = new GlassTrace();
+        trace.record(0, ALL, 1f, 1f);
+        trace.record(1000, ALL, 1f, Float.NaN);
+        String summary = trace.summary(2000);
+        assertTrue(summary, summary.contains("live 1.0"));
+        assertTrue(summary, summary.contains("live NaN"));
+    }
+
+    @Test public void shaderValuesAreAlwaysFinite() {
+        assertEquals(0f, FrostedSurface.finite(Float.NaN), 0f);
+        assertEquals(0f, FrostedSurface.finite(Float.POSITIVE_INFINITY), 0f);
+        assertEquals(.5f, FrostedSurface.finite(.5f), 0f);
+    }
+
     @Test public void emptyTraceSaysSo() {
         assertEquals("no frame drawn yet", new GlassTrace().summary(0));
     }
