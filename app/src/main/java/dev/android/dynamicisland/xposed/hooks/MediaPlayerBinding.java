@@ -39,6 +39,7 @@ final class MediaPlayerBinding {
     private final RectF materialLocal=new RectF(),materialScreen=new RectF();
     private Runnable refresh;
     private final FramePacer framePacer = new FramePacer();
+    private final HeldCard held = new HeldCard();
 
     /** Scale and vertical offset the card was drawn with, to map touches back into card coordinates. */
     private float scale = 1.0f;
@@ -81,25 +82,40 @@ final class MediaPlayerBinding {
      * options open, no session known to the island, or the user turned the island's player off). The lock screen shows the same themed player as the shade.
      */
     IslandItem item(View player) {
+        int[] reason = new int[1];
+        IslandItem live = liveItem(player, reason);
+        return held.pick(live, reason[0], android.os.SystemClock.uptimeMillis());
+    }
+
+    /** The card the island has for the player right now; when there is none, {@code reason[0]} says why. */
+    private IslandItem liveItem(View player, int[] reason) {
         if (!ModuleSettings.shadeMediaPlayer()) {
-            return null; // the user keeps the stock music player in the shade
+            reason[0] = HeldCard.SETTING_OFF; // the user keeps the stock music player in the shade
+            return null;
         }
         Context ctx = player.getContext();
         AccessibilityManager accessibility = ctx.getSystemService(AccessibilityManager.class);
         if (accessibility != null && accessibility.isTouchExplorationEnabled()) {
+            reason[0] = HeldCard.TOUCH_EXPLORATION;
             return null;
         }
         Object mediaPanel = panel.get();
         Object options = Refl.get(Refl.get(mediaPanel, "mViewHolder"), "options");
         if (options instanceof View && ((View) options).getVisibility() == View.VISIBLE) {
+            reason[0] = HeldCard.OPTIONS_OPEN;
             return null;
         }
         Object controller = Refl.get(mediaPanel, "mController");
         IslandController source = IslandController.get();
         if (!(controller instanceof MediaController) || source == null) {
+            reason[0] = HeldCard.NO_SOURCE;
             return null;
         }
-        return source.mediaItemForSession(((MediaController) controller).getSessionToken());
+        IslandItem card = source.mediaItemForSession(((MediaController) controller).getSessionToken());
+        if (card == null) {
+            reason[0] = HeldCard.NO_CARD;
+        }
+        return card;
     }
 
     /** Suppression is distinct from a missing card: a missing card normally restores the stock player. */
