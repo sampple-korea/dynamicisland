@@ -20,12 +20,17 @@ import dev.android.dynamicisland.island.graphics.GlyphIcon;
 import dev.android.dynamicisland.island.model.IslandItem;
 import dev.android.dynamicisland.settings.ModuleSettings;
 import dev.android.dynamicisland.xposed.Refl;
+import dev.android.dynamicisland.xposed.Diagnostics;
 import dev.android.dynamicisland.xposed.XLog;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.LinkedHashSet;
+import java.util.Collections;
+import java.util.function.Function;
 
 /**
  * Short-lived "event" islands that the stock status bar never shows as a live notification:
@@ -69,6 +74,11 @@ public final class EventSource {
         }
     };
     private final Map<String, IslandItem> events = new LinkedHashMap<>();
+    private final Function<BluetoothDevice, Set<String>> bluetoothIdentity;
+    private final Map<String, BluetoothDevice> bluetoothDevices = new LinkedHashMap<>();
+    private final Map<String, String> bluetoothKeys = new LinkedHashMap<>();
+    private int bluetoothRechecks;
+    private final Runnable recheckBluetooth = this::recheckBluetoothGroups;
     /** How long each popup is shown once it is on screen. */
     private final Map<String, Long> shownFor = new java.util.HashMap<>();
     private boolean shadeOpen;
@@ -88,9 +98,14 @@ public final class EventSource {
     private boolean baseline;
 
     public EventSource(Context ctx, Handler main, Runnable onChange) {
+        this(ctx, main, onChange, new BluetoothDeviceGroups(ctx)::identity);
+    }
+
+    EventSource(Context ctx, Handler main, Runnable onChange, Function<BluetoothDevice, Set<String>> bluetoothIdentity) {
         this.ctx = ctx;
         this.main = main;
         this.onChange = onChange;
+        this.bluetoothIdentity = bluetoothIdentity;
     }
 
     /** Registers the receivers; every event then comes in on the main thread. */
@@ -277,6 +292,7 @@ public final class EventSource {
     /** Adds the events that are still alive and schedules the refresh that removes them. */
     public void collect(List<IslandItem> out) {
         if (events.isEmpty()) {
+            pruneBluetooth();
             return;
         }
         long now = SystemClock.uptimeMillis();
@@ -284,6 +300,7 @@ public final class EventSource {
             // the island is under the shade: the popups wait for it to close, with their time not started
             events.values().removeIf(item -> now - item.postTime > DEFER_MAX_MS);
             shownFor.keySet().retainAll(events.keySet());
+            pruneBluetooth();
             return;
         }
         long next = Long.MAX_VALUE;
@@ -300,6 +317,7 @@ public final class EventSource {
             out.add(item);
             next = Math.min(next, item.expiresAtUptime);
         }
+        pruneBluetooth();
         if (next != Long.MAX_VALUE) {
             main.removeCallbacks(tick);
             main.postDelayed(tick, Math.max(16L, next - now + 20));
@@ -491,25 +509,108 @@ public final class EventSource {
         if (device == null) {
             return;
         }
+        pruneBluetooth();
         if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(i.getAction())) {
             if (!isAudio(device)) {
                 return;
             }
             int battery = batteryOf(device);
-            show(bluetoothItem(device, battery), BLUETOOTH_MS);
+            String key = bluetoothKey(device);
+            bluetoothDevices.put(device.getAddress(), device);
+            bluetoothKeys.put(device.getAddress(), key);
+            IslandItem old = events.get(key);
+            if (old == null) show(bluetoothItem(device, battery, key), BLUETOOTH_MS);
+            else updateBluetooth(device, battery, key, old);
+            // ACL can arrive before SettingsLib has learned the CSIP/member relationship.
+            bluetoothRechecks = 2;
+            main.removeCallbacks(recheckBluetooth);
+            main.postDelayed(recheckBluetooth, 250);
         } else if (BT_BATTERY_ACTION.equals(i.getAction())) {
-            IslandItem old = events.get("event:bt:" + device.getAddress());
+            String key = bluetoothKey(device);
+            IslandItem old = events.get(key);
             if (old != null) {
                 int level = i.getIntExtra(BT_BATTERY_EXTRA, -1);
                 if (level >= 0) {
-                    IslandItem fresh = bluetoothItem(device, level);
-                    fresh.expiresAtUptime = old.expiresAtUptime;
-                    fresh.postTime = old.postTime;
-                    events.put(fresh.key, fresh);
-                    onChange.run();
+                    bluetoothDevices.put(device.getAddress(), device);
+                    bluetoothKeys.put(device.getAddress(), key);
+                    updateBluetooth(device, level, key, old);
                 }
             }
         }
+    }
+
+    private void updateBluetooth(BluetoothDevice device, int battery, String key, IslandItem old) {
+        events.put(key, bluetoothUpdate(device, battery, key, old));
+        onChange.run();
+    }
+
+    private IslandItem bluetoothUpdate(BluetoothDevice device, int battery, String key, IslandItem old) {
+        IslandItem fresh = bluetoothItem(device, battery >= 0 ? battery : old.batteryPercent, key);
+        fresh.title = old.title; // A member may have only a transport-specific/generic alias.
+        if (fresh.batteryPercent >= 0) fresh.compactLabel = old.title;
+        else fresh.trailingText = old.title;
+        fresh.expiresAtUptime = old.expiresAtUptime;
+        fresh.postTime = old.postTime;
+        fresh.transientPopup = old.transientPopup;
+        return fresh;
+    }
+
+    /** Keep the oldest visible key so learning another member never removes/re-adds the same popup. */
+    private String bluetoothKey(BluetoothDevice device) {
+        Set<String> identity = new LinkedHashSet<>(bluetoothIdentity.apply(device));
+        Set<String> matches = new LinkedHashSet<>();
+        String direct = bluetoothKeys.get(device.getAddress());
+        if (direct != null) matches.add(direct);
+        // Include transitive member links and refresh existing devices too: group IDs can arrive late.
+        boolean changed;
+        do {
+            changed = false;
+            for (Map.Entry<String, BluetoothDevice> entry : bluetoothDevices.entrySet()) {
+                String key = bluetoothKeys.get(entry.getKey());
+                if (matches.contains(key)) continue;
+                Set<String> other = bluetoothIdentity.apply(entry.getValue());
+                if (!Collections.disjoint(identity, other)) {
+                    matches.add(key);identity.addAll(other);changed = true;
+                }
+            }
+        } while (changed);
+        String kept = null;
+        for (String key : events.keySet()) if (matches.contains(key)) { kept = key;break; }
+        if (kept == null) return "event:bt:" + device.getAddress();
+        for (String key : matches) if (!kept.equals(key)) {
+            IslandItem removed = events.remove(key), first = events.get(kept);
+            if (removed != null && first.batteryPercent < 0 && removed.batteryPercent >= 0) {
+                // Preserve a known member's battery when the original ACL had no level yet.
+                events.put(kept, bluetoothUpdate(device, removed.batteryPercent, kept, first));
+            }
+            shownFor.remove(key);
+        }
+        final String groupKey = kept;
+        bluetoothKeys.replaceAll((address, key) -> matches.contains(key) ? groupKey : key);
+        return kept;
+    }
+
+    private void pruneBluetooth() {
+        long now = SystemClock.uptimeMillis();
+        bluetoothKeys.entrySet().removeIf(entry -> {
+            IslandItem item = events.get(entry.getValue());
+            boolean expired = item == null || (shadeOpen ? now - item.postTime > DEFER_MAX_MS : item.expiresAtUptime <= now);
+            if (expired) { events.remove(entry.getValue());shownFor.remove(entry.getValue()); }
+            return expired;
+        });
+        bluetoothDevices.keySet().retainAll(bluetoothKeys.keySet());
+    }
+
+    private void recheckBluetoothGroups() {
+        if (!ModuleSettings.eventBluetooth()) { bluetoothDevices.clear();bluetoothKeys.clear();return; }
+        pruneBluetooth();
+        int before = events.size();
+        for (BluetoothDevice device : new ArrayList<>(bluetoothDevices.values())) bluetoothKey(device);
+        if (events.size() != before) onChange.run();
+        int groups = new LinkedHashSet<>(bluetoothKeys.values()).size();
+        Diagnostics.fact("bluetooth audio grouping", bluetoothDevices.size() + " connections, " + groups
+                + " cards; system member/group identity; distinct devices retained");
+        if (--bluetoothRechecks > 0 && !bluetoothDevices.isEmpty()) main.postDelayed(recheckBluetooth, 1000);
     }
 
     // Runs with the SystemUI host permissions; unavailable Bluetooth access is caught below.
@@ -531,6 +632,11 @@ public final class EventSource {
     // Runs with the SystemUI host permissions; denied device names fall back to generic text.
     @android.annotation.SuppressLint("MissingPermission")
     IslandItem bluetoothItem(BluetoothDevice device, int battery) {
+        return bluetoothItem(device, battery, "event:bt:" + device.getAddress());
+    }
+
+    @android.annotation.SuppressLint("MissingPermission")
+    private IslandItem bluetoothItem(BluetoothDevice device, int battery, String key) {
         String name = null;
         try {
             name = device.getAlias();
@@ -540,7 +646,7 @@ public final class EventSource {
         } catch (Throwable ignored) {
             // permission / hidden state: fall back to a generic name
         }
-        IslandItem it = base("event:bt:" + device.getAddress());
+        IslandItem it = base(key);
         it.title = name != null ? name : IslandText.get(ctx, "island_bluetooth_device");
         it.subtitle = IslandText.get(ctx, "island_connected");
         it.eventLayout = IslandItem.EventLayout.DEVICE;
