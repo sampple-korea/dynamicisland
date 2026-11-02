@@ -211,6 +211,32 @@ public class FrostedSurfaceTest {
         }
     }
 
+    /**
+     * The response is packed into two bytes. Decoding it as (R*255*256+G*255)/65535 passes through 65535, which a
+     * half-precision register cannot hold (largest finite value 65504); the shader now scales both bytes by 1/65536
+     * first. The two forms are the same number, and the new one never goes above about 1.004.
+     */
+    @Test public void theResponseDecodeIsTheSameNumberAndNeverLeavesHalfPrecision() throws Exception {
+        double worst=0,largestStep=0;
+        for(int value=0;value<=65535;value++) {
+            double r=(value>>8)/255.0,g=(value&255)/255.0;
+            double plain=(r*255*256+g*255)/65535;
+            double safe=Math.max(0,Math.min(1,(r*0.99609375+g*0.0038909912109375)/0.9999847412109375));
+            worst=Math.max(worst,Math.abs(plain-safe));
+            largestStep=Math.max(largestStep,Math.max(r*0.99609375+g*0.0038909912109375,Math.abs(safe)));
+            assertEquals(value/65535.0,safe,1e-9);
+        }
+        assertTrue("same number, difference "+worst,worst<1e-9);
+        assertTrue("largest step "+largestStep,largestStep<1.01);
+        try(java.io.InputStream source=FrostedSurface.class.getResourceAsStream("/dev/android/dynamicisland/material/frosted.agsl")) {
+            String code=new String(source.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);
+            assertFalse("the plain decode is gone",code.contains("255.0*256.0"));
+            assertFalse(code.contains("/65535.0"));
+            assertTrue(code.contains("float response=clamp((field.r*0.99609375"));
+            assertTrue(code.contains("float oldResponse=clamp((oldField.r*0.99609375"));
+        }
+    }
+
     private static float lightnessOf(FrostedSurface surface) {
         Bitmap shell=paintedShell(surface,1072,420);
         double sum=0;int n=0;

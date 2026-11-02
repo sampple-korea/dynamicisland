@@ -39,6 +39,7 @@ final class ShadeCards {
     }
     void clearMaterial() { material.clear(); }
     float materialResponse() { return material.responseMean(); }
+    float materialResponseMax() { return material.responseMaxNow(); }
     float materialLive() { return material.liveNow(); }
     boolean materialBlending() { return material.blendingNow(); }
     boolean materialAnimating() { return material.animating(IslandView.now()) || body != null && body.animating(IslandView.now()); }

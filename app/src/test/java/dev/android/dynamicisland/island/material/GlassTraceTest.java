@@ -59,6 +59,15 @@ public class GlassTraceTest {
         assertEquals(.5f, FrostedSurface.finite(.5f), 0f);
     }
 
+    @Test public void theLargestResponseCellIsShownToFourDecimals() {
+        GlassTrace trace = new GlassTrace();
+        trace.record(0, ALL, 1f, 1f, .9998f);
+        trace.record(1000, ALL, 1f, 1f, 1f);
+        String summary = trace.summary(2000);
+        assertTrue(summary, summary.contains("max 0.9998"));
+        assertTrue(summary, summary.contains("max 1.0000"));
+    }
+
     @Test public void emptyTraceSaysSo() {
         assertEquals("no frame drawn yet", new GlassTrace().summary(0));
     }

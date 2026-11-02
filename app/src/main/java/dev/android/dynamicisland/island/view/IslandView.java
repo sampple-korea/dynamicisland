@@ -1196,6 +1196,7 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
     public void clearShadeMaterial() { shadeCards.clearMaterial(); }
     public boolean shadeMaterialAnimating() { return shadeCards.materialAnimating(); }
     public float shadeMaterialResponse() { return shadeCards.materialResponse(); }
+    public float shadeMaterialResponseMax() { return shadeCards.materialResponseMax(); }
     public float shadeMaterialLive() { return shadeCards.materialLive(); }
     public boolean shadeMaterialBlending() { return shadeCards.materialBlending(); }
 

@@ -175,7 +175,7 @@ final class MediaPlayerBinding {
         if (renderer.shadeMaterialBlending()) flags |= dev.android.dynamicisland.island.material.GlassTrace.BLENDING;
         if (darkTone(item)) flags |= dev.android.dynamicisland.island.material.GlassTrace.DARK_TONE;
         if (dev.android.dynamicisland.island.material.FrostedSurface.rejectionsNow() == 0) flags |= dev.android.dynamicisland.island.material.GlassTrace.CLEAN_GEOMETRY;
-        TRACE.record(android.os.SystemClock.uptimeMillis(), flags, renderer.shadeMaterialResponse(), renderer.shadeMaterialLive());
+        TRACE.record(android.os.SystemClock.uptimeMillis(), flags, renderer.shadeMaterialResponse(), renderer.shadeMaterialLive(), renderer.shadeMaterialResponseMax());
     }
 
     /** True when a stop of the card's artwork palette is nearly black. */

@@ -222,6 +222,11 @@ public final class FrostedSurface {
         Input in=current;
         return in==null||in.frame==null ? -1f : in.responseMean;
     }
+    /** Largest cell of the response field in use, 0..1, or a negative number while there is none (for the trace). */
+    public float responseMaxNow() {
+        Input in=current;
+        return in==null||in.frame==null ? -1f : in.responseMax;
+    }
     /** True while a new capture is blending in (for the trace). */
     public boolean blendingNow() { return blending; }
     public boolean animating(long now) {
