@@ -686,7 +686,7 @@
     <string name="swipe_up_hides">上スワイプで隠す</string>
     <string name="swipe_up_hides_desc">小さなピルを上にスワイプすると隠します(iMotion)。オフにすると誤って隠れません。ピルを長押しして隠す操作と、開いたカードを上スワイプで閉じる操作は引き続き使えます。隠したピルはカメラ付近を下に引くと戻ります。</string>
     <string name="swipe_down_opens">下にスワイプして開く</string>
-    <string name="swipe_down_opens_desc">小さなピルを下にスワイプすると、タップしたときと同じようにカードが開きます。通知パネルはステータスバーの左右から引き下げれば今までどおり下がります。オフにすると、ピルを下にスワイプしたときに通知パネルが下がります。</string>
+    <string name="swipe_down_opens_desc">小さなピルを下にスワイプするとカードが開きます。スタック表示ではカードが指に追従し、引いた分だけ開きます。素早く弾けば速く、ゆっくり引けば穏やかに開き、早く離すと閉じます。iMotionではすぐに開きます。通知パネルはステータスバーの左右から引き下げれば今までどおり下がります。オフにすると、ピルを下にスワイプしたときに通知パネルが下がります。</string>
     <string name="ui_performance">パフォーマンス</string>
     <string name="ui_performance_summary">低負荷モードと効果の軽減</string>
     <string name="perf_lighter">効果を軽くする</string>

@@ -686,7 +686,7 @@
     <string name="swipe_up_hides">위로 스와이프해 숨기기</string>
     <string name="swipe_up_hides_desc">작은 알약을 위로 스와이프하면 숨깁니다(iMotion). 끄면 실수로 숨겨지지 않으며, 알약을 길게 누르면 숨기는 동작과 펼친 카드를 위로 스와이프해 접는 동작은 그대로 됩니다. 숨긴 알약은 카메라 근처를 아래로 당겨 되돌립니다.</string>
     <string name="swipe_down_opens">아래로 스와이프해 열기</string>
-    <string name="swipe_down_opens_desc">작은 알약을 아래로 스와이프하면 탭할 때처럼 카드가 열립니다. 알림창은 상단바 양옆에서 내리면 그대로 내려옵니다. 끄면 알약을 아래로 스와이프할 때 알림창이 내려옵니다.</string>
+    <string name="swipe_down_opens_desc">작은 알약을 아래로 스와이프하면 카드가 열립니다. 스택 방식에서는 카드가 손가락을 따라갑니다. 당기는 만큼 열리고, 빠르게 튕기면 빠르게, 천천히 당기면 부드럽게 열리며, 일찍 놓으면 다시 접힙니다. iMotion에서는 카드가 바로 열립니다. 알림창은 상단바 양옆에서 내리면 그대로 내려옵니다. 끄면 알약을 아래로 스와이프할 때 알림창이 내려옵니다.</string>
     <string name="ui_performance">성능</string>
     <string name="ui_performance_summary">저성능 모드와 효과 줄이기</string>
     <string name="perf_lighter">효과 줄이기</string>

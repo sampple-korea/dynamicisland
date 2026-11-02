@@ -69,9 +69,25 @@ public class SwipeDownOpensTest {
     }
 
     private static void touch(IslandView view, int action, long down, float x, float y) {
-        MotionEvent e = MotionEvent.obtain(down, SystemClock.uptimeMillis(), action, x, y, 0);
+        touchAt(view, action, down, SystemClock.uptimeMillis(), x, y);
+    }
+
+    private static void touchAt(IslandView view, int action, long down, long at, float x, float y) {
+        MotionEvent e = MotionEvent.obtain(down, at, action, x, y, 0);
         view.onTouchEvent(e);
         e.recycle();
+    }
+
+    private static Card firstCard(Scene scene) {
+        for (Card c : scene.cards) if (!c.leaving) return c;
+        return null;
+    }
+
+    private RectF pillOf(IslandView view) {
+        Shapes shapes = ReflectionHelpers.getField(view, "shapes");
+        RectF pill = new RectF();
+        shapes.paintedMain(pill);
+        return pill;
     }
 
     private void pullDownOnThePill(IslandView view) {
@@ -122,6 +138,142 @@ public class SwipeDownOpensTest {
         } finally {
             prefs.edit().clear().commit();
             ModuleSettings.configurePreview(prefs);
+        }
+    }
+
+    private SharedPreferences stackPrefs(Context context, String name) {
+        SharedPreferences prefs = context.getSharedPreferences(name, 0);
+        prefs.edit().clear().putBoolean(ModuleSettings.KEY_AMBIENT_GLOW, false).commit();
+        ModuleSettings.configurePreview(prefs);
+        return prefs;
+    }
+
+    private void reset(SharedPreferences prefs) {
+        prefs.edit().clear().commit();
+        ModuleSettings.configurePreview(prefs);
+    }
+
+    @Test public void theCardsFollowTheFingerAndOpenFurtherTheFurtherItPulls() {
+        Context context = RuntimeEnvironment.getApplication();
+        SharedPreferences prefs = stackPrefs(context, "pull-follow");
+        try {
+            IslandView view = view(context);
+            Scene scene = ReflectionHelpers.getField(view, "scene");
+            RectF pill = pillOf(view);
+            long down = SystemClock.uptimeMillis();
+            touchAt(view, MotionEvent.ACTION_DOWN, down, down, pill.centerX(), pill.centerY());
+            touchAt(view, MotionEvent.ACTION_MOVE, down, down + 40, pill.centerX(), pill.centerY() + 20);
+            touchAt(view, MotionEvent.ACTION_MOVE, down, down + 80, pill.centerX(), pill.centerY() + 50);
+            Card card = firstCard(scene);
+            assertEquals(Mode.EXPANDED, scene.mode);
+            float small = card.h.value();
+            assertTrue("part way: taller than the pill " + small, small > card.pullFromH + 1);
+            assertTrue("part way: shorter than fully open " + small + " of " + card.targetH, small < card.targetH - 1);
+            touchAt(view, MotionEvent.ACTION_MOVE, down, down + 120, pill.centerX(), pill.centerY() + 80);
+            assertTrue("it opens further as the finger goes on", card.h.value() > small + 1);
+            assertEquals("and it is still the finger, not the clock, that sets it", card.h.target(), card.h.value(), 0.01f);
+            touchAt(view, MotionEvent.ACTION_CANCEL, down, down + 160, pill.centerX(), pill.centerY() + 80);
+            step(view, 120);
+            assertEquals("a cancelled pull folds back", Mode.COMPACT, scene.mode);
+            assertTrue(scene.cards.isEmpty());
+            assertEquals(0, shadePulls.size());
+        } finally {
+            reset(prefs);
+        }
+    }
+
+    @Test public void aShortSlowPullFoldsBackAndALongOneOrAQuickFlickOpens() {
+        Context context = RuntimeEnvironment.getApplication();
+        SharedPreferences prefs = stackPrefs(context, "pull-release");
+        try {
+            for (int variant = 0; variant < 3; variant++) {
+                shadePulls.clear();
+                IslandView view = view(context);
+                Scene scene = ReflectionHelpers.getField(view, "scene");
+                RectF pill = pillOf(view);
+                float x = pill.centerX(), y = pill.centerY();
+                long down = SystemClock.uptimeMillis();
+                touchAt(view, MotionEvent.ACTION_DOWN, down, down, x, y);
+                if (variant == 0) { // slow and short
+                    for (int i = 1; i <= 6; i++) touchAt(view, MotionEvent.ACTION_MOVE, down, down + 200L * i, x, y + 4 * i);
+                    touchAt(view, MotionEvent.ACTION_UP, down, down + 1500, x, y + 24);
+                } else if (variant == 1) { // long
+                    for (int i = 1; i <= 8; i++) touchAt(view, MotionEvent.ACTION_MOVE, down, down + 60L * i, x, y + 12 * i);
+                    touchAt(view, MotionEvent.ACTION_UP, down, down + 520, x, y + 96);
+                } else { // a quick flick over a short distance
+                    for (int i = 1; i <= 4; i++) touchAt(view, MotionEvent.ACTION_MOVE, down, down + 6L * i, x, y + 6 * i);
+                    touchAt(view, MotionEvent.ACTION_UP, down, down + 26, x, y + 26);
+                }
+                step(view, 120);
+                assertEquals("variant " + variant + " never goes to the shade", 0, shadePulls.size());
+                if (variant == 0) {
+                    assertEquals("a short slow pull folds back", Mode.COMPACT, scene.mode);
+                    assertTrue(scene.cards.isEmpty());
+                } else {
+                    assertEquals("variant " + variant + " opens", Mode.EXPANDED, scene.mode);
+                    Card card = firstCard(scene);
+                    assertEquals("and ends fully open", card.targetH, card.h.value(), 1f);
+                }
+            }
+        } finally {
+            reset(prefs);
+        }
+    }
+
+    @Test public void aPullThatLastsLongerThanTheAutoCollapseTimeDoesNotFoldItself() {
+        Context context = RuntimeEnvironment.getApplication();
+        SharedPreferences prefs = stackPrefs(context, "pull-hold");
+        try {
+            IslandView view = view(context);
+            Scene scene = ReflectionHelpers.getField(view, "scene");
+            RectF pill = pillOf(view);
+            long down = SystemClock.uptimeMillis();
+            touchAt(view, MotionEvent.ACTION_DOWN, down, down, pill.centerX(), pill.centerY());
+            touchAt(view, MotionEvent.ACTION_MOVE, down, down + 40, pill.centerX(), pill.centerY() + 30);
+            long timeout = ModuleSettings.autoCollapseMs();
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(timeout + 2000, java.util.concurrent.TimeUnit.MILLISECONDS);
+            assertEquals("still held: still open", Mode.EXPANDED, scene.mode);
+            assertFalse(scene.cards.isEmpty());
+            touchAt(view, MotionEvent.ACTION_CANCEL, down, down + timeout + 2100, pill.centerX(), pill.centerY() + 30);
+        } finally {
+            reset(prefs);
+        }
+    }
+
+    @Test public void theSplitOffSubPillPullsTheCardsOpenToo() {
+        Context context = RuntimeEnvironment.getApplication();
+        SharedPreferences prefs = stackPrefs(context, "pull-bubble");
+        try {
+            IslandView view = view(context);
+            Scene scene = ReflectionHelpers.getField(view, "scene");
+            IslandItem second = new IslandItem("second");
+            second.kind = IslandItem.Kind.TIMER;
+            second.title = "Second";
+            second.icon = GlyphIcon.of(GlyphIcon.Kind.BELL);
+            second.trailing = IslandItem.Trailing.TEXT;
+            second.trailingText = "1:00";
+            List<IslandItem> items = new ArrayList<>();
+            items.add(scene.items.get(0));
+            items.add(second);
+            view.setItems(items);
+            step(view, 160);
+            assertTrue("a sub pill exists", scene.secondary != null);
+            Shapes shapes = ReflectionHelpers.getField(view, "shapes");
+            RectF main = new RectF(), bubble = new RectF();
+            shapes.paintedMain(main);
+            shapes.bubble(main, bubble);
+            long down = SystemClock.uptimeMillis();
+            touchAt(view, MotionEvent.ACTION_DOWN, down, down, bubble.centerX(), bubble.centerY());
+            touchAt(view, MotionEvent.ACTION_MOVE, down, down + 40, bubble.centerX(), bubble.centerY() + 30);
+            touchAt(view, MotionEvent.ACTION_MOVE, down, down + 80, bubble.centerX(), bubble.centerY() + 70);
+            assertEquals("the pull on the sub pill opens the cards", Mode.EXPANDED, scene.mode);
+            assertEquals(0, shadePulls.size());
+            touchAt(view, MotionEvent.ACTION_UP, down, down + 100, bubble.centerX(), bubble.centerY() + 120);
+            step(view, 120);
+            assertEquals(Mode.EXPANDED, scene.mode);
+            assertEquals("both cards are shown", 2, scene.cards.stream().filter(c -> !c.leaving).count());
+        } finally {
+            reset(prefs);
         }
     }
 }

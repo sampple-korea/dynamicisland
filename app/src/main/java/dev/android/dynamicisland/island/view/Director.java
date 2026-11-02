@@ -3,6 +3,7 @@ package dev.android.dynamicisland.island.view;
 import android.graphics.RectF;
 import android.view.HapticFeedbackConstants;
 import dev.android.dynamicisland.island.feedback.Haptics;
+import dev.android.dynamicisland.island.graphics.Easing;
 import dev.android.dynamicisland.island.graphics.Motion;
 import dev.android.dynamicisland.island.model.IslandItem;
 import dev.android.dynamicisland.island.view.card.MediaBody;
@@ -430,7 +431,7 @@ final class Director {
         view.scheduleTick();
         if (!wasExpanded) {
             host.onExpandedChanged(true);
-            Haptics.perform(view, HapticFeedbackConstants.CONTEXT_CLICK);
+            if (!quietOpen) Haptics.perform(view, HapticFeedbackConstants.CONTEXT_CLICK);
         }
         view.notifyHost();
     }
@@ -480,6 +481,130 @@ final class Director {
             layoutCards(show);
             host.onWindowHeightNeeded(expandedWindowHeight());
         }
+    }
+
+    // ---- pulling the cards open with the finger ----------------------------------------------------------------------
+    // The feel is tuned by these numbers only.
+
+    /** Finger travel (dp, beyond the touch slop) that opens the cards completely. */
+    static final float PULL_OPEN_DISTANCE_DP = 110.0f;
+    /** Let go past this share of the pull and the cards open the rest of the way; before it they fold back. */
+    static final float PULL_OPEN_COMMIT = 0.38f;
+    /** A downward flick this fast (dp per second) opens the cards even after a short pull. */
+    static final float PULL_OPEN_FLICK_DP_PER_S = 650.0f;
+    /** The smallest pull (dp) a flick may open from. */
+    static final float PULL_OPEN_FLICK_MIN_DP = 12.0f;
+    /** Each lower card starts to open this share of the pull later than the one above it. */
+    static final float PULL_OPEN_STAGGER = 0.12f;
+    /** How much of a pull beyond the full distance is still followed (the cards stretch a little). */
+    static final float PULL_OPEN_RUBBER = 0.12f;
+
+    private boolean quietOpen;
+    private boolean pullingOpen;
+
+    boolean isPullingOpen() {
+        return pullingOpen;
+    }
+
+    /**
+     * Starts opening the cards under the finger: the stack is opened as usual, then taken off the clock so that
+     * {@link #pullOpen} sets how far it is open. Returns false when there is nothing to open this way (the caller
+     * then opens it at once, as a tap does).
+     */
+    boolean beginPullOpen() {
+        if (scene.iMode != null || scene.mode != Mode.COMPACT) {
+            return false;
+        }
+        List<IslandItem> show = scene.stackItems(MAX_CARDS);
+        if (show.isEmpty()) {
+            return false;
+        }
+        scene.peekOpen = false;
+        peekKey = null;
+        quietOpen = true; // the click comes when the open is decided, not when the finger first moves
+        try {
+            expand(show, 0);
+        } finally {
+            quietOpen = false;
+        }
+        cancelAutoCollapse(); // a slow pull must not fold itself half way
+        view.removeCallbacks(fadePillBlob);
+        long t = IslandView.now();
+        boolean any = false;
+        for (Card c : scene.cards) {
+            if (c.leaving) {
+                continue;
+            }
+            c.launched = true; // no launcher: the finger sets the springs
+            c.startAt = t;
+            c.contentStart = t - 1000; // the content follows how open the card is, not a timer
+            c.pullFromCy = c.cy.value();
+            c.pullFromW = c.w.value();
+            c.pullFromH = c.h.value();
+            any = true;
+        }
+        pullingOpen = any;
+        return any;
+    }
+
+    /** Sets how far the cards are open: 0 = still pill-sized, 1 = fully open, a little more stretches them. */
+    void pullOpen(float progress) {
+        if (!pullingOpen) {
+            return;
+        }
+        float p = progress <= 1.0f ? Math.max(0.0f, progress) : 1.0f + (progress - 1.0f) * PULL_OPEN_RUBBER;
+        for (Card c : scene.cards) {
+            if (c.leaving) {
+                continue;
+            }
+            float own = Math.max(0.0f, (p - PULL_OPEN_STAGGER * c.order) / (1.0f - PULL_OPEN_STAGGER * c.order));
+            c.cy.snapTo(Easing.lerp(c.pullFromCy, c.targetCy, own));
+            c.w.snapTo(Easing.lerp(c.pullFromW, c.targetW, own));
+            c.h.snapTo(Easing.lerp(c.pullFromH, c.targetH, own));
+        }
+        view.scheduleFrame();
+        view.invalidate();
+        view.notifyHost();
+    }
+
+    /**
+     * The finger let go. {@code commit}: the cards open the rest of the way, carrying the finger's speed (a quick pull
+     * opens quickly, a slow one gently); otherwise they fold back into the pill.
+     *
+     * @param downSpeed how fast the finger was moving down, in px per second
+     */
+    void endPullOpen(boolean commit, float downSpeed) {
+        if (!pullingOpen) {
+            return;
+        }
+        pullingOpen = false;
+        if (!commit) {
+            collapse();
+            return;
+        }
+        float distance = Math.max(1.0f, m.dp(PULL_OPEN_DISTANCE_DP));
+        long t = IslandView.now();
+        for (Card c : scene.cards) {
+            if (c.leaving) {
+                continue;
+            }
+            c.cy.animateTo(c.targetCy, Motion.CARD_DROP);
+            c.w.animateTo(c.targetW, Motion.CARD_WIDEN);
+            c.h.animateTo(c.targetH, Motion.CARD_GROW);
+            // the card travels (target - start) over the finger's PULL_OPEN_DISTANCE: its speed follows from the finger's
+            float speed = Math.min(downSpeed, m.dp(6000.0f)) / distance;
+            c.cy.impulse(speed * (c.targetCy - c.pullFromCy));
+            c.w.impulse(speed * (c.targetW - c.pullFromW));
+            c.h.impulse(speed * (c.targetH - c.pullFromH));
+            c.startAt = t;
+        }
+        scheduleAutoCollapse(ModuleSettings.autoCollapseMs());
+        view.removeCallbacks(fadePillBlob);
+        view.postDelayed(fadePillBlob, FADE_PILL_BLOB_DELAY_MS);
+        Haptics.perform(view, HapticFeedbackConstants.CONTEXT_CLICK);
+        view.scheduleFrame();
+        view.scheduleTick();
+        view.notifyHost();
     }
 
     /** Opens the stack from the current item lists (a tap on the pill). */

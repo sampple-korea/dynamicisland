@@ -1033,6 +1033,22 @@ public class IModeTest {
         }
     }
 
+    @Test public void aPullDownOnASubPillOpensThatActivity() {
+        try(Fixture f=new Fixture(3)) {
+            RectF sub=new RectF();f.scene.iMode.bubbleBounds(sub);
+            assertTrue("there is a sub pill",sub.width()>0);
+            String key=f.scene.iMode.hit(sub.centerX(),sub.centerY(),0);
+            assertTrue("the sub pill is a different activity than the first",key!=null);
+            f.event(MotionEvent.ACTION_DOWN,sub.centerX(),sub.centerY());
+            f.event(MotionEvent.ACTION_MOVE,sub.centerX(),sub.centerY()+48);
+            f.event(MotionEvent.ACTION_UP,sub.centerX(),sub.centerY()+120);
+            f.step(16,80);
+            assertEquals(0,f.shadePulls.size());
+            assertEquals(Mode.EXPANDED,f.scene.mode);
+            assertEquals("the pulled pill's activity is the one that opened",key,f.scene.iMode.selectedKey());
+        }
+    }
+
     @Test public void aPullDownThatBeganWithASidewaysWobbleOpensTheCardsWhenSwipeDownOpensIsOn() {
         try(Fixture f=new Fixture(3)) {
             f.prefs.edit().putBoolean(ModuleSettings.KEY_SWIPE_DOWN_OPENS,true).commit();

@@ -686,7 +686,7 @@
     <string name="swipe_up_hides">上滑隐藏</string>
     <string name="swipe_up_hides_desc">在小胶囊上向上滑动即可隐藏(iMotion)。关闭后不会误触隐藏;长按胶囊仍可隐藏，展开的卡片仍可上滑收起。隐藏后，在摄像头附近下拉即可恢复。</string>
     <string name="swipe_down_opens">向下滑动打开</string>
-    <string name="swipe_down_opens_desc">在小胶囊上向下滑动会像点按一样展开卡片。通知面板仍可从状态栏两侧拉下。关闭后，在胶囊上向下滑动会拉出通知面板。</string>
+    <string name="swipe_down_opens_desc">在小胶囊上向下滑动会展开卡片。在堆叠样式中，卡片会跟随手指：拉得越多开得越大，快速一甩开得快，慢慢拉则开得柔和，过早松手会收回。iMotion 中卡片会直接展开。通知面板仍可从状态栏两侧拉下。关闭后，在胶囊上向下滑动会拉出通知面板。</string>
     <string name="ui_performance">性能</string>
     <string name="ui_performance_summary">低性能模式和精简效果</string>
     <string name="perf_lighter">精简效果</string>
