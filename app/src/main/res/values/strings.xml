@@ -521,6 +521,8 @@
     <string name="low_performance_details">Content blur is replaced by a crossfade. Card background blur becomes a solid black fill. Music effects use a static album-colour tint and still artwork. Waveforms become static and audio analysis stops. Animated icons use their settled frame while real state, including battery charge, stays current. Continuous animation is limited to 30 fps; touch feedback and expansion/collapse can use up to 60 fps.\n\nYour individual settings are kept and apply again when this mode is off. Notifications, calls, timers and music controls keep working. This option is off by default.</string>
     <string name="pill_outline">Pill outline</string>
     <string name="pill_outline_desc">Auto shows an outline only when contrast between the pill and the actual background is low.</string>
+    <string name="notch_style">Notch style</string>
+    <string name="notch_style_desc">Draw the small pill hanging from the top edge of the screen, flat on top and rounded below, to blend with a notch. Not used in iMotion.</string>
     <string name="pill_outline_auto">Auto</string>
     <string name="pill_outline_always">Always</string>
     <string name="pill_outline_none">None</string>
@@ -604,6 +606,7 @@
     <string name="search_stop_words">a an the and of to for how do i my want change setting settings enable disable turn on off please</string>
     <string name="search_terms_material">blur frosted glass transparent transparency translucency classic surface frost background</string>
     <string name="search_terms_shape">corner corners curvature radius rounded rounding outline border dimensions size capsule pill</string>
+    <string name="search_terms_notch">notch teardrop waterdrop cutout camera top edge flat shape pill</string>
     <string name="search_terms_music">song songs music audio album artwork player media sound playback</string>
     <string name="search_terms_battery">charge charging charger battery current voltage watt power temperature percent</string>
     <string name="search_terms_charging_effect">Samsung stock original charging animation battery lightning flash bolt</string>

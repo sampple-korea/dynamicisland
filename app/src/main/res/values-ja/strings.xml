@@ -512,6 +512,8 @@
     <string name="low_performance_details">内容のぼかしをクロスフェードに、カードの背景ぼかしを不透明な黒に置き換えます。音楽の効果はアルバム色の静止した色合いと静止画になります。波形は静止し、音声解析は停止します。アイコンはアニメーション終了時の姿で表示し、バッテリー残量など実際の状態は更新します。継続する動きは最大 30fps、タッチと展開・折りたたみは最大 60fps に制限します。\n\n個別設定は保持され、このモードをオフにすると再適用されます。通知、通話、タイマー、音楽操作は利用できます。標準ではオフです。</string>
     <string name="pill_outline">カプセルの輪郭線</string>
     <string name="pill_outline_desc">自動では、カプセルと実際の背景のコントラストが低い場合にのみ輪郭線を表示します。</string>
+    <string name="notch_style">ノッチスタイル</string>
+    <string name="notch_style_desc">小さなピルを画面上端から下がる形（上は平ら、下だけ丸く）で描き、ノッチになじませます。iMotionでは使われません。</string>
     <string name="pill_outline_auto">自動</string>
     <string name="pill_outline_always">常に表示</string>
     <string name="pill_outline_none">なし</string>
@@ -595,6 +597,7 @@
     <string name="search_stop_words">の を が は に と で する したい 設定 変更 方法 オン オフ</string>
     <string name="search_terms_material">ぼかし ブラー ガラス 半透明 透明度 透過 クラシック 素材 背景</string>
     <string name="search_terms_shape">角 丸み 曲率 半径 角丸 輪郭 枠 サイズ カプセル</string>
+    <string name="search_terms_notch">ノッチ 水滴 切り欠き カメラ 上端 形 ピル</string>
     <string name="search_terms_music">曲 音楽 オーディオ アルバム ジャケット 再生 プレーヤー</string>
     <string name="search_terms_battery">充電 充電器 バッテリー 電池 残量 電流 電圧 電力 温度</string>
     <string name="search_terms_charging_effect">Samsung サムスン 標準 充電 アニメーション 電池 稲妻 点滅</string>

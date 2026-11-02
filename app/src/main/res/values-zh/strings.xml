@@ -512,6 +512,8 @@
     <string name="low_performance_details">内容模糊改为交叉淡化，卡片背景模糊改为不透明黑色。音乐效果保留静态专辑色调和静止封面。波形静止并停止音频分析。动态图标显示结束帧，同时继续反映电量等实际状态。持续动画最高 30fps，触摸反馈及展开/收起最高 60fps。\n\n保留原有单项设置，关闭此模式后恢复应用。通知、通话、计时器和音乐控制继续工作。此选项默认关闭。</string>
     <string name="pill_outline">胶囊轮廓线</string>
     <string name="pill_outline_desc">自动模式仅在胶囊与实际背景的对比度较低时显示轮廓线。</string>
+    <string name="notch_style">刘海样式</string>
+    <string name="notch_style_desc">将小药丸绘制成从屏幕上边缘垂下的形状（顶部平直，仅下方圆角），与刘海融为一体。iMotion 中不适用。</string>
     <string name="pill_outline_auto">自动</string>
     <string name="pill_outline_always">始终</string>
     <string name="pill_outline_none">无</string>
@@ -595,6 +597,7 @@
     <string name="search_stop_words">怎么 如何 设置 调整 开启 关闭 的 和</string>
     <string name="search_terms_material">模糊 毛玻璃 玻璃 透明 半透明 透明度 经典 材质 背景</string>
     <string name="search_terms_shape">圆角 曲率 弧度 半径 边框 轮廓 大小 胶囊</string>
+    <string name="search_terms_notch">刘海 水滴屏 挖孔 摄像头 顶部 形状 药丸</string>
     <string name="search_terms_music">歌曲 音乐 音频 专辑 封面 播放 播放器</string>
     <string name="search_terms_battery">充电 充电器 电池 电量 电流 电压 功率 温度 百分比</string>
     <string name="search_terms_charging_effect">三星 原生 默认 充电 动画 电池 闪电 闪烁</string>

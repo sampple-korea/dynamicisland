@@ -512,6 +512,8 @@
     <string name="low_performance_details">내부 요소의 블러는 부드러운 투명도 전환으로 대체합니다. 카드 배경 블러는 불투명한 검은 배경으로 바꿉니다. 음악 효과는 앨범 색상을 정적으로 표시하고 앨범 전환 효과를 멈춥니다. 파형은 정적으로 표시하며 오디오 분석을 중지합니다. 움직이는 아이콘은 완료된 모습으로 표시하되 배터리 잔량 등 실제 상태는 계속 반영합니다. 지속적인 움직임은 최대 30fps, 터치 반응과 확장·축소는 최대 60fps로 제한합니다.\n\n기존 개별 설정값은 보존하며 모드를 끄면 다시 적용합니다. 알림·통화·타이머·음악 조작은 유지됩니다. 기본값은 꺼짐입니다.</string>
     <string name="pill_outline">알약 외곽선</string>
     <string name="pill_outline_desc">자동은 알약과 실제 배경의 대비가 낮을 때만 외곽선을 표시합니다.</string>
+    <string name="notch_style">노치 스타일</string>
+    <string name="notch_style_desc">작은 알약을 화면 위쪽 가장자리에 매달린 모양(윗면 평평, 아래만 둥글게)으로 그려 노치와 어우러지게 합니다. iMotion에서는 쓰이지 않습니다.</string>
     <string name="pill_outline_auto">자동</string>
     <string name="pill_outline_always">항상</string>
     <string name="pill_outline_none">없음</string>
@@ -595,6 +597,7 @@
     <string name="search_stop_words">어떻게 방법 설정 하고 싶어 싶은 해줘 바꾸기 켜기 끄기 켜줘 꺼줘 것 걸 좀 제 내 관련 이거</string>
     <string name="search_terms_material">블러 흐림 유리 글래스 아크릴 반투명 투명도 투과율 클래식 재질 배경 프로스티드</string>
     <string name="search_terms_shape">모서리 곡률 곡선 둥글기 라운드 반지름 테두리 크기 캡슐 알약</string>
+    <string name="search_terms_notch">노치 물방울 컷아웃 카메라 위쪽 가장자리 평평 모양 알약</string>
     <string name="search_terms_music">노래 음악 뮤직 오디오 앨범 커버 아트 재생 플레이어 소리</string>
     <string name="search_terms_battery">충전 충전기 배터리 밧데리 잔량 전류 전압 와트 전력 온도 퍼센트</string>
     <string name="search_terms_charging_effect">삼성 기본 원래 충전 애니메이션 효과 번개 번쩍 배터리</string>
