@@ -131,7 +131,7 @@ final class IslandSources {
         ForegroundApp.State state = foregroundApp.read();
         final String foreground = state.packageName;
         try {
-            oa.collect(items, out.hiddenByForeground, out.packages, foreground);
+            oa.collect(items, out.hiddenByForeground, out.packages, foreground, state.confirmed);
         } catch (Throwable t) {
             XLog.once("collect live notifications", t);
         }

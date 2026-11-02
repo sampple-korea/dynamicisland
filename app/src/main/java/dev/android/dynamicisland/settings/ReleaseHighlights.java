@@ -5,7 +5,7 @@ import java.util.List;
 
 /** Curated release content, independent of selection history and presentation. Add entries here at release time. */
 final class ReleaseHighlights {
-    enum Art { MOTION, FLASHLIGHT, SEARCH, GLASS, PREVIEW, SWIPE, BLUR, NOTIFY, PROGRESS, HOTSPOT, UNLOCK, HEADSET }
+    enum Art { MOTION, FLASHLIGHT, SEARCH, GLASS, PREVIEW, SWIPE, BLUR, NOTIFY, PROGRESS, HOTSPOT, UNLOCK, HEADSET, IDLE, HOLD, PERFORMANCE, PALETTE }
     record Feature(String id,int title,int summary,Art art,SettingsSearchCatalog.Route route,int settingTitle) { }
     record Release(String family,List<Feature> features) { }
 
@@ -41,7 +41,16 @@ final class ReleaseHighlights {
                     new Feature("headset",R.string.recommend15_headset_title,R.string.recommend15_headset,Art.HEADSET,
                             SettingsSearchCatalog.Route.EVENTS,R.string.setting_headset_stay),
                     new Feature("search",R.string.recommend15_search_title,R.string.recommend15_search,Art.SEARCH,
-                            SettingsSearchCatalog.Route.SEARCH,0)))
+                            SettingsSearchCatalog.Route.SEARCH,0))),
+            new Release("0.1.16",List.of(
+                    new Feature("idle",R.string.recommend16_idle_title,R.string.recommend16_idle,Art.IDLE,
+                            SettingsSearchCatalog.Route.BEHAVIOR,R.string.always_visible_island),
+                    new Feature("hide",R.string.recommend16_hide_title,R.string.recommend16_hide,Art.HOLD,
+                            SettingsSearchCatalog.Route.BEHAVIOR,R.string.swipe_up_hides),
+                    new Feature("performance",R.string.recommend16_perf_title,R.string.recommend16_perf,Art.PERFORMANCE,
+                            SettingsSearchCatalog.Route.PERFORMANCE,R.string.low_performance_mode),
+                    new Feature("colour",R.string.recommend16_colour_title,R.string.recommend16_colour,Art.PALETTE,
+                            SettingsSearchCatalog.Route.ACCENT,R.string.accent_enabled)))
     );
 
     static Release forVersion(String version) {

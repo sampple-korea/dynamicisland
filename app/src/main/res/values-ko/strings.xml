@@ -383,6 +383,9 @@
     <string name="island_turn_off">끄기</string>
     <string name="island_speaker">스피커</string>
     <string name="island_end_call">통화 종료</string>
+    <string name="island_incoming_call">수신 전화</string>
+    <string name="island_answer_call">받기</string>
+    <string name="island_decline_call">거절</string>
     <string name="island_reply">답장</string>
     <string name="island_copied">복사됨</string>
     <string name="island_verification_code">인증번호</string>
@@ -687,4 +690,21 @@
     <string name="perf_material_link">프로스트 글라스 대신 기본 재질이 훨씬 가볍게 그려집니다</string>
     <string name="accent_system">시스템 색상 (Material You)</string>
     <string name="accent_system_note">진행 막대와 버튼이 배경화면의 Material 색상을 따르고, 배경화면이 바뀌면 함께 바뀝니다. 어두운 색은 읽기 쉽게 밝아집니다.</string>
+    <string name="recommend16_idle_title">비어 있어도 알약은 그대로</string>
+    <string name="recommend16_idle">활동이 없어도 카메라 둘레에 빈 알약을 남겨 두세요. 첫 활동은 그 알약에서 자라 나옵니다.</string>
+    <string name="recommend16_hide_title">내 방식대로 숨기기</string>
+    <string name="recommend16_hide">작은 알약을 길게 누르면 숨겨지고, 위로 밀어 숨기기를 꺼서 실수로 숨겨지는 일을 막을 수도 있어요.</string>
+    <string name="recommend16_perf_title">효과를 하나씩 줄이기</string>
+    <string name="recommend16_perf">새 성능 페이지에서 음악 글로우, 파형, 애니메이션 아이콘 같은 효과를 저성능 모드 없이 하나씩 끌 수 있어요.</string>
+    <string name="recommend16_colour_title">배경화면 색을 따라서</string>
+    <string name="recommend16_colour">진행 막대와 버튼이 배경화면의 Material 색상을 따르고, 배경화면이 바뀌면 함께 바뀌어요.</string>
+    <string name="reset_all">모든 설정 초기화</string>
+    <string name="reset_all_desc">모든 옵션, 색상, 위치, 앱 목록, 직접 만든 규칙을 원래 값으로 되돌립니다.</string>
+    <string name="reset_all_confirm">옵션, 색상, 위치, 앱 목록, 직접 만든 규칙을 포함한 모든 설정이 원래 값으로 돌아갑니다. 되돌릴 수 없습니다. 설정 언어와 폰의 알림은 그대로입니다.</string>
+    <string name="reset_all_button">초기화</string>
+    <string name="reset_all_done">모든 설정을 초기화했습니다</string>
+    <string name="search_terms_reset">초기화 리셋 기본값 복원 삭제 처음부터</string>
+    <string name="setting_charging_text">충전 카드를 텍스트 줄로</string>
+    <string name="setting_charging_text_desc">충전 상세 정보를 배터리 게이지 대신 글자 줄로 보여 줍니다. 현재 값이 맨 위에 나오고, 그 아래에 화면 켠 때와 끈 때의 통계가 이어집니다.</string>
+    <string name="island_charge_now">지금: %1$s</string>
 </resources>

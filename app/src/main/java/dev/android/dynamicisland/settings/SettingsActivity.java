@@ -551,9 +551,10 @@ public final class SettingsActivity extends Activity {
         Switch charging = toggle(device, R.string.setting_event_charging, R.string.setting_event_charging_desc, ModuleSettings.KEY_EVENT_CHARGING, true);
         Switch chargingInfo = toggle(device, R.string.setting_charging_info, R.string.setting_charging_info_desc, ModuleSettings.KEY_CHARGING_INFO, false);
         Switch chargingStats = toggle(device, R.string.setting_charging_stats, R.string.setting_charging_stats_desc, ModuleSettings.KEY_CHARGING_STATS, false);
+        Switch chargingText = toggle(device, R.string.setting_charging_text, R.string.setting_charging_text_desc, ModuleSettings.KEY_CHARGING_TEXT, false);
         Runnable chargingDependencies = () -> {
             OneUi.setDependentsEnabled(charging.isChecked(), OneUi.rowOf(chargingInfo));
-            OneUi.setDependentsEnabled(charging.isChecked() && chargingInfo.isChecked(), OneUi.rowOf(chargingStats));
+            OneUi.setDependentsEnabled(charging.isChecked() && chargingInfo.isChecked(), OneUi.rowOf(chargingStats), OneUi.rowOf(chargingText));
         };
         OneUi.listen(charging, on -> chargingDependencies.run());
         OneUi.listen(chargingInfo, on -> chargingDependencies.run());
@@ -588,6 +589,28 @@ public final class SettingsActivity extends Activity {
         ui.category(page, getString(R.string.hub_tools), getString(R.string.desc_tools));
         LinearLayout tools = ui.card(page);
         ui.linkRow(tools, getString(R.string.diagnostics_title), getString(R.string.diagnostics_sum), () -> open(this::diagnosticsPage));
+        ui.actionRow(tools, getString(R.string.reset_all), getString(R.string.reset_all_desc), this::confirmReset);
+    }
+
+    /**
+     * Every setting lives in the one preference store this app writes (options, colours, position, app lists and the
+     * rules you made), so emptying it returns all of them to their original values. The module reads the empty store
+     * the same way it reads any change. Clearing the app's data does not do this on LSPosed: the store is not in it.
+     */
+    private void confirmReset() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.reset_all)
+                .setMessage(R.string.reset_all_confirm)
+                .setPositiveButton(R.string.reset_all_button, (dialog, which) -> resetAllSettings())
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    void resetAllSettings() {
+        prefs.edit().clear().apply();
+        ModuleSettings.configurePreview(prefs);
+        Toast.makeText(this, R.string.reset_all_done, Toast.LENGTH_LONG).show();
+        refresh();
     }
 
     // ---------------------------------------------------------------- timing choices

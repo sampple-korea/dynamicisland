@@ -1,12 +1,15 @@
 package dev.android.dynamicisland.xposed.hooks;
 
 import android.graphics.Path;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
+import android.view.ViewGroup;
 import dev.android.dynamicisland.island.material.FrostedSurface;
+import dev.android.dynamicisland.xposed.Diagnostics;
 import dev.android.dynamicisland.xposed.Refl;
 import dev.android.dynamicisland.xposed.SafeHook;
 import dev.android.dynamicisland.xposed.XLog;
@@ -21,6 +24,15 @@ final class ShadeMaterialAppearance {
     private View owner, row;
 
     static void install(ClassLoader loader) {
+        // System UI turns clipToOutline back on whenever it updates a row's outline (the roundness changes, the lock
+        // screen opens). While a Frosted card owns the row the circular outline would cut the corners of its own
+        // perimeter again, so the views the lease switched off stay off.
+        Refl.hookAll(loader, "android.view.View", "setClipToOutline", SafeHook.before("shade material outline lease", p -> {
+            if (p.args.length == 1 && Boolean.TRUE.equals(p.args[0]) && p.thisObject instanceof View
+                    && keepsOutlineOff((View) p.thisObject)) {
+                p.args[0] = Boolean.FALSE;
+            }
+        }));
         // clipToOutline is not the only clip: ExpandableOutlineView.drawChild explicitly
         // clips NotificationContentView with getCustomClipPath()/getClipPath(false).
         Refl.hookAllHierarchy(loader,
@@ -62,6 +74,14 @@ final class ShadeMaterialAppearance {
         if (host.isAttachedToWindow()) attachment.onViewAttachedToWindow(host);
     }
 
+    /** True while {@code view} belongs to a row a Frosted card has leased: its outline must not clip the card. */
+    static boolean keepsOutlineOff(View view) {
+        for (State state : ROWS.values()) {
+            if (!state.owners.isEmpty() && state.outlines.containsKey(view)) return true;
+        }
+        return false;
+    }
+
     /** Keep Samsung's swipe/height bounds; only replace its incompatible circular corners. */
     static Path childClip(View row, View child) {
         State state = ROWS.get(row);
@@ -98,6 +118,10 @@ final class ShadeMaterialAppearance {
         final Map<View, Float> backgrounds = new WeakHashMap<>();
         final Map<View, Boolean> outlines = new WeakHashMap<>();
         final Map<View, Drawable> hostBackgrounds = new WeakHashMap<>();
+        /** The media player's own round clip, with the value it had before the lease switched it off. */
+        final Map<View, Boolean> cornerClips = new WeakHashMap<>();
+        static final long REPORT_MS = 5_000;
+        long reportedAt = -REPORT_MS;
         final Path childClip = new Path();
         final RectF clipBounds = new RectF();
         State(View row) { this.row = new WeakReference<>(row); }
@@ -118,12 +142,29 @@ final class ShadeMaterialAppearance {
             for (View node = host; node != null; node = parent(node)) {
                 if (!outlines.containsKey(node)) outlines.put(node, node.getClipToOutline());
                 if (node.getClipToOutline()) node.setClipToOutline(false);
+                if (isPlayerRoot(node)) releaseCornerClip(node);
                 if (node == row) break;
             }
             // View.draw paints the player's own background before our dispatchDraw hook.
             if (host.getBackground() != null) {
                 hostBackgrounds.put(host, host.getBackground());
                 host.setBackground(null);
+            }
+        }
+
+        /**
+         * The One UI media player is a QSMediaCornerRoundedView, and its draw() clips the whole canvas to a circular
+         * round rect before anything inside it is drawn, our card included: the card's own corners (a squarer
+         * shape than the circle) lose their edge light. The clip belongs to the stock look, so it is off while a
+         * Frosted card draws.
+         */
+        private void releaseCornerClip(View player) {
+            Object current = Refl.get(player, "mIsCornerRound");
+            if (!(current instanceof Boolean)) return;
+            if (!cornerClips.containsKey(player)) cornerClips.put(player, (Boolean) current);
+            if ((Boolean) current && Refl.set(player, "mIsCornerRound", Boolean.FALSE)) {
+                player.invalidate();
+                Diagnostics.fact("shade material corner clip", "the media player's own round clip is off while the card draws");
             }
         }
 
@@ -140,8 +181,39 @@ final class ShadeMaterialAppearance {
             if (!nativeClip.isEmpty()) {
                 nativeClip.computeBounds(clipBounds, true);
                 childClip.addRect(clipBounds, Path.Direction.CW);
+                report();
             }
             return childClip;
+        }
+
+        /** What clips the card, for the diagnostics report: the stock clip against the card, and the flags above it. */
+        private void report() {
+            long now = android.os.SystemClock.uptimeMillis();
+            if (now - reportedAt < REPORT_MS) return;
+            reportedAt = now;
+            View row = this.row.get();
+            if (row == null || !(row instanceof ViewGroup)) return;
+            try {
+                StringBuilder sb = new StringBuilder();
+                for (View host : owners.keySet()) {
+                    Rect own = new Rect(0, 0, host.getWidth(), host.getHeight());
+                    ((ViewGroup) row).offsetDescendantRectToMyCoords(host, own);
+                    sb.append(String.format(java.util.Locale.ROOT, "stock clip %.0f,%.0f-%.0f,%.0f, card %d,%d-%d,%d (row %dx%d)",
+                            clipBounds.left, clipBounds.top, clipBounds.right, clipBounds.bottom,
+                            own.left, own.top, own.right, own.bottom, row.getWidth(), row.getHeight()));
+                    break;
+                }
+                sb.append("; chain");
+                int levels = 0;
+                for (View node = row; node != null && levels < 5; node = parent(node), levels++) {
+                    sb.append(" [").append(node.getClass().getSimpleName()).append(node.getClipToOutline() ? " outline" : "")
+                            .append(node instanceof ViewGroup && ((ViewGroup) node).getClipChildren() ? " clipChildren" : "")
+                            .append(node.getClipBounds() != null ? " bounds" : "").append(']');
+                }
+                Diagnostics.fact("shade material clip", sb.toString());
+            } catch (RuntimeException ignored) {
+                // a diagnostic line is never worth a failure in System UI's drawing
+            }
         }
 
         void restore() {
@@ -151,7 +223,14 @@ final class ShadeMaterialAppearance {
                 if (!entry.getKey().getClipToOutline()) entry.getKey().setClipToOutline(entry.getValue());
             for (Map.Entry<View, Drawable> entry : hostBackgrounds.entrySet())
                 if (entry.getKey().getBackground() == null) entry.getKey().setBackground(entry.getValue());
+            for (Map.Entry<View, Boolean> entry : cornerClips.entrySet())
+                if (Refl.set(entry.getKey(), "mIsCornerRound", entry.getValue())) entry.getKey().invalidate();
         }
+    }
+
+    /** The media player's root view, which draws its own circular corner clip (matched by name: System UI's class). */
+    static boolean isPlayerRoot(View view) {
+        return view.getClass().getName().endsWith("QSMediaCornerRoundedView");
     }
 
     private static View parent(View view) {

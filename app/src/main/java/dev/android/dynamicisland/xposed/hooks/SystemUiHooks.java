@@ -103,6 +103,7 @@ public final class SystemUiHooks {
             runGroup("aosp stock chips", () -> AospChips.install(cl, () -> callController != null));
         }
         runGroup("shade performance", () -> ShadePerf.install(cl));
+        runGroup("shade layout callbacks", ShadeLayoutCallbacks::install);
         runGroup("shade live cards", () -> ShadeLiveCards.install(cl));
         runGroup("duplicate originals", () -> HideDuplicated.install(cl));
         // the blurred shade cards and the media player takeover are built on rows that One UI 8 introduced

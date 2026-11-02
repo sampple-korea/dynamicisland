@@ -59,6 +59,8 @@ public final class ModuleSettings {
     public static final String KEY_I_MODE = "i_mode";
     /** Keeps an empty pill around the camera while nothing is happening (default off). */
     public static final String KEY_ALWAYS_VISIBLE = "always_visible_island";
+    /** The charging details card is shown as lines of text instead of the battery gauge (default off). */
+    public static final String KEY_CHARGING_TEXT = "charging_text_lines";
     /** A swipe up on the small pill hides it (iMotion). On by default; off keeps the pill where it is. */
     public static final String KEY_SWIPE_UP_HIDES = "swipe_up_hides";
     /** Where the island sits: {@link #ANCHOR_AUTO} (on the camera hole), the middle, the left or the right of the status bar. */
@@ -201,6 +203,7 @@ public final class ModuleSettings {
     private static volatile boolean legacyAnimation;
     private static volatile boolean iMode;
     private static volatile boolean alwaysVisible;
+    private static volatile boolean chargingText;
     private static volatile boolean swipeUpHides = true;
     private static volatile boolean headsUpIsland = true;
     private static volatile boolean allNotifications;
@@ -539,6 +542,7 @@ public final class ModuleSettings {
             legacyAnimation = source.getBoolean(KEY_LEGACY_ANIMATION, false);
             iMode = source.getBoolean(KEY_I_MODE, false);
             alwaysVisible = source.getBoolean(KEY_ALWAYS_VISIBLE, false);
+            chargingText = source.getBoolean(KEY_CHARGING_TEXT, false);
             swipeUpHides = source.getBoolean(KEY_SWIPE_UP_HIDES, true);
             pillOutlineMode = readPillOutlineMode(source);
             transitionBlurMode = readTransitionBlurMode(source);
@@ -631,6 +635,7 @@ public final class ModuleSettings {
         legacyAnimation = settings.getBoolean(KEY_LEGACY_ANIMATION, false);
         iMode = settings.getBoolean(KEY_I_MODE, false);
         alwaysVisible = settings.getBoolean(KEY_ALWAYS_VISIBLE, false);
+        chargingText = settings.getBoolean(KEY_CHARGING_TEXT, false);
         swipeUpHides = settings.getBoolean(KEY_SWIPE_UP_HIDES, true);
         pillOutlineMode = readPillOutlineMode(settings);
         transitionBlurMode = readTransitionBlurMode(settings);
@@ -778,7 +783,7 @@ public final class ModuleSettings {
         return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/" + glowColour + lowPerformance + "/light=" + stillMusic + staticWaveform + limitFrameRate + stillIcons + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + "/system=" + accentSystem + systemAccent + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + progressNotifications + hideProgressOriginals
                 + smartRules + privacyIndicator + privacyLocation + otpCard + otpAutoCopy + thirdPartyCalls + visualizer + colorIcons + shadeMedia + cardHeader
                 + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/" + headsetStay + "/hotspot=" + hotspotCard + "/unlock=" + unlockNotice + "/peekProgress=" + peekProgress + "/progressForeground=" + progressForeground + "/progressAny=" + progressAny + "/stockCharging=" + stockChargingAnimation + "/recordingInput=" + concurrentRecordingInput
-                + "/alwaysVisible=" + alwaysVisible + "/swipeUpHides=" + swipeUpHides + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/blur=" + transitionBlurMode + "/" + appFilter.onlyListed() + appFilter.size();
+                + "/alwaysVisible=" + alwaysVisible + "/chargingText=" + chargingText + "/swipeUpHides=" + swipeUpHides + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/blur=" + transitionBlurMode + "/" + appFilter.onlyListed() + appFilter.size();
     }
 
     /** One line in the event log whenever the values the module runs on differ from the last read. */
@@ -953,6 +958,9 @@ public final class ModuleSettings {
 
     /** An empty pill stays around the camera while there is nothing to show (default off). */
     public static boolean alwaysVisible() { ensureStarted(); return alwaysVisible; }
+
+    /** The charging details card as lines of text (live reading first, then the statistics) instead of the gauge. */
+    public static boolean chargingTextLines() { ensureStarted(); return chargingText; }
 
     /** A swipe up on the small pill hides it (default on). */
     public static boolean swipeUpHides() { ensureStarted(); return swipeUpHides; }

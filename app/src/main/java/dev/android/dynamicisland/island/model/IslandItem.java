@@ -256,6 +256,8 @@ public final class IslandItem {
         public boolean active;
         /** Drawn in the destructive colour (hang up, decline). */
         public final boolean destructive;
+        /** Drawn in the affirmative colour (answer a call). */
+        public boolean affirmative;
         /** One of the {@code Glyphs} ids to draw instead of {@link #icon}; 0 = none. */
         public int glyph;
         public final Drawable icon;
@@ -280,6 +282,24 @@ public final class IslandItem {
 
     public boolean hasTeams() {
         return leftImage != null && rightImage != null;
+    }
+
+    /**
+     * Whether a score text says anything: a lone dash or colon (what a match shows before it starts) is only
+     * a separator, so it has no letter or digit.
+     */
+    public static boolean hasContent(CharSequence text) {
+        if (text == null) {
+            return false;
+        }
+        for (int i = 0; i < text.length(); ) {
+            int cp = Character.codePointAt(text, i);
+            if (Character.isLetterOrDigit(cp)) {
+                return true;
+            }
+            i += Character.charCount(cp);
+        }
+        return false;
     }
 
     public int priority() {

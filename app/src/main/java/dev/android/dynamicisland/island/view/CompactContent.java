@@ -42,6 +42,9 @@ public final class CompactContent extends Content {
             text = java.text.NumberFormat.getPercentInstance(owner.getResources().getConfiguration().getLocales().get(0))
                     .format(item.batteryPercent / 100d);
         }
+        if (teams && !IslandItem.hasContent(text)) {
+            text = null; // a match that has not started: the logos alone, no lone dash between them
+        }
         leadingLabel = null;
         leadingLabelW = 0;
         if (item.compactLabel != null && item.trailing == IslandItem.Trailing.TEXT

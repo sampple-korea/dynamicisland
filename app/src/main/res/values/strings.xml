@@ -392,6 +392,9 @@
     <string name="island_turn_off">Turn off</string>
     <string name="island_speaker">Speaker</string>
     <string name="island_end_call">End call</string>
+    <string name="island_incoming_call">Incoming call</string>
+    <string name="island_answer_call">Answer</string>
+    <string name="island_decline_call">Decline</string>
     <string name="island_reply">Reply</string>
     <string name="island_copied">Copied</string>
     <string name="island_verification_code">Verification code</string>
@@ -696,4 +699,21 @@
     <string name="perf_material_link">Classic material instead of frosted glass is much lighter to draw</string>
     <string name="accent_system">System colour (Material You)</string>
     <string name="accent_system_note">Progress bars and buttons follow the Material colour of your wallpaper and change with it. Dark tones are brightened for readability.</string>
+    <string name="recommend16_idle_title">Always an island</string>
+    <string name="recommend16_idle">Keep an empty pill around the camera even when nothing is happening. The first activity grows out of it.</string>
+    <string name="recommend16_hide_title">Hide it your way</string>
+    <string name="recommend16_hide">Hold the small pill to hide it, or switch the swipe-up gesture off so it never hides by accident.</string>
+    <string name="recommend16_perf_title">Lighter, one effect at a time</string>
+    <string name="recommend16_perf">The new Performance page turns off single effects, such as the music glow, the waveform or animated icons, without the whole low-performance mode.</string>
+    <string name="recommend16_colour_title">Colours from your wallpaper</string>
+    <string name="recommend16_colour">Let progress bars and buttons follow the Material colour of your wallpaper and change with it.</string>
+    <string name="reset_all">Reset all settings</string>
+    <string name="reset_all_desc">Return every option, colour, position, app list and rule you made to its original value.</string>
+    <string name="reset_all_confirm">Every setting goes back to its original value: options, colours, position, app lists and the rules you made. This cannot be undone. The settings language and your phone\'s notifications are not touched.</string>
+    <string name="reset_all_button">Reset</string>
+    <string name="reset_all_done">All settings were reset</string>
+    <string name="search_terms_reset">reset restore defaults clear factory original start over</string>
+    <string name="setting_charging_text">Charging card as text lines</string>
+    <string name="setting_charging_text_desc">Show the charging details as lines of text instead of the battery gauge: the live reading first, then the screen-on and screen-off statistics.</string>
+    <string name="island_charge_now">Now: %1$s</string>
 </resources>

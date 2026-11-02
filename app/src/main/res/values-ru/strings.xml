@@ -383,6 +383,9 @@
     <string name="island_turn_off">Выключить</string>
     <string name="island_speaker">Динамик</string>
     <string name="island_end_call">Завершить звонок</string>
+    <string name="island_incoming_call">Входящий звонок</string>
+    <string name="island_answer_call">Ответить</string>
+    <string name="island_decline_call">Отклонить</string>
     <string name="island_reply">Ответить</string>
     <string name="island_copied">Скопировано</string>
     <string name="island_verification_code">Код подтверждения</string>
@@ -687,4 +690,21 @@
     <string name="perf_material_link">Классический материал вместо матового стекла рисуется гораздо легче</string>
     <string name="accent_system">Системный цвет (Material You)</string>
     <string name="accent_system_note">Полосы прогресса и кнопки следуют цвету Material обоев и меняются вместе с ними. Тёмные тона осветляются для читаемости.</string>
+    <string name="recommend16_idle_title">Остров остаётся</string>
+    <string name="recommend16_idle">Оставьте пустую «таблетку» вокруг камеры, даже когда ничего не происходит: первое действие вырастет из неё.</string>
+    <string name="recommend16_hide_title">Скрывать по-своему</string>
+    <string name="recommend16_hide">Удерживайте маленькую «таблетку», чтобы скрыть её, или отключите скрытие свайпом вверх, чтобы не скрыть случайно.</string>
+    <string name="recommend16_perf_title">Облегчайте по одному эффекту</string>
+    <string name="recommend16_perf">Новая страница «Производительность» отключает отдельные эффекты, например свечение музыки, волну или анимированные значки, без всего режима низкой нагрузки.</string>
+    <string name="recommend16_colour_title">Цвета из ваших обоев</string>
+    <string name="recommend16_colour">Полосы прогресса и кнопки следуют цвету Material ваших обоев и меняются вместе с ними.</string>
+    <string name="reset_all">Сбросить все настройки</string>
+    <string name="reset_all_desc">Вернуть все параметры, цвета, положение, списки приложений и ваши правила к исходным значениям.</string>
+    <string name="reset_all_confirm">Все настройки вернутся к исходным значениям: параметры, цвета, положение, списки приложений и созданные вами правила. Это нельзя отменить. Язык настроек и уведомления телефона не затрагиваются.</string>
+    <string name="reset_all_button">Сбросить</string>
+    <string name="reset_all_done">Все настройки сброшены</string>
+    <string name="search_terms_reset">сброс восстановить по умолчанию очистить заново</string>
+    <string name="setting_charging_text">Карточка зарядки текстом</string>
+    <string name="setting_charging_text_desc">Показывать подробности зарядки строками текста вместо индикатора батареи: сначала текущие значения, затем статистика при включённом и выключенном экране.</string>
+    <string name="island_charge_now">Сейчас: %1$s</string>
 </resources>
