@@ -109,6 +109,13 @@
     <string name="desc_events_power">A charger is plugged in, and the battery runs low.</string>
     <string name="desc_events_audio">Sound mode changes, and Bluetooth or wired headphones.</string>
     <string name="desc_events_quick">Confirmations for quick settings, and the flashlight card.</string>
+    <string name="popup_time">Popup time</string>
+    <string name="desc_popup_time">How long short popups stay on the island: charging, sound mode, quick settings and unlock. Popups that last longer by themselves keep their time.</string>
+    <string name="popup_time_3">3 seconds</string>
+    <string name="popup_time_4">4 seconds</string>
+    <string name="popup_time_5">5 seconds</string>
+    <string name="popup_time_6">6 seconds</string>
+    <string name="search_terms_popup">popup duration time seconds short how long charging toggle alert</string>
     <string name="desc_privacy">Shows when an app uses the camera, microphone or location.</string>
     <string name="desc_timing">How long cards stay open, and how long paused music stays.</string>
     <string name="desc_animation">How the island opens and closes.</string>

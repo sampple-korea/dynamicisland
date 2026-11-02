@@ -137,10 +137,11 @@ public final class UnlockSource {
         item.accent = 0xFF30D158;
         long now = SystemClock.uptimeMillis();
         item.postTime = now;
-        item.expiresAtUptime = now + REVEAL_SLACK_MS + SHOW_MS;
+        long shown = Math.max(SHOW_MS, ModuleSettings.popupMillis());
+        item.expiresAtUptime = now + REVEAL_SLACK_MS + shown;
         card = item;
         main.removeCallbacks(expire);
-        main.postDelayed(expire, REVEAL_SLACK_MS + SHOW_MS);
+        main.postDelayed(expire, REVEAL_SLACK_MS + shown);
         onChange.run();
     }
 

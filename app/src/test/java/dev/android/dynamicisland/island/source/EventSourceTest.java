@@ -135,7 +135,7 @@ public class EventSourceTest {
 
         out.clear();
         s.onToggle("dnd", true);                // same state again: ignored (same item stays, not re-added)
-        ShadowSystemClock.advanceBy(Duration.ofSeconds(3));
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(5)); // longer than the 4 s popup time
         s.collect(out);
         assertTrue(out.isEmpty());
 

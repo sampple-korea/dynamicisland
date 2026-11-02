@@ -60,6 +60,8 @@ public final class ModuleSettings {
     /** Keeps an empty pill around the camera while nothing is happening (default off). */
     public static final String KEY_ALWAYS_VISIBLE = "always_visible_island";
     public static final String KEY_NOTCH_STYLE = "notch_style";
+    public static final String KEY_POPUP_SECONDS = "popup_seconds";
+    public static final int POPUP_SECONDS_DEFAULT = 4;
     /** The charging details card is shown as lines of text instead of the battery gauge (default off). */
     public static final String KEY_CHARGING_TEXT = "charging_text_lines";
     /** A swipe up on the small pill hides it (iMotion). On by default; off keeps the pill where it is. */
@@ -205,6 +207,7 @@ public final class ModuleSettings {
     private static volatile boolean iMode;
     private static volatile boolean alwaysVisible;
     private static volatile boolean notchStyle;
+    private static volatile int popupSeconds = POPUP_SECONDS_DEFAULT;
     private static volatile boolean chargingText;
     private static volatile boolean swipeUpHides = true;
     private static volatile boolean headsUpIsland = true;
@@ -545,6 +548,7 @@ public final class ModuleSettings {
             iMode = source.getBoolean(KEY_I_MODE, false);
             alwaysVisible = source.getBoolean(KEY_ALWAYS_VISIBLE, false);
             notchStyle = source.getBoolean(KEY_NOTCH_STYLE, false);
+            popupSeconds = readPopupSeconds(source);
             chargingText = source.getBoolean(KEY_CHARGING_TEXT, false);
             swipeUpHides = source.getBoolean(KEY_SWIPE_UP_HIDES, true);
             pillOutlineMode = readPillOutlineMode(source);
@@ -639,6 +643,7 @@ public final class ModuleSettings {
         iMode = settings.getBoolean(KEY_I_MODE, false);
         alwaysVisible = settings.getBoolean(KEY_ALWAYS_VISIBLE, false);
         notchStyle = settings.getBoolean(KEY_NOTCH_STYLE, false);
+        popupSeconds = readPopupSeconds(settings);
         chargingText = settings.getBoolean(KEY_CHARGING_TEXT, false);
         swipeUpHides = settings.getBoolean(KEY_SWIPE_UP_HIDES, true);
         pillOutlineMode = readPillOutlineMode(settings);
@@ -787,7 +792,7 @@ public final class ModuleSettings {
         return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/" + glowColour + lowPerformance + "/light=" + stillMusic + staticWaveform + limitFrameRate + stillIcons + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + "/system=" + accentSystem + systemAccent + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + progressNotifications + hideProgressOriginals
                 + smartRules + privacyIndicator + privacyLocation + otpCard + otpAutoCopy + thirdPartyCalls + visualizer + colorIcons + shadeMedia + cardHeader
                 + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/" + headsetStay + "/hotspot=" + hotspotCard + "/unlock=" + unlockNotice + "/peekProgress=" + peekProgress + "/progressForeground=" + progressForeground + "/progressAny=" + progressAny + "/stockCharging=" + stockChargingAnimation + "/recordingInput=" + concurrentRecordingInput
-                + "/alwaysVisible=" + alwaysVisible + "/notch=" + notchStyle + "/chargingText=" + chargingText + "/swipeUpHides=" + swipeUpHides + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/blur=" + transitionBlurMode + "/" + appFilter.onlyListed() + appFilter.size();
+                + "/alwaysVisible=" + alwaysVisible + "/notch=" + notchStyle + "/popup=" + popupSeconds + "/chargingText=" + chargingText + "/swipeUpHides=" + swipeUpHides + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/blur=" + transitionBlurMode + "/" + appFilter.onlyListed() + appFilter.size();
     }
 
     /** One line in the event log whenever the values the module runs on differ from the last read. */
@@ -964,6 +969,17 @@ public final class ModuleSettings {
     public static boolean alwaysVisible() { ensureStarted(); return alwaysVisible; }
     /** The compact pill drawn as a notch that hangs from the top edge of the screen (for phones with a notch). */
     public static boolean notchStyle() { ensureStarted(); return notchStyle; }
+
+    static int readPopupSeconds(SharedPreferences source) {
+        try {
+            return Math.max(3, Math.min(6, source.getInt(KEY_POPUP_SECONDS, POPUP_SECONDS_DEFAULT)));
+        } catch (ClassCastException wrongType) {
+            return POPUP_SECONDS_DEFAULT;
+        }
+    }
+
+    /** The least time a short popup (charging, mode changes, quick settings, an unlock) stays on the island. */
+    public static long popupMillis() { ensureStarted(); return popupSeconds * 1000L; }
 
     /** The charging details card as lines of text (live reading first, then the statistics) instead of the gauge. */
     public static boolean chargingTextLines() { ensureStarted(); return chargingText; }

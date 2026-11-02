@@ -103,6 +103,13 @@
     <string name="desc_events_power">충전기를 꽂을 때와 배터리가 부족할 때 알려 줍니다.</string>
     <string name="desc_events_audio">소리 모드 변경과 블루투스·유선 이어폰 연결을 알려 줍니다.</string>
     <string name="desc_events_quick">빠른 설정 변경 확인과 손전등 카드입니다.</string>
+    <string name="popup_time">팝업 시간</string>
+    <string name="desc_popup_time">충전, 소리 모드, 빠른 설정, 잠금 해제처럼 짧은 팝업이 아일랜드에 머무는 시간입니다. 원래 더 오래 뜨는 팝업은 그 시간을 유지합니다.</string>
+    <string name="popup_time_3">3초</string>
+    <string name="popup_time_4">4초</string>
+    <string name="popup_time_5">5초</string>
+    <string name="popup_time_6">6초</string>
+    <string name="search_terms_popup">팝업 시간 초 길이 짧은 충전 토글 알림</string>
     <string name="desc_privacy">앱이 카메라, 마이크, 위치를 사용 중일 때 표시합니다.</string>
     <string name="desc_timing">카드가 열려 있는 시간과 일시정지된 음악이 남아 있는 시간입니다.</string>
     <string name="desc_animation">아일랜드가 열리고 닫히는 방식입니다.</string>

@@ -296,7 +296,7 @@ public final class EventSource {
     }
 
     private void show(IslandItem item, long ttlMs) {
-        item.expiresAtUptime = SystemClock.uptimeMillis() + ttlMs;
+        item.expiresAtUptime = SystemClock.uptimeMillis() + Math.max(ttlMs, ModuleSettings.popupMillis());
         item.postTime = SystemClock.uptimeMillis();
         events.remove(item.key);
         events.put(item.key, item);

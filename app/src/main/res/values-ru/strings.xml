@@ -103,6 +103,13 @@
     <string name="desc_events_power">При подключении зарядки и низком заряде батареи.</string>
     <string name="desc_events_audio">Смена режима звука, Bluetooth- и проводные наушники.</string>
     <string name="desc_events_quick">Подтверждения быстрых настроек и карточка фонарика.</string>
+    <string name="popup_time">Время всплывающих окон</string>
+    <string name="desc_popup_time">Как долго короткие всплывающие окна остаются на острове: зарядка, режим звука, быстрые настройки и разблокировка. Более долгие остаются как были.</string>
+    <string name="popup_time_3">3 секунды</string>
+    <string name="popup_time_4">4 секунды</string>
+    <string name="popup_time_5">5 секунд</string>
+    <string name="popup_time_6">6 секунд</string>
+    <string name="search_terms_popup">всплывающее время секунды короткие зарядка переключатель</string>
     <string name="desc_privacy">Показывает, когда приложение использует камеру, микрофон или местоположение.</string>
     <string name="desc_timing">Как долго карточки остаются открытыми и как долго остаётся приостановленная музыка.</string>
     <string name="desc_animation">Как остров открывается и закрывается.</string>

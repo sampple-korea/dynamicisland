@@ -103,6 +103,13 @@
     <string name="desc_events_power">充電器を接続したときと、バッテリーが少なくなったときに表示します。</string>
     <string name="desc_events_audio">サウンドモードの変更と、Bluetoothや有線イヤホンの接続を表示します。</string>
     <string name="desc_events_quick">クイック設定の変更の確認と、ライトのカードです。</string>
+    <string name="popup_time">ポップアップの時間</string>
+    <string name="desc_popup_time">充電、サウンドモード、クイック設定、ロック解除など短いポップアップがアイランドに表示される時間です。もともと長いものはそのままです。</string>
+    <string name="popup_time_3">3秒</string>
+    <string name="popup_time_4">4秒</string>
+    <string name="popup_time_5">5秒</string>
+    <string name="popup_time_6">6秒</string>
+    <string name="search_terms_popup">ポップアップ 時間 秒 短い 充電 トグル 通知</string>
     <string name="desc_privacy">アプリがカメラ、マイク、位置情報を使っているときに表示します。</string>
     <string name="desc_timing">カードが開いている時間と、一時停止中の音楽が残る時間です。</string>
     <string name="desc_animation">アイランドが開閉する動き方です。</string>

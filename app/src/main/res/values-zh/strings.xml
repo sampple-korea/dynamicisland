@@ -103,6 +103,13 @@
     <string name="desc_events_power">插入充电器时和电量不足时提示。</string>
     <string name="desc_events_audio">声音模式变化，以及蓝牙或有线耳机连接。</string>
     <string name="desc_events_quick">快捷设置变更的确认，以及手电筒卡片。</string>
+    <string name="popup_time">弹窗时间</string>
+    <string name="desc_popup_time">充电、声音模式、快速设置和解锁等短弹窗在灵动岛上停留的时间。本来就更长的弹窗保持原有时长。</string>
+    <string name="popup_time_3">3 秒</string>
+    <string name="popup_time_4">4 秒</string>
+    <string name="popup_time_5">5 秒</string>
+    <string name="popup_time_6">6 秒</string>
+    <string name="search_terms_popup">弹窗 时间 秒 短 充电 开关 提示</string>
     <string name="desc_privacy">应用使用摄像头、麦克风或位置时显示。</string>
     <string name="desc_timing">卡片展开的时长，以及暂停的音乐保留的时长。</string>
     <string name="desc_animation">岛的展开与收起方式。</string>

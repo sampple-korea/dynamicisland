@@ -546,6 +546,9 @@ public final class SettingsActivity extends Activity {
 
     private void eventsPage() {
         subPage(getString(R.string.hub_events));
+        radios(R.string.popup_time, R.string.desc_popup_time, new int[]{R.string.popup_time_3, R.string.popup_time_4, R.string.popup_time_5, R.string.popup_time_6},
+                new int[]{0, OneUi.TAG_DEFAULT, 0, 0}, prefs.getInt(ModuleSettings.KEY_POPUP_SECONDS, ModuleSettings.POPUP_SECONDS_DEFAULT) - 3, LivePreview.RING,
+                selected -> prefs.edit().putInt(ModuleSettings.KEY_POPUP_SECONDS, selected + 3).apply());
         ui.category(page, getString(R.string.group_events_power), getString(R.string.desc_events_power));
         LinearLayout device = ui.card(page);
         Switch charging = toggle(device, R.string.setting_event_charging, R.string.setting_event_charging_desc, ModuleSettings.KEY_EVENT_CHARGING, true);
