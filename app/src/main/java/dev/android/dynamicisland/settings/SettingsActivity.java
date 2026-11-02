@@ -466,6 +466,8 @@ public final class SettingsActivity extends Activity {
                 ModuleSettings.KEY_ALWAYS_VISIBLE, false);
         toggle(visibility, R.string.swipe_up_hides, R.string.swipe_up_hides_desc,
                 ModuleSettings.KEY_SWIPE_UP_HIDES, true);
+        toggle(visibility, R.string.swipe_down_opens, R.string.swipe_down_opens_desc,
+                ModuleSettings.KEY_SWIPE_DOWN_OPENS, true);
         toggle(visibility, R.string.show_in_fullscreen, R.string.show_in_fullscreen_desc,
                 ModuleSettings.KEY_SHOW_IN_FULLSCREEN, false);
         boolean still = flag(ModuleSettings.KEY_LOW_PERFORMANCE, false) || flag(ModuleSettings.KEY_STATIC_WAVEFORM, false);

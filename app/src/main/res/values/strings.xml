@@ -694,6 +694,8 @@
     <string name="always_visible_island_desc">Keep an empty pill around the camera while nothing is happening. It still hides on the lock screen, with the screen off, and in full screen apps unless allowed there.</string>
     <string name="swipe_up_hides">Swipe up to hide</string>
     <string name="swipe_up_hides_desc">Swipe up on the small pill hides it (iMotion). Turn it off to keep the pill from being hidden by accident; holding the pill still hides it, and folding an open card with a swipe up still works. Pull down near the camera to bring a hidden pill back.</string>
+    <string name="swipe_down_opens">Swipe down to open</string>
+    <string name="swipe_down_opens_desc">A swipe down on the small pill opens its cards, as a tap does. The notification panel still comes down from the sides of the status bar. Turn it off to have a swipe down on the pill pull down the notification panel instead.</string>
     <string name="ui_performance">Performance</string>
     <string name="ui_performance_summary">Low-performance mode and lighter effects</string>
     <string name="perf_lighter">Lighter effects</string>

@@ -334,23 +334,44 @@ final class TouchController {
             if(scene.iMode.hasCompactDrag() && dy>touchSlop*2 && dy>Math.abs(dx)*PULL_DOWN_DOMINANCE) {
                 // a sideways wobble at the start must not keep a clear pull down from reaching the shade
                 scene.iMode.cancelCompactPage();
-                handOverToShade(e);
+                pullDown(e);
             }
             else if(scene.iMode.hasCompactDrag()) scene.iMode.dragCompact(dx);
             else if(ModuleSettings.swipeUpHides() && swipedUp(dy) && -dy>Math.abs(dx)*SWIPE_DOMINANCE) {
                 scene.iMode.hideByGesture(upwardSpeed());ignoreGesture=true;return;
             }
-            else if(dy>touchSlop && Math.abs(dy)>Math.abs(dx)) handOverToShade(e);
+            else if(dy>touchSlop && Math.abs(dy)>Math.abs(dx)) pullDown(e);
             else if(Math.abs(dx)>touchSlop && Math.abs(dx)>Math.abs(dy)) scene.iMode.dragCompact(dx);
         } else if (scene.mode == Mode.EXPANDED && downCardAlive()) {
             dragStack(dx, dy);
         } else if (scene.mode == Mode.COMPACT && onIsland && dy > touchSlop && Math.abs(dy) > Math.abs(dx)) {
-            handOverToShade(e);
+            pullDown(e);
         } else if (scene.mode == Mode.COMPACT && onIsland) {
             sp.offsetX.snapTo(Math.signum(dx) * Math.min(m.dp(16.0f), Math.abs(dx) * 0.18f));
             view.invalidate();
             view.notifyHost();
         }
+    }
+
+    /**
+     * A clear pull down on the small pill. Normally it goes to the notification panel; with "swipe down opens the
+     * island" it opens the pill's cards as a tap would, which is easier to reach than the pill itself.
+     */
+    private void pullDown(MotionEvent e) {
+        if (!ModuleSettings.swipeDownOpens()) {
+            handOverToShade(e);
+            return;
+        }
+        sp.press.animateTo(1.0f, Motion.PRESS_UP);
+        sp.offsetX.animateTo(0.0f, Motion.RUBBER_RELEASE);
+        ignoreGesture = true; // the rest of this gesture, including lifting the finger, is not a tap
+        Haptics.perform(view, HAPTIC_CONFIRM);
+        if (scene.iMode != null && downActivity != null) {
+            scene.iMode.open(downActivity, true);
+        } else {
+            director.expandFromPill();
+        }
+        view.scheduleFrame();
     }
 
     private void handOverToShade(MotionEvent e) {

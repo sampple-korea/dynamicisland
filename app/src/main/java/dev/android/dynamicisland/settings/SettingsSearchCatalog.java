@@ -131,6 +131,7 @@ final class SettingsSearchCatalog {
         add(Route.ADVANCED,R.string.reset_all,R.string.reset_all_desc,R.string.search_terms_reset,0);
         add(Route.BEHAVIOR,R.string.always_visible_island,R.string.always_visible_island_desc,0,0);
         add(Route.BEHAVIOR,R.string.swipe_up_hides,R.string.swipe_up_hides_desc,0,0);
+        add(Route.BEHAVIOR,R.string.swipe_down_opens,R.string.swipe_down_opens_desc,0,0);
         add(Route.BEHAVIOR,R.string.show_in_fullscreen,R.string.show_in_fullscreen_desc,0,0);
         add(Route.PERFORMANCE,R.string.low_performance_mode,R.string.low_performance_desc,R.string.search_terms_performance,0);
         add(Route.PERFORMANCE,R.string.perf_still_music,R.string.perf_still_music_desc,R.string.search_terms_performance,R.string.low_performance_mode);

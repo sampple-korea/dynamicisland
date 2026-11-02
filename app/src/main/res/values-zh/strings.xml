@@ -685,6 +685,8 @@
     <string name="always_visible_island_desc">没有任何活动时，也在摄像头周围保留一个空的胶囊。锁屏、熄屏以及未允许的全屏应用中仍会隐藏。</string>
     <string name="swipe_up_hides">上滑隐藏</string>
     <string name="swipe_up_hides_desc">在小胶囊上向上滑动即可隐藏(iMotion)。关闭后不会误触隐藏;长按胶囊仍可隐藏，展开的卡片仍可上滑收起。隐藏后，在摄像头附近下拉即可恢复。</string>
+    <string name="swipe_down_opens">向下滑动打开</string>
+    <string name="swipe_down_opens_desc">在小胶囊上向下滑动会像点按一样展开卡片。通知面板仍可从状态栏两侧拉下。关闭后，在胶囊上向下滑动会拉出通知面板。</string>
     <string name="ui_performance">性能</string>
     <string name="ui_performance_summary">低性能模式和精简效果</string>
     <string name="perf_lighter">精简效果</string>

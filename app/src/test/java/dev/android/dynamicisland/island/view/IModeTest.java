@@ -992,6 +992,7 @@ public class IModeTest {
 
     @Test public void aPullDownThatBeganWithASidewaysWobbleStillReachesTheShade() {
         try(Fixture f=new Fixture(3)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_SWIPE_DOWN_OPENS,false).commit();ModuleSettings.configurePreview(f.prefs);
             RectF main=new RectF();f.scene.iMode.mainBounds(main);
             float x=main.centerX(),y=main.centerY();
             f.event(MotionEvent.ACTION_DOWN,x,y);
@@ -1003,6 +1004,50 @@ public class IModeTest {
             f.event(MotionEvent.ACTION_UP,x+30,y+120);
             f.step(16,60);
             assertEquals(Mode.COMPACT,f.scene.mode);
+        }
+    }
+
+    @Test public void aPullDownOnThePillOpensItsCardsByDefaultAndGoesToTheShadeWhenTheOptionIsOff() {
+        try(Fixture f=new Fixture(3)) {
+            RectF main=new RectF();f.scene.iMode.mainBounds(main);
+            float x=main.centerX(),y=main.centerY();
+            f.event(MotionEvent.ACTION_DOWN,x,y);
+            f.event(MotionEvent.ACTION_MOVE,x,y+48);
+            f.event(MotionEvent.ACTION_UP,x,y+120);
+            f.step(16,80);
+            assertEquals("by default nothing goes to the shade",0,f.shadePulls.size());
+            assertEquals("the cards opened",Mode.EXPANDED,f.scene.mode);
+            assertFalse(f.scene.cards.isEmpty());
+        }
+        try(Fixture f=new Fixture(3)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_SWIPE_DOWN_OPENS,false).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            RectF main=new RectF();f.scene.iMode.mainBounds(main);
+            float x=main.centerX(),y=main.centerY();
+            f.event(MotionEvent.ACTION_DOWN,x,y);
+            f.event(MotionEvent.ACTION_MOVE,x,y+48);
+            f.event(MotionEvent.ACTION_UP,x,y+120);
+            assertEquals("with the option off the pull goes to the shade",1,f.shadePulls.size());
+            f.step(16,60);
+            assertEquals(Mode.COMPACT,f.scene.mode);
+        }
+    }
+
+    @Test public void aPullDownThatBeganWithASidewaysWobbleOpensTheCardsWhenSwipeDownOpensIsOn() {
+        try(Fixture f=new Fixture(3)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_SWIPE_DOWN_OPENS,true).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            RectF main=new RectF();f.scene.iMode.mainBounds(main);
+            float x=main.centerX(),y=main.centerY();
+            f.event(MotionEvent.ACTION_DOWN,x,y);
+            f.event(MotionEvent.ACTION_MOVE,x+24,y+2);
+            assertTrue(f.scene.iMode.hasCompactDrag());
+            f.event(MotionEvent.ACTION_MOVE,x+30,y+48);
+            assertFalse("the half-made page swipe is dropped",f.scene.iMode.hasCompactDrag());
+            f.event(MotionEvent.ACTION_UP,x+30,y+120);
+            f.step(16,80);
+            assertEquals(0,f.shadePulls.size());
+            assertEquals(Mode.EXPANDED,f.scene.mode);
         }
     }
 

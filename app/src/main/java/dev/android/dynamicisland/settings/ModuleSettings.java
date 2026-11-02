@@ -66,6 +66,7 @@ public final class ModuleSettings {
     public static final String KEY_CHARGING_TEXT = "charging_text_lines";
     /** A swipe up on the small pill hides it (iMotion). On by default; off keeps the pill where it is. */
     public static final String KEY_SWIPE_UP_HIDES = "swipe_up_hides";
+    public static final String KEY_SWIPE_DOWN_OPENS = "swipe_down_opens";
     /** Where the island sits: {@link #ANCHOR_AUTO} (on the camera hole), the middle, the left or the right of the status bar. */
     public static final String KEY_PILL_ANCHOR = "pill_anchor";
     /** Outline policy: automatic contrast detection, always visible, or never drawn. */
@@ -211,6 +212,7 @@ public final class ModuleSettings {
     private static volatile int popupSeconds = POPUP_SECONDS_DEFAULT;
     private static volatile boolean chargingText;
     private static volatile boolean swipeUpHides = true;
+    private static volatile boolean swipeDownOpens = true;
     private static volatile boolean headsUpIsland = true;
     private static volatile boolean allNotifications;
     private static volatile boolean foregroundNotifications;
@@ -553,6 +555,7 @@ public final class ModuleSettings {
             popupSeconds = readPopupSeconds(source);
             chargingText = source.getBoolean(KEY_CHARGING_TEXT, false);
             swipeUpHides = source.getBoolean(KEY_SWIPE_UP_HIDES, true);
+            swipeDownOpens = source.getBoolean(KEY_SWIPE_DOWN_OPENS, true);
             pillOutlineMode = readPillOutlineMode(source);
             transitionBlurMode = readTransitionBlurMode(source);
             headsUpIsland = source.getBoolean(KEY_HEADS_UP_ISLAND, true);
@@ -649,6 +652,7 @@ public final class ModuleSettings {
         popupSeconds = readPopupSeconds(settings);
         chargingText = settings.getBoolean(KEY_CHARGING_TEXT, false);
         swipeUpHides = settings.getBoolean(KEY_SWIPE_UP_HIDES, true);
+        swipeDownOpens = settings.getBoolean(KEY_SWIPE_DOWN_OPENS, true);
         pillOutlineMode = readPillOutlineMode(settings);
         transitionBlurMode = readTransitionBlurMode(settings);
         lowPerformance = settings.getBoolean(KEY_LOW_PERFORMANCE, false);
@@ -796,7 +800,7 @@ public final class ModuleSettings {
         return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/" + glowColour + lowPerformance + "/light=" + stillMusic + staticWaveform + limitFrameRate + stillIcons + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + "/system=" + accentSystem + systemAccent + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + progressNotifications + hideProgressOriginals
                 + smartRules + privacyIndicator + privacyLocation + privacyInApp + otpCard + otpAutoCopy + thirdPartyCalls + visualizer + colorIcons + shadeMedia + cardHeader
                 + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/" + headsetStay + "/hotspot=" + hotspotCard + "/unlock=" + unlockNotice + "/peekProgress=" + peekProgress + "/progressForeground=" + progressForeground + "/progressAny=" + progressAny + "/stockCharging=" + stockChargingAnimation + "/recordingInput=" + concurrentRecordingInput
-                + "/alwaysVisible=" + alwaysVisible + "/notch=" + notchStyle + "/popup=" + popupSeconds + "/chargingText=" + chargingText + "/swipeUpHides=" + swipeUpHides + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/blur=" + transitionBlurMode + "/" + appFilter.onlyListed() + appFilter.size();
+                + "/alwaysVisible=" + alwaysVisible + "/notch=" + notchStyle + "/popup=" + popupSeconds + "/chargingText=" + chargingText + "/swipeUpHides=" + swipeUpHides + "/swipeDownOpens=" + swipeDownOpens + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/blur=" + transitionBlurMode + "/" + appFilter.onlyListed() + appFilter.size();
     }
 
     /** One line in the event log whenever the values the module runs on differ from the last read. */
@@ -996,6 +1000,8 @@ public final class ModuleSettings {
 
     /** A swipe up on the small pill hides it (default on). */
     public static boolean swipeUpHides() { ensureStarted(); return swipeUpHides; }
+    /** A swipe down on the small pill opens its cards instead of pulling the notification panel (default on). */
+    public static boolean swipeDownOpens() { ensureStarted(); return swipeDownOpens; }
 
     public static boolean legacyAnimation() {
         ensureStarted();
