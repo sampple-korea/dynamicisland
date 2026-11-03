@@ -63,6 +63,12 @@ public final class StatusBarIconFader {
     private boolean islandActive;
     /** The island fills the whole status bar: hide every icon in its row, push nothing. */
     private boolean takesWholeBar;
+    /**
+     * The bar's contents container while the island fills the bar: it is faded as one, so that whatever System UI
+     * draws in it (the battery with its own charging effect included) goes with the icons we know by name.
+     */
+    private View contentsView;
+    private IconAlphaFade contentsFade;
     private boolean mobileLogged;
     /** The candidate list must be rebuilt before the next {@link #apply()}. */
     private boolean dirty = true;
@@ -86,6 +92,7 @@ public final class StatusBarIconFader {
         mobileLogged = false;
         View contents = find(phoneStatusBarView, "status_bar_contents");
         watched = contents != null ? contents : phoneStatusBarView;
+        contentsView = contents;
         watched.getViewTreeObserver().addOnGlobalLayoutListener(layoutListener);
         dirty = true;
     }
@@ -133,6 +140,13 @@ public final class StatusBarIconFader {
     /** Cancels every running fade and shows all icons again. */
     void resetAll() {
         restoreRow();
+        if (contentsFade != null) {
+            contentsFade.cancel();
+            contentsFade = null;
+        }
+        if (contentsView != null) {
+            contentsView.setTransitionAlpha(1.0f);
+        }
         for (Map.Entry<View, IconAlphaFade> entry : fades.entrySet()) {
             entry.getValue().cancel();
             entry.getKey().setTransitionAlpha(1.0f);
@@ -170,10 +184,27 @@ public final class StatusBarIconFader {
             for (View candidate : candidates) {
                 updateCandidate(candidate);
             }
+            updateContents();
         } catch (Throwable t) {
             // runs from a global layout listener: an exception here would take System UI down
             XLog.once("StatusBarIconFader.apply", t);
         }
+    }
+
+    /** While the island fills the bar the whole contents container fades out, and comes back with it. */
+    private void updateContents() {
+        View contents = contentsView;
+        if (contents == null || !contents.isAttachedToWindow()) {
+            return;
+        }
+        boolean hide = islandActive && takesWholeBar;
+        if (contentsFade == null) {
+            if (!hide) {
+                return; // never hidden by us: its alpha is System UI's own
+            }
+            contentsFade = new IconAlphaFade(contents);
+        }
+        contentsFade.animateTo(hide ? 0.0f : 1.0f);
     }
 
     // ---- pushing the notification icons aside ---------------------------------------------------
