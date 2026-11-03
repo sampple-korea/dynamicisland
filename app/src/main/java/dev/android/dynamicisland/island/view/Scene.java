@@ -133,6 +133,9 @@ final class Scene {
      */
     float pillWidthFor(Content content) {
         float width = content.desiredWidth();
+        if (content.item != null && content.item.fullWidth) {
+            return width; // a full-width popup is not the width other pills are kept at afterwards
+        }
         if (!ModuleSettings.keepPillWidth()) {
             keptWidth = 0.0f;
             return width;

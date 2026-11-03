@@ -175,6 +175,7 @@ public class EventSourceTest {
                 s.collect(out);
                 assertEquals(1, out.size());
                 assertEquals("Samsung's effect " + (stock ? "on" : "off"), !stock, out.get(0).fullWidth);
+                assertEquals("the word goes on the left of the wide pill only", !stock, out.get(0).compactLabel != null);
             }
         } finally {
             prefs.edit().clear().commit();

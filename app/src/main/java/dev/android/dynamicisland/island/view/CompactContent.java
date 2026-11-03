@@ -49,9 +49,9 @@ public final class CompactContent extends Content {
         leadingLabelW = 0;
         if (item.compactLabel != null && item.trailing == IslandItem.Trailing.TEXT
                 && !item.compactLabel.toString().equals(text)) {
-            float room = owner.holeD > 0 ? (owner.maxPillW - owner.holeD) / 2 - owner.holeGap - owner.padding
+            float room = owner.holeD > 0 ? (widthCap() - owner.holeD) / 2 - owner.holeGap - owner.padding
                     - Math.min(owner.holeTextPadding, owner.dp(16)) - owner.leadSize - owner.innerGap
-                    : owner.maxPillW - owner.padding * 2 - owner.leadSize - owner.innerGap * 2
+                    : widthCap() - owner.padding * 2 - owner.leadSize - owner.innerGap * 2
                     - Math.max(owner.dp(MIN_TRAILING_DP), text == null ? 0 : owner.trailPaint.measureText(text));
             if (room >= owner.dp(16)) {
                 leadingLabel = TextUtils.ellipsize(item.compactLabel, owner.trailPaint,
@@ -105,16 +105,21 @@ public final class CompactContent extends Content {
         return true;
     }
 
+    /** The widest this pill may be: the status bar's width for a full-width popup, else the user's widest pill. */
+    private float widthCap() {
+        return item.fullWidth ? owner.fullPillW : owner.maxPillW;
+    }
+
     private float maxTrailingWidth() {
         float minWidth = owner.dp(MIN_TRAILING_DP);
         if (owner.holeD > 0.0f) {
-            return Math.max(minWidth, (((owner.maxPillW - owner.holeD) / 2.0f) - owner.holeGap) - owner.padding - holeClearance());
+            return Math.max(minWidth, (((widthCap() - owner.holeD) / 2.0f) - owner.holeGap) - owner.padding - holeClearance());
         }
-        return Math.max(minWidth, ((owner.maxPillW - (owner.padding * 2.0f)) - leadingWidth()) - owner.innerGap);
+        return Math.max(minWidth, ((widthCap() - (owner.padding * 2.0f)) - leadingWidth()) - owner.innerGap);
     }
 
     private float holeClearance() {
-        float spare = (owner.maxPillW - owner.holeD) / 2f - owner.holeGap - owner.padding
+        float spare = (widthCap() - owner.holeD) / 2f - owner.holeGap - owner.padding
                 - Math.max(leadingWidth(), owner.dp(MIN_TRAILING_DP));
         return Math.max(0, Math.min(owner.holeTextPadding, spare));
     }
@@ -131,15 +136,15 @@ public final class CompactContent extends Content {
             width = (trailW > 0.0f ? owner.innerGap + trailW : 0.0f) + (owner.padding * 2.0f) + leadingWidth();
         }
         if (item.fullWidth) {
-            width = owner.maxPillW;
+            width = widthCap();
         }
-        return Math.max(owner.minPillW, Math.min(width, owner.maxPillW));
+        return Math.max(owner.minPillW, Math.min(width, widthCap()));
     }
 
     private float leadingWidth() {
         if (!owner.hasRecordingWaveform(item)) return owner.leadSize + (leadingLabel == null ? 0 : owner.innerGap + leadingLabelW);
-        float available = owner.holeD > 0 ? (owner.maxPillW - owner.holeD) / 2f - owner.holeGap - owner.padding
-                : owner.maxPillW - owner.padding * 2f - owner.innerGap - owner.dp(MIN_TRAILING_DP);
+        float available = owner.holeD > 0 ? (widthCap() - owner.holeD) / 2f - owner.holeGap - owner.padding
+                : widthCap() - owner.padding * 2f - owner.innerGap - owner.dp(MIN_TRAILING_DP);
         return Math.max(owner.leadSize, Math.min(owner.dp(42), available));
     }
 

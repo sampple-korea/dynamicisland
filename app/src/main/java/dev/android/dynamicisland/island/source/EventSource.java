@@ -432,6 +432,9 @@ public final class EventSource {
         // with Samsung's own charging effect switched off here the pill covers the whole width it may have,
         // so that no part of that effect shows beside it
         it.fullWidth = !ModuleSettings.stockChargingAnimation();
+        if (it.fullWidth) {
+            it.compactLabel = it.title; // the wide pill has room for the word on its left, the percentage stays on its right
+        }
         return it;
     }
 

@@ -140,6 +140,8 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
     private float markerD;
     private final Paint markerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     float maxPillW;
+    /** Width of a popup that fills the status bar (see {@link Metrics#fullPillW}). */
+    float fullPillW;
 
     private final IslandHost host;
     private final Choreographer choreographer = Choreographer.getInstance();
@@ -457,6 +459,7 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
     private void afterMetricsChanged() {
         holeD = metrics.holeD;
         maxPillW = metrics.maxPillW;
+        fullPillW = metrics.fullPillW();
         // the size the user set reaches the content classes through these copies
         minPillW = metrics.minPillW;
         leadSize = metrics.leadSize;
@@ -824,6 +827,15 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
 
     public void getCoverageBounds(RectF out) {
         footprint.coverage(out);
+    }
+
+    /**
+     * True while the island shows a full-width popup (the charging popup): it fills the status bar, so every other
+     * status-bar icon is hidden for as long as it stays instead of being pushed aside or left half under it.
+     */
+    public boolean takesWholeStatusBar() {
+        IslandItem shown = scene.mainIn != null ? scene.mainIn.content.item : scene.primary;
+        return scene.mode == Mode.COMPACT && shown != null && shown.fullWidth;
     }
 
     public void getRestingPillBounds(RectF out) {

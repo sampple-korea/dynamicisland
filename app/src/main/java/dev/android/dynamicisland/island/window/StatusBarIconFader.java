@@ -61,6 +61,8 @@ public final class StatusBarIconFader {
     /** View whose layout passes drive the fader: the bar's contents container if there is one. */
     private View watched;
     private boolean islandActive;
+    /** The island fills the whole status bar: hide every icon in its row, push nothing. */
+    private boolean takesWholeBar;
     private boolean mobileLogged;
     /** The candidate list must be rebuilt before the next {@link #apply()}. */
     private boolean dirty = true;
@@ -109,9 +111,18 @@ public final class StatusBarIconFader {
      * @param active   whether the island is currently shown (inactive = restore all icons)
      */
     public void update(RectF coverage, boolean active) {
-        if (!active && !islandActive && !dirty) {
+        update(coverage, active, false);
+    }
+
+    /**
+     * Same, with {@code wholeBar}: the island fills the status bar (a full-width popup), so every icon in its row is
+     * hidden and none is pushed aside.
+     */
+    public void update(RectF coverage, boolean active, boolean wholeBar) {
+        if (!active && !islandActive && !dirty && !takesWholeBar) {
             return;
         }
+        takesWholeBar = active && wholeBar;
         islandActive = active;
         if (active) {
             island.set(coverage);
@@ -183,7 +194,7 @@ public final class StatusBarIconFader {
         float baseRight = baseLeft + contentWidth(row);
         float target = 0.0f;
         boolean sharesRows = islandActive && screenPos[1] < island.bottom && screenPos[1] + row.getHeight() > island.top;
-        if (sharesRows && island.right + margin > baseLeft && island.left - margin < baseRight && baseRight > baseLeft) {
+        if (!takesWholeBar && sharesRows && island.right + margin > baseLeft && island.left - margin < baseRight && baseRight > baseLeft) {
             target = island.right + margin - baseLeft;
         }
         if (target != pushTarget) {
@@ -238,7 +249,9 @@ public final class StatusBarIconFader {
             boolean inPushedRow = icon.getParent() == pushedRow;
             boolean sharesRows = iconBounds.bottom > island.top && iconBounds.top < island.bottom;
             dateX = dateStart(icon);
-            if (dateX > 0.0f) {
+            if (takesWholeBar && sharesRows) {
+                covered = true; // a full-width popup: the whole row is hidden, clock and date included
+            } else if (dateX > 0.0f) {
                 // clock with a date: either the date part is covered, or the island sits over the time part
                 float splitScreenX = iconBounds.left + icon.getScaleX() * dateX;
                 ClockDateEraser eraser = dateErasers.get(icon);
