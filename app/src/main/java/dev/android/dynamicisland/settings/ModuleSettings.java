@@ -172,7 +172,14 @@ public final class ModuleSettings {
     public static final int DEF_PAUSED_TIMEOUT_S = 60;
     public static final int DEF_AUTO_COLLAPSE_S = 6;
 
+    /** How often the settings are read until the first read has found them, or while no change notice can be received. */
     private static final long RELOAD_INTERVAL_MS = 4000;
+    /** The look for a change a notice may have missed, once notices are being received. */
+    private static final long SAFETY_RELOAD_MS = 60_000;
+    /** A burst of changes (a slider being dragged) is read once, this long after the last one. */
+    private static final long CHANGE_COALESCE_MS = 120;
+    /** The settings file is written after the notice; it is read once more this long after the burst. */
+    private static final long CHANGE_SETTLE_MS = 1_000;
     /** Floors for the timeouts, so a bad stored value cannot make the island flicker away at once. */
     private static final int MIN_PAUSED_TIMEOUT_S = 5;
     private static final int MIN_AUTO_COLLAPSE_S = 2;
@@ -450,11 +457,51 @@ public final class ModuleSettings {
                 @Override
                 public void run() {
                     refresh();
-                    handler.postDelayed(this, RELOAD_INTERVAL_MS);
+                    watchChanges(handler);
+                    handler.postDelayed(this, observing && loaded ? SAFETY_RELOAD_MS : RELOAD_INTERVAL_MS);
                 }
             });
         } catch (Throwable ignored) {
             // keep the defaults
+        }
+    }
+
+    /** Whether the module app's change notice is being received (reload thread only). */
+    private static boolean observing;
+
+    /**
+     * Reads the settings again when the module app says it wrote some, instead of looking every few seconds. Retried
+     * by the reload loop until System UI has an application context to register with.
+     */
+    private static void watchChanges(final Handler handler) {
+        if (observing) {
+            return;
+        }
+        try {
+            Object app = Class.forName("android.app.ActivityThread").getMethod("currentApplication").invoke(null);
+            if (!(app instanceof android.content.Context)) {
+                return;
+            }
+            final Runnable settle = ModuleSettings::refresh;
+            final Runnable soon = new Runnable() {
+                @Override
+                public void run() {
+                    refresh();
+                    handler.removeCallbacks(settle);
+                    handler.postDelayed(settle, CHANGE_SETTLE_MS);
+                }
+            };
+            ((android.content.Context) app).getContentResolver().registerContentObserver(SettingsProvider.CHANGED_URI, false,
+                    new android.database.ContentObserver(handler) {
+                        @Override
+                        public void onChange(boolean selfChange) {
+                            handler.removeCallbacks(soon);
+                            handler.postDelayed(soon, CHANGE_COALESCE_MS);
+                        }
+                    });
+            observing = true;
+        } catch (Throwable t) {
+            XLog.once("ModuleSettings.observer", t);
         }
     }
 
