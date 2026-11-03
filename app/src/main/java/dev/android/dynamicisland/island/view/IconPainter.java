@@ -27,6 +27,9 @@ final class IconPainter {
     private final RecordingWaveform recordingWaveform;
     private final dev.android.dynamicisland.island.graphics.BatteryGauge batteryGauge = new dev.android.dynamicisland.island.graphics.BatteryGauge();
     private final DigitClock clock;
+    private final Paint.FontMetrics trailMetrics = new Paint.FontMetrics();
+    private IslandItem compactKeyItem;
+    private String compactKey;
     private final MediaFxCache mediaFx;
     /** Scratch objects owned by the view; the card bodies share them. */
     private final RectF scratch;
@@ -179,19 +182,29 @@ final class IconPainter {
         }
     }
 
+    /** The clock's key for the item's compact text; built once per item, not once per frame. */
+    private String compactKey(IslandItem item) {
+        if (compactKeyItem != item) {
+            compactKeyItem = item;
+            compactKey = item.key + "#compact";
+        }
+        return compactKey;
+    }
+
     void drawTrailing(Canvas c, IslandItem item, String text, float right, float midY, float w, float alpha) {
         switch (item.trailing) {
             case TEXT:
             case CHRONOMETER:
                 if (text != null) {
-                    Paint.FontMetrics fm = paints.trail.getFontMetrics();
+                    Paint.FontMetrics fm = trailMetrics;
+                    paints.trail.getFontMetrics(fm);
                     paints.trail.setColor(Colors.withAlpha(item.voiceRecording && ModuleSettings.concurrentRecordingInput()
                             ? 0xFFFF5B62 : item.kind == IslandItem.Kind.CALL ? item.accent : -1, alpha));
                     float baseline = midY - ((fm.ascent + fm.descent) / 2.0f);
                     float natural = DigitClock.width(paints.trail, text);
                     int save = c.save();
                     if (DigitClock.isClock(text) && w > 0 && natural > w) c.scale(w / natural, w / natural, right, midY);
-                    clock.draw(c, item.key + "#compact", text, paints.trail, right - natural, baseline, item.chronoCountDown);
+                    clock.draw(c, compactKey(item), text, paints.trail, right - natural, baseline, item.chronoCountDown);
                     c.restoreToCount(save);
                 }
                 break;

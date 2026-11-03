@@ -83,8 +83,8 @@ final class SecondTicker {
         if (scene.mainIn != null && scene.mainIn.content.item.trailing == IslandItem.Trailing.CHRONOMETER) {
             return true;
         }
-        for (Card c : scene.cards) {
-            IslandItem item = c.item;
+        for (int i = 0, n = scene.cards.size(); i < n; i++) {
+            IslandItem item = scene.cards.get(i).item;
             boolean ticking = item.trailing == IslandItem.Trailing.CHRONOMETER
                     || (item.hasChronometer() && item.chronoPosition != 0)
                     || (item.isMedia && item.playing);

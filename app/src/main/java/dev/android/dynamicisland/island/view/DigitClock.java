@@ -18,6 +18,7 @@ final class DigitClock {
     private static final String DIGITS = "0123456789";
 
     private final IslandView view;
+    private final Paint.FontMetrics metrics = new Paint.FontMetrics();
     private final Map<String, DigitRoll> rolls = new HashMap<>();
     private long rollingUntil;
 
@@ -130,7 +131,8 @@ final class DigitClock {
             rollingUntil = until;
             view.scheduleFrame();
         }
-        Paint.FontMetrics fm = paint.getFontMetrics();
+        Paint.FontMetrics fm = metrics;
+        paint.getFontMetrics(fm);
         float travel = (fm.descent - fm.ascent) * 0.8f;
         float dir = countDown ? -1.0f : 1.0f;
         int baseAlpha = paint.getAlpha();

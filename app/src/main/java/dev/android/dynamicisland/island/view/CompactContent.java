@@ -28,6 +28,7 @@ public final class CompactContent extends Content {
     String leadingLabel;
     float leadingLabelW;
     private final dev.android.dynamicisland.island.graphics.BatteryBar bar = new dev.android.dynamicisland.island.graphics.BatteryBar();
+    private final Paint.FontMetrics metrics = new Paint.FontMetrics();
 
     CompactContent(IslandView owner, IslandItem item) {
         super(owner, item);
@@ -193,7 +194,8 @@ public final class CompactContent extends Content {
                 int save = c.save();
                 c.clipRect(left, shape.top, Math.max(left, limit), shape.bottom);
                 owner.trailPaint.setColor(Colors.withAlpha(Colors.WHITE, alpha));
-                Paint.FontMetrics fm = owner.trailPaint.getFontMetrics();
+                Paint.FontMetrics fm = metrics;
+            owner.trailPaint.getFontMetrics(fm);
                 c.drawText(leadingLabel, left, midY - (fm.ascent + fm.descent) / 2, owner.trailPaint);
                 c.restoreToCount(save);
             }
@@ -222,7 +224,8 @@ public final class CompactContent extends Content {
         if (scoreA != null) {
             // split score: each half sits next to its team's logo, on either side of the hole
             owner.trailPaint.setColor(Colors.withAlpha(Colors.WHITE, alpha));
-            Paint.FontMetrics fm = owner.trailPaint.getFontMetrics();
+            Paint.FontMetrics fm = metrics;
+            owner.trailPaint.getFontMetrics(fm);
             float baseline = midY - ((fm.ascent + fm.descent) / 2.0f);
             c.drawText(scoreA, leftLogoX + lead + owner.innerGap, baseline, owner.trailPaint);
             c.drawText(scoreB, (rightLogoX - owner.innerGap) - owner.trailPaint.measureText(scoreB), baseline, owner.trailPaint);
@@ -230,7 +233,8 @@ public final class CompactContent extends Content {
         }
         if (trailText != null) {
             owner.trailPaint.setColor(Colors.withAlpha(Colors.WHITE, alpha));
-            Paint.FontMetrics fm = owner.trailPaint.getFontMetrics();
+            Paint.FontMetrics fm = metrics;
+            owner.trailPaint.getFontMetrics(fm);
             c.drawText(trailText, (rightLogoX - owner.innerGap) - scoreW, midY - ((fm.ascent + fm.descent) / 2.0f), owner.trailPaint);
         }
     }

@@ -34,9 +34,14 @@ public final class FrameStats {
 
     /** The one-line summary once there are enough frames and some time has passed since the last one, else null. */
     public String reportIfDue(long nowNanos, float displayHz) {
-        if (total < MIN_FRAMES_TO_REPORT || nowNanos - reportedAt < REPORT_EVERY_NS) return null;
+        if (!due(nowNanos)) return null;
         reportedAt = nowNanos;
         return summary(displayHz);
+    }
+
+    /** Whether {@link #reportIfDue} would report now; the display's rate need only be asked for when it does. */
+    public boolean due(long nowNanos) {
+        return total >= MIN_FRAMES_TO_REPORT && nowNanos - reportedAt >= REPORT_EVERY_NS;
     }
 
     String summary(float displayHz) {

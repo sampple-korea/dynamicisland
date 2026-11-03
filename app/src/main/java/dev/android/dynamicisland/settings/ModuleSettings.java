@@ -273,8 +273,8 @@ public final class ModuleSettings {
     private static volatile boolean thirdPartyCalls = true;
     private static volatile AppFilter appFilter = AppFilter.OFF;
 
-    private static boolean started;
-    private static boolean previewProcess;
+    private static volatile boolean started;
+    private static volatile boolean previewProcess;
     private static XSharedPreferences prefs;
     private static boolean loaded;
     /** True while the values come from {@link SettingsProvider} because the preference file was empty or unreadable. */
@@ -429,7 +429,14 @@ public final class ModuleSettings {
     }
 
     /** Starts the background reload loop on first use; later calls do nothing. */
-    public static synchronized void ensureStarted() {
+    public static void ensureStarted() {
+        if (started || previewProcess) {
+            return;
+        }
+        start();
+    }
+
+    private static synchronized void start() {
         if (started || previewProcess) {
             return;
         }

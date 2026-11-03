@@ -906,7 +906,8 @@ final class Director {
     /** True once every card is gone or has folded to (nearly) the pill's shape, so the pill can take over from it. */
     private boolean cardsArrived() {
         long now = IslandView.now();
-        for (Card c : scene.cards) {
+        for (int i = 0, n = scene.cards.size(); i < n; i++) {
+            Card c = scene.cards.get(i);
             if (!c.leaving || !c.launched || Math.abs(c.h.value() - c.targetH) > m.dp(PILL_TAKEOVER_H_DP)
                     || Math.abs(c.w.value() - c.targetW) > m.dp(PILL_TAKEOVER_W_DP)) {
                 return false;

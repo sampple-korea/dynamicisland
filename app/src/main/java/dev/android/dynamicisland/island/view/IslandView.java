@@ -269,7 +269,8 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         if (t < touchActiveUntil || springs.animating() || buttons.animating() || seekBody != null || sliderBody != null
                 || scene.mainOut != null || scene.bubbleOut != null
                 || scene.contentHandoff != null && !scene.contentHandoff.finished(t)) return true;
-        for (Card c : scene.cards) {
+        for (int i = 0, n = scene.cards.size(); i < n; i++) {
+            Card c = scene.cards.get(i);
             if (c.leaving || t < c.startAt || c.iMode && !c.cx.isAtRest() || !c.cy.isAtRest() || !c.w.isAtRest() || !c.h.isAtRest() || !c.dx.isAtRest()) return true;
         }
         return false;
@@ -903,6 +904,7 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
     /** Keeps count of how evenly the animation frames arrive, for the diagnostics report. */
     private void noteFrame(long frameTimeNanos) {
         frameStats.onFrame(frameTimeNanos, interactiveMotion());
+        if (!frameStats.due(frameTimeNanos)) return;
         String report = frameStats.reportIfDue(frameTimeNanos, getDisplay() == null ? 0f : getDisplay().getRefreshRate());
         if (report != null) dev.android.dynamicisland.xposed.Diagnostics.fact("island animation frames", report);
     }
@@ -931,8 +933,8 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
             active = true;
         }
         active |= director.stepCards(dt, t);
-        for (Card c : scene.cards) {
-            active |= c.bridge.animating(t);
+        for (int i = 0, n = scene.cards.size(); i < n; i++) {
+            active |= scene.cards.get(i).bridge.animating(t);
         }
         springs.outlineFade.animateTo((ModuleSettings.legacyAnimation() ? scene.cards.isEmpty() : allLeaving()) ? 1.0f : 0.0f);
         if (scene.mainOut != null && scene.mainOut.finished(t)) {
@@ -994,7 +996,8 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         if (sliderSettleKey != null) {
             need |= now() - sliderSettleStart < SliderBody.SETTLE_MS;
         }
-        for (Card c : scene.cards) {
+        for (int i = 0, n = scene.cards.size(); i < n; i++) {
+            Card c = scene.cards.get(i);
             need |= c.item.pulsingDot || c.item.progressIndeterminate || runningStopwatch(c.item) || iconPlaying(c.item)
                     || c.body.animating(now())
                     || c.material.animating(now()) || (scene.mode == Mode.EXPANDED && c.item.isMedia && !ModuleSettings.stillMusicEffects());
@@ -1043,8 +1046,8 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
 
     /** True when no card is staying: the pill is (or is about to be) all there is, so it shows its outline again. */
     private boolean allLeaving() {
-        for (Card c : scene.cards) {
-            if (!c.leaving) {
+        for (int i = 0, n = scene.cards.size(); i < n; i++) {
+            if (!scene.cards.get(i).leaving) {
                 return false;
             }
         }

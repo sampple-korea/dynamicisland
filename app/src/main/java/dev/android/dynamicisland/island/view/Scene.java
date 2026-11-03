@@ -107,7 +107,8 @@ final class Scene {
     }
 
     Card findCard(String key) {
-        for (Card c : cards) {
+        for (int i = 0, n = cards.size(); i < n; i++) {
+            Card c = cards.get(i);
             if (c.item.key.equals(key)) {
                 return c;
             }
