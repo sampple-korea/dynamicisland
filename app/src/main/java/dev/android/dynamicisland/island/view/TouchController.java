@@ -74,6 +74,8 @@ final class TouchController {
     /** Holding the small pill still hides the island (iMotion), for when a swipe up is awkward to make. */
     private final Runnable hideByHolding = this::hideByHolding;
     private boolean holdPending;
+    private long traceStart;
+    private int traceMoves;
     private Axis axis = Axis.UNDECIDED;
     private boolean stackDragging;
     private VelocityTracker velocity;
@@ -131,6 +133,7 @@ final class TouchController {
             velocity=VelocityTracker.obtain();
         }
         if(velocity!=null) velocity.addMovement(e);
+        traceTouch(e, action);
         if (action != MotionEvent.ACTION_DOWN && ignoreGesture) {
             if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
                 ignoreGesture = false;
@@ -168,6 +171,22 @@ final class TouchController {
         if(action==MotionEvent.ACTION_UP || action==MotionEvent.ACTION_CANCEL) recycleVelocity();
         return true;
     }
+    /** Writes how a drag that began on the pill ended (how many moves came, which action ended it, how far it went). */
+    private void traceTouch(MotionEvent e, int action) {
+        if (action == MotionEvent.ACTION_DOWN) {
+            traceStart = e.getEventTime();
+            traceMoves = 0;
+        } else if (action == MotionEvent.ACTION_MOVE) {
+            traceMoves++;
+        } else if ((action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) && traceMoves > 0
+                && (downOnPill || downOnBubble)) {
+            dev.android.dynamicisland.xposed.Diagnostics.event("pill touch ended by " + (action == MotionEvent.ACTION_UP ? "UP" : "CANCEL")
+                    + " after " + (e.getEventTime() - traceStart) + " ms, " + traceMoves + " moves, dy "
+                    + Math.round(y(e) - downY) + " px, dx " + Math.round(x(e) - downX) + " px, "
+                    + (pullingOpen ? "pulling" : "not pulling") + ", " + (scene.iMode != null ? "iMotion" : "stack"));
+        }
+    }
+
     private void recycleVelocity() { if(velocity!=null) velocity.recycle();velocity=null; }
 
     /** How fast the finger is moving up right now, in px per second (0 when it is not, or nothing is tracked). */
