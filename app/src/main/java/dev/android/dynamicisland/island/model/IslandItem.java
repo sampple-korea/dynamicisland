@@ -150,6 +150,9 @@ public final class IslandItem {
     public boolean chronoCountDown;
     /** Stopwatch: show hundredths of a second. */
     public boolean chronoMillis;
+    /** The clock text last made for this item and the second it was made for, so a frame within that second reuses it. */
+    public long chronoShownSecond = -1L;
+    public String chronoShownText;
     /** 0 none, 1 chronometer replaces the primary line, 2 it replaces the secondary line. */
     public int chronoPosition;
 

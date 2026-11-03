@@ -973,8 +973,11 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         Layer bubble = scene.bubbleIn;
         boolean need = false;
         if(scene.iMode!=null) {
-            for(IslandItem item:scene.iMode.visibleItems())
+            List<IslandItem> shown=scene.iMode.visibleItems();
+            for(int i=0,n=shown.size();i<n;i++) {
+                IslandItem item=shown.get(i);
                 need |= runningStopwatch(item) || iconPlaying(item);
+            }
         }
         need |= pillPainter.stepGlow(dt, host.audio());
         IslandItem waveItem = null;

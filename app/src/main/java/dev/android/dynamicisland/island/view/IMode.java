@@ -31,6 +31,7 @@ final class IMode {
     private final BodyFactory bodies;
     private final Director director;
     private final Map<String, Node> nodes = new LinkedHashMap<>();
+    private final RectF compactNatural = new RectF();
     private final List<IslandItem> activities = new ArrayList<>();
     private final RectF rect = new RectF(), source = new RectF();
     private final Path clip = new Path();
@@ -959,7 +960,8 @@ final class IMode {
         float contrast=outlineOpacity();
         if(contrast<.002f || scene.cards.isEmpty()) return;
         outlineOcclusion.reset();
-        for(Card card:scene.cards) {
+        for(int i=0,n=scene.cards.size();i<n;i++) {
+            Card card=scene.cards.get(i);
             view.computeCard(card,outlineBounds);
             float opacity=IslandView.clamp01(card.iModeOpacity.value());
             if(!card.iMode || opacity<.003f) continue;
@@ -989,7 +991,8 @@ final class IMode {
             // the artwork, glyphs, digits or waveform. Only shrink uniformly while returning to a bubble.
             float scale=Math.max(.001f,Math.min(1,Math.min(r.height()/m.pillH,r.width()/n.compact.desiredWidth())));
             float width=r.width()/scale;
-            RectF natural=new RectF(r.centerX()-width/2,r.centerY()-m.pillH/2,r.centerX()+width/2,r.centerY()+m.pillH/2);
+            RectF natural=compactNatural;
+            natural.set(r.centerX()-width/2,r.centerY()-m.pillH/2,r.centerX()+width/2,r.centerY()+m.pillH/2);
             int save=canvas.save();canvas.scale(scale,scale,r.centerX(),r.centerY());
             n.compact.draw(canvas,natural,alpha*(1-iconOnly),1000);canvas.restoreToCount(save);
         }

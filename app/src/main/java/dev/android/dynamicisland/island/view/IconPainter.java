@@ -118,7 +118,7 @@ final class IconPainter {
                 Math.round(255.0f * clamp01(alpha))) : c.save();
         try {
             if (!image) {
-                d.setBounds(centerInside(d, l, t, sz));
+                fitInside(d, l, t, sz);
                 d.setTint(tint);
                 d.draw(c);
                 return;
@@ -128,7 +128,7 @@ final class IconPainter {
             imageClip.rewind();
             imageClip.addRoundRect(scratch, corner, corner, Path.Direction.CW);
             c.clipPath(imageClip);
-            d.setBounds(centerCrop(d, l, t, sz));
+            fillSlot(d, l, t, sz);
             d.setTintList(null);
             d.draw(c);
             c.restoreToCount(save);
@@ -136,36 +136,38 @@ final class IconPainter {
     }
 
     /** Fits a symbol inside its slot, preserving its intrinsic aspect ratio and centring both axes. */
-    private static android.graphics.Rect centerInside(Drawable d, int l, int t, int sz) {
+    private static void fitInside(Drawable d, int l, int t, int sz) {
         int iw = d.getIntrinsicWidth();
         int ih = d.getIntrinsicHeight();
         if (sz <= 0 || iw <= 0 || ih <= 0 || iw == ih) {
-            return new android.graphics.Rect(l, t, l + sz, t + sz);
+            d.setBounds(l, t, l + sz, t + sz);
+            return;
         }
         float scale = Math.min(sz / (float) iw, sz / (float) ih);
         int width = Math.max(1, Math.round(iw * scale));
         int height = Math.max(1, Math.round(ih * scale));
         int left = l + ((sz - width) / 2);
         int top = t + ((sz - height) / 2);
-        return new android.graphics.Rect(left, top, left + width, top + height);
+        d.setBounds(left, top, left + width, top + height);
     }
 
     /**
-     * Bounds that fit {@code d} into the square {@code sz} at ({@code l}, {@code t}) like ImageView's
+     * Sets bounds that fit {@code d} into the square {@code sz} at ({@code l}, {@code t}) like ImageView's
      * CENTER_CROP, so non 1:1 artwork keeps its aspect ratio (the caller clips the overflow).
      */
-    private static android.graphics.Rect centerCrop(Drawable d, int l, int t, int sz) {
+    private static void fillSlot(Drawable d, int l, int t, int sz) {
         int iw = d.getIntrinsicWidth();
         int ih = d.getIntrinsicHeight();
         if (iw <= 0 || ih <= 0 || iw == ih) {
-            return new android.graphics.Rect(l, t, l + sz, t + sz);
+            d.setBounds(l, t, l + sz, t + sz);
+            return;
         }
         float scale = Math.max(sz / (float) iw, sz / (float) ih);
         int dw = Math.round(iw * scale);
         int dh = Math.round(ih * scale);
         int dl = l + ((sz - dw) / 2);
         int dt = t + ((sz - dh) / 2);
-        return new android.graphics.Rect(dl, dt, dl + dw, dt + dh);
+        d.setBounds(dl, dt, dl + dw, dt + dh);
     }
 
     float trailingWidth(IslandItem item, String text) {

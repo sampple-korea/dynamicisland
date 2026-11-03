@@ -16,7 +16,15 @@ public final class TimeFormat {
         long now = item.chronoUsesElapsedRealtime ? android.os.SystemClock.elapsedRealtime() : System.currentTimeMillis();
         long base = item.chronoUsesElapsedRealtime ? item.chronoElapsedBase : item.chronoBase;
         long ms = item.chronoCountDown ? base - now : now - base;
-        return item.chronoMillis ? withHundredths(ms) : clock(Math.max(0L, ms));
+        if (item.chronoMillis) {
+            return withHundredths(ms);
+        }
+        long second = Math.max(0L, ms) / 1000;
+        if (item.chronoShownText == null || item.chronoShownSecond != second) {
+            item.chronoShownText = clock(Math.max(0L, ms));
+            item.chronoShownSecond = second;
+        }
+        return item.chronoShownText;
     }
 
     /** "1:05.37": the clock plus hundredths of a second. */
