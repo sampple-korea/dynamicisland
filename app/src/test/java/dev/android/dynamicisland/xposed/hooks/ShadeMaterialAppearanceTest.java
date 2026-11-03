@@ -147,6 +147,33 @@ public class ShadeMaterialAppearanceTest {
         assertFalse("what was off before the lease is not turned on",player.mIsCornerRound);
     }
 
+    @Test public void nativeOutlineRebuildsCannotRoundOffTheOwnedCardsCornersAndOriginalProvidersReturn() {
+        Context context=RuntimeEnvironment.getApplication();
+        ExpandableNotificationRow row=new ExpandableNotificationRow(context);row.layout(0,0,360,180);
+        FrameLayout content=new FrameLayout(context);row.addView(content);content.layout(0,0,360,180);
+        View host=new View(context);content.addView(host);host.layout(0,0,360,180);
+        View other=new View(context);row.addView(other);
+        android.view.ViewOutlineProvider rounded=new android.view.ViewOutlineProvider() {
+            @Override public void getOutline(View view,android.graphics.Outline outline) { outline.setRoundRect(0,0,360,180,70); }
+        };
+        row.setOutlineProvider(rounded);row.setClipToOutline(true);
+        content.setOutlineProvider(rounded);host.setOutlineProvider(null);
+        android.graphics.Rect heightClip=new android.graphics.Rect(0,4,360,176);content.setClipBounds(heightClip);
+        var untouched=other.getOutlineProvider();ShadeMaterialAppearance lease=new ShadeMaterialAppearance();
+        lease.sync(host,true);
+        try {
+            android.graphics.Outline outline=new android.graphics.Outline();
+            // Even if native rendering enables the outline again, it can only apply a rectangle.
+            row.setClipToOutline(true);row.getOutlineProvider().getOutline(row,outline);
+            assertEquals(0,outline.getRadius(),0);android.graphics.Rect rect=new android.graphics.Rect();
+            assertTrue(outline.getRect(rect));assertEquals(new android.graphics.Rect(0,0,360,180),rect);
+            assertSame(untouched,other.getOutlineProvider());assertEquals(heightClip,content.getClipBounds());
+            content.setOutlineProvider(android.view.ViewOutlineProvider.BOUNDS);lease.sync(host,true);
+        } finally { lease.clear(); }
+        assertSame(rounded,row.getOutlineProvider());assertSame(android.view.ViewOutlineProvider.BOUNDS,content.getOutlineProvider());
+        assertNull(host.getOutlineProvider());assertTrue(row.getClipToOutline());assertEquals(heightClip,content.getClipBounds());
+    }
+
     static final class QSMediaCornerRoundedView extends FrameLayout {
         public boolean mIsCornerRound=true;
         QSMediaCornerRoundedView(Context c){super(c);}

@@ -149,19 +149,22 @@ public final class ShadeLiveCards {
         protected void after(XC_MethodHook.MethodHookParam p) {
             CardRowState state = CardRowState.installedIn(p.thisObject);
             if (state != null) {
-                state.endMeasure();
+                try {
+                    if (!p.hasThrowable()) state.fitMeasuredHeight((Integer) p.args[1]);
+                } finally {
+                    state.endMeasure();
+                }
             }
         }
     }
 
-    /** After {@code NotificationContentView.getMinHeight}: a card row is exactly as tall as its card. */
+    /** After {@code NotificationContentView.getMinHeight}: include the current child measure and content insets. */
     private static void reportCardHeightAsMinHeight(XC_MethodHook.MethodHookParam p) {
         CardRowState state = CardRowState.installedIn(p.thisObject);
         if (state == null || p.hasThrowable()) {
             return;
         }
-        LiveCardView card = state.card;
-        p.setResult(card.getHeight() > 0 ? card.getHeight() : card.desiredHeight());
+        p.setResult(state.minimumHeight());
     }
 
     /** Before {@code NotificationViewWrapper.needsInversion}: the card is already dark, never invert its colours. */

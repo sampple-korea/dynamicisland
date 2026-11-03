@@ -1,6 +1,7 @@
 package dev.android.dynamicisland.xposed.hooks;
 
 import android.graphics.Path;
+import android.graphics.Outline;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
@@ -8,6 +9,7 @@ import android.view.View;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
 import dev.android.dynamicisland.island.material.FrostedSurface;
 import dev.android.dynamicisland.xposed.Diagnostics;
 import dev.android.dynamicisland.xposed.Refl;
@@ -21,6 +23,15 @@ import java.util.function.BooleanSupplier;
 /** Lease the stock shell/rounding while a GPU card supplies its own perimeter. */
 final class ShadeMaterialAppearance {
     private static final Map<View, State> ROWS = new WeakHashMap<>();
+    /** Keep a later native outline rebuild harmless too; the GPU card supplies its own perimeter. */
+    private static final class CardOutline extends ViewOutlineProvider {
+        final ViewOutlineProvider original;
+        CardOutline(ViewOutlineProvider original) { this.original = original; }
+        @Override public void getOutline(View view, Outline outline) {
+            outline.setRect(0, 0, view.getWidth(), view.getHeight());
+            outline.setAlpha(0); // no rectangular elevation shadow behind the card's own edge lighting
+        }
+    }
     private View owner, row;
 
     static void install(ClassLoader loader) {
@@ -117,6 +128,9 @@ final class ShadeMaterialAppearance {
         final Map<View, Boolean> owners = new WeakHashMap<>();
         final Map<View, Float> backgrounds = new WeakHashMap<>();
         final Map<View, Boolean> outlines = new WeakHashMap<>();
+        // A native provider can capture its View. Only the View's leased provider may retain it,
+        // not this static weak-row registry, or detached notification rows would be kept alive.
+        final Map<View, WeakReference<CardOutline>> outlineProviders = new WeakHashMap<>();
         final Map<View, Drawable> hostBackgrounds = new WeakHashMap<>();
         /** The media player's own round clip, with the value it had before the lease switched it off. */
         final Map<View, Boolean> cornerClips = new WeakHashMap<>();
@@ -142,6 +156,16 @@ final class ShadeMaterialAppearance {
             for (View node = host; node != null; node = parent(node)) {
                 if (!outlines.containsKey(node)) outlines.put(node, node.getClipToOutline());
                 if (node.getClipToOutline()) node.setClipToOutline(false);
+                // Clearing the flag alone leaves Samsung's rounded outline on the RenderNode. Its own
+                // updates can activate that outline again; a rectangular provider cannot cut our G2 corners.
+                WeakReference<CardOutline> reference = outlineProviders.get(node);
+                CardOutline leased = reference == null ? null : reference.get();
+                if (leased == null || node.getOutlineProvider() != leased) {
+                    leased = new CardOutline(node.getOutlineProvider());
+                    outlineProviders.put(node, new WeakReference<>(leased));
+                    node.setOutlineProvider(leased);
+                    Diagnostics.fact("shade material perimeter", "parent outlines leased as rectangles; stock height and swipe clips retained");
+                }
                 if (isPlayerRoot(node)) releaseCornerClip(node);
                 if (node == row) break;
             }
@@ -219,6 +243,11 @@ final class ShadeMaterialAppearance {
         void restore() {
             for (Map.Entry<View, Float> entry : backgrounds.entrySet())
                 if (entry.getKey().getAlpha() == 0) entry.getKey().setAlpha(entry.getValue());
+            for (Map.Entry<View, WeakReference<CardOutline>> entry : outlineProviders.entrySet()) {
+                CardOutline leased = entry.getValue().get();
+                if (leased != null && entry.getKey().getOutlineProvider() == leased)
+                    entry.getKey().setOutlineProvider(leased.original);
+            }
             for (Map.Entry<View, Boolean> entry : outlines.entrySet())
                 if (!entry.getKey().getClipToOutline()) entry.getKey().setClipToOutline(entry.getValue());
             for (Map.Entry<View, Drawable> entry : hostBackgrounds.entrySet())

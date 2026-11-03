@@ -27,6 +27,25 @@ The module hooks Samsung's System UI by name, so each One UI version has to be c
 
 Names are matched by name only (any class), so a hit from the script is a hint, not a proof; view ids are not in the dex and are checked with `aapt2 dump resources`, as the script prints.
 
+## Frosted notification corners
+
+The GPU card owns its G2 perimeter. While it paints, `ShadeMaterialAppearance`
+leases rectangular outline providers on its host and parents up to the notification
+row, as well as disabling outline clipping. This prevents a native outline rebuild
+from reinstating Samsung's circular mask over the card's edge lighting. The native
+providers return when the last card releases the row; stock scroll, swipe and height
+clip bounds remain in force. Saved providers are retained by the view's leased
+provider, not strongly by the static weak-row registry.
+
+Live-card measurement also includes content padding and child margins before
+Samsung's `measureChildWithMargins` subtracts them. The content view's measured
+height and minimum-height report include these insets and use the fresh child
+measure rather than its previous layout height. Diagnostics records
+`shade live card geometry` even if the optional custom clip-path hook is not called.
+Controlled native-Skia renders reproduce both rounded-mask corner loss and an
+under-measured bottom edge; verification of this correction on a physical device
+is pending.
+
 ## Status bar battery charging effect
 
 Checked against the supplied Android 17 System UI v17 (37) APK and the video in issue #15. The effect is the status bar battery expanding into a coloured charging chip. It is separate from `power.feature.charginganimation`, which controls charging overlays/Now Bar presentations. The battery effect is handled at its own presentation entry points below.
