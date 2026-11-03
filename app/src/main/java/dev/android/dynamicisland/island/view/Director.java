@@ -503,6 +503,11 @@ final class Director {
      * past their size before they settled.
      */
     static final float PULL_OPEN_MAX_SPEED_PER_S = 2.5f;
+    /**
+     * The same limit for a pull the system cut short: the cards never followed the finger, so the speed it was going at
+     * is all that shows how quickly the island is wanted open.
+     */
+    static final float PULL_CUT_MAX_SPEED_PER_S = 6.0f;
     /** How much of a pull beyond the full distance is still followed (the cards stretch a little). */
     static final float PULL_OPEN_RUBBER = 0.12f;
     /** The most (as a share of the full size) the cards stretch past their size however far the finger goes on. */
@@ -584,6 +589,11 @@ final class Director {
      * @param downSpeed how fast the finger was moving down, in px per second
      */
     void endPullOpen(boolean commit, float downSpeed) {
+        endPullOpen(commit, downSpeed, PULL_OPEN_MAX_SPEED_PER_S);
+    }
+
+    /** As {@link #endPullOpen(boolean, float)}, with the fastest the cards may be sent towards their size. */
+    void endPullOpen(boolean commit, float downSpeed, float maxSpeedPerS) {
         if (!pullingOpen) {
             return;
         }
@@ -605,8 +615,8 @@ final class Director {
             // finger's speed, but never more than lets them arrive about when a tap-open would; the width, which is
             // quick anyway, is left to its own spring
             float speed = Math.min(downSpeed, m.dp(6000.0f)) / distance;
-            kick(c.cy, speed * (c.targetCy - c.pullFromCy), c.targetCy);
-            kick(c.h, speed * (c.targetH - c.pullFromH), c.targetH);
+            kick(c.cy, speed * (c.targetCy - c.pullFromCy), c.targetCy, maxSpeedPerS);
+            kick(c.h, speed * (c.targetH - c.pullFromH), c.targetH, maxSpeedPerS);
             c.startAt = t;
         }
         scheduleAutoCollapse(ModuleSettings.autoCollapseMs());
@@ -619,9 +629,9 @@ final class Director {
     }
 
     /** Gives a spring that is heading for {@code target} a push of at most {@code PULL_OPEN_MAX_SPEED_PER_S} times what is left. */
-    private static void kick(Spring spring, float velocity, float target) {
+    private static void kick(Spring spring, float velocity, float target, float maxSpeedPerS) {
         float left = target - spring.value();
-        float cap = Math.abs(left) * PULL_OPEN_MAX_SPEED_PER_S;
+        float cap = Math.abs(left) * maxSpeedPerS;
         float v = Math.min(Math.abs(velocity), cap) * Math.signum(left);
         if (v != 0.0f) {
             spring.impulse(v);

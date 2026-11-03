@@ -203,6 +203,33 @@ public class SwipeDownOpensTest {
         }
     }
 
+    private float heightAfterACutShortPull(Context context, String name, long gapMs) {
+        SharedPreferences prefs = stackPrefs(context, name);
+        try {
+            IslandView view = view(context);
+            Scene scene = ReflectionHelpers.getField(view, "scene");
+            RectF pill = pillOf(view);
+            float slop = android.view.ViewConfiguration.get(context).getScaledTouchSlop();
+            long down = SystemClock.uptimeMillis();
+            touchAt(view, MotionEvent.ACTION_DOWN, down, down, pill.centerX(), pill.centerY());
+            touchAt(view, MotionEvent.ACTION_MOVE, down, down + gapMs, pill.centerX(), pill.centerY() + slop * 0.6f);
+            touchAt(view, MotionEvent.ACTION_MOVE, down, down + 2 * gapMs, pill.centerX(), pill.centerY() + slop * 1.2f);
+            touchAt(view, MotionEvent.ACTION_CANCEL, down, down + 3 * gapMs, pill.centerX(), pill.centerY() + slop * 1.8f);
+            Card card = firstCard(scene);
+            step(view, 5);
+            return card.h.value();
+        } finally {
+            reset(prefs);
+        }
+    }
+
+    @Test public void aFasterPullTheSystemCutShortOpensTheCardsFaster() {
+        Context context = RuntimeEnvironment.getApplication();
+        float slow = heightAfterACutShortPull(context, "cut-slow", 120);
+        float fast = heightAfterACutShortPull(context, "cut-fast", 16);
+        assertTrue("fast " + fast + " slow " + slow, fast > slow + 1);
+    }
+
     @Test public void aTouchCancelledWithoutMovingDownDoesNotOpenTheCards() {
         Context context = RuntimeEnvironment.getApplication();
         SharedPreferences prefs = stackPrefs(context, "pull-cancel-still");
@@ -330,6 +357,46 @@ public class SwipeDownOpensTest {
             maxBottom = Math.max(maxBottom, card.cy.value() + card.h.value() / 2 - (card.targetCy + card.targetH / 2));
         }
         return new float[] {maxH, maxW, maxBottom};
+    }
+
+    @Test public void aPullTheSystemCutShortNeverOpensTheCardsFurtherPastTheirSizeThanATapDoes() {
+        Context context = RuntimeEnvironment.getApplication();
+        for (boolean legacy : new boolean[] {false, true}) {
+            SharedPreferences prefs = stackPrefs(context, "cut-overshoot-" + legacy);
+            try {
+                prefs.edit().putBoolean(ModuleSettings.KEY_LEGACY_ANIMATION, legacy).commit();
+                ModuleSettings.configurePreview(prefs);
+                IslandView tapView = view(context);
+                Scene tapScene = ReflectionHelpers.getField(tapView, "scene");
+                RectF tapPill = pillOf(tapView);
+                long tapDown = SystemClock.uptimeMillis();
+                touchAt(tapView, MotionEvent.ACTION_DOWN, tapDown, tapDown, tapPill.centerX(), tapPill.centerY());
+                touchAt(tapView, MotionEvent.ACTION_UP, tapDown, tapDown + 40, tapPill.centerX(), tapPill.centerY());
+                Card tapCard = firstCard(tapScene);
+                float[] tap = overshoot(tapView, tapCard);
+                float margin = tapCard.targetH * 0.05f;
+                float slop = android.view.ViewConfiguration.get(context).getScaledTouchSlop();
+                for (long gap : new long[] {4, 8, 16, 40}) {
+                    IslandView view = view(context);
+                    Scene scene = ReflectionHelpers.getField(view, "scene");
+                    RectF pill = pillOf(view);
+                    long down = SystemClock.uptimeMillis();
+                    touchAt(view, MotionEvent.ACTION_DOWN, down, down, pill.centerX(), pill.centerY());
+                    touchAt(view, MotionEvent.ACTION_MOVE, down, down + gap, pill.centerX(), pill.centerY() + slop * 0.6f);
+                    touchAt(view, MotionEvent.ACTION_MOVE, down, down + 2 * gap, pill.centerX(), pill.centerY() + slop * 1.2f);
+                    touchAt(view, MotionEvent.ACTION_CANCEL, down, down + 3 * gap, pill.centerX(), pill.centerY() + slop * 1.8f);
+                    Card card = firstCard(scene);
+                    String what = (legacy ? "classic" : "default") + ", " + gap + " ms apart: ";
+                    float[] cut = overshoot(view, card);
+                    assertEquals(what + "opened", Mode.EXPANDED, scene.mode);
+                    assertTrue(what + "height over " + cut[0] + " (a tap: " + tap[0] + ")", cut[0] <= tap[0] + margin);
+                    assertTrue(what + "width over " + cut[1] + " (a tap: " + tap[1] + ")", cut[1] <= tap[1] + margin);
+                    assertTrue(what + "bottom edge over " + cut[2] + " (a tap: " + tap[2] + ")", cut[2] <= tap[2] + margin);
+                }
+            } finally {
+                reset(prefs);
+            }
+        }
     }
 
     @Test public void aFastFlickOpensTheCardsNoFurtherPastTheirSizeThanATapDoes() {

@@ -591,12 +591,17 @@ final class TouchController {
             // had clearly started is what the finger meant, so the cards open instead of folding back
             boolean meant = y(e) - downY > touchSlop;
             dev.android.dynamicisland.xposed.Diagnostics.event("pull down cancelled by the system, cards " + (meant ? "opened" : "folded"));
-            director.endPullOpen(meant, meant ? downwardSpeed() : 0.0f);
+            director.endPullOpen(meant, meant ? downwardSpeed() : 0.0f, Director.PULL_CUT_MAX_SPEED_PER_S);
         } else if (cutShortPullDown(e)) {
             dev.android.dynamicisland.xposed.Diagnostics.event("pull down cancelled by the system before it began, cards opened");
             ignoreGesture = true;
-            Haptics.perform(view, HAPTIC_CONFIRM);
-            director.expandFromPill();
+            if (director.beginPullOpen()) {
+                director.pullOpen(pullProgress(y(e) - downY));
+                director.endPullOpen(true, downwardSpeed(), Director.PULL_CUT_MAX_SPEED_PER_S);
+            } else {
+                Haptics.perform(view, HAPTIC_CONFIRM);
+                director.expandFromPill();
+            }
         }
         if(scene.iMode!=null) scene.iMode.releasePress();
         if(scene.iMode!=null) scene.iMode.cancelPage();
