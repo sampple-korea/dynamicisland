@@ -122,6 +122,12 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
 
     // ---- public API used by the hooks ----------------------------------------------------------
 
+    /** Whether a touch at this screen point lands on the island (false while nothing of it takes touches). */
+    public boolean isOnIsland(float screenX, float screenY) {
+        IslandView view = placement.view();
+        return view != null && view.containsScreenPoint(screenX, screenY);
+    }
+
     public IslandItem itemForKey(String notificationKey) {
         return sources.oa.itemForKey(notificationKey);
     }

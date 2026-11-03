@@ -83,6 +83,7 @@ public final class SystemUiHooks {
         runGroup("signals", () -> hookSignals(cl));
         runGroup("wakefulness", () -> WakefulnessHooks.install(cl));
         runGroup("unlock notice", () -> UnlockHooks.install(cl));
+        runGroup("handle input layer", () -> HandleInputLayer.install(cl));
         runGroup("charging animation", () -> {
             try {
                 ChargingAnimation.install(cl);

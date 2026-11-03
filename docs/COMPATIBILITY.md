@@ -36,6 +36,12 @@ Checked against the supplied Android 17 System UI v17 (37) APK and the video in 
 
 The option is independent of island charging alerts. Charging sounds, warnings, the ordinary battery percentage/charging indicator and other power UI are not intercepted. Changes affect subsequent charging transitions after preferences reload; reconnect the charger to test a new transition. Unsupported builds retain their original behaviour. Diagnostics report `stock charging animation` with attached Compose/event hook counts; both targets exist in the supplied APK. The maintainer confirmed that the corrected test APK suppresses the battery effect on their phone. Other devices and firmware still need device testing, including wired/wireless charging and normal battery/status/privacy icon visibility.
 
+## Multitasking handle input layer
+
+Checked against the supplied Android 17 System UI v17 (37) APK. While an app is in front, WM Shell adds a window titled "Handle Input Layer of task N" over the handle's bounds at the top centre of the status bar (`MultiTaskingHandleViewHolder` and `AppHandleViewHolder`, `createStatusBarInputLayer`). It is a trusted overlay with `inputFeatures = INPUT_FEATURE_SPY`, so it sees the touches that land on windows above it. Its touch listeners (`MultiTaskingHandleViewHolder$createStatusBarInputLayer$2` and `$4`, `AppHandleViewHolder$createStatusBarInputLayer$2`) call `InputManager.pilferPointers` on the first finger down, which cancels the touch of every other window, the island included. That is why a pull down on the island in the default and classic styles was cancelled inside an app and worked on the home screen, where that window does not exist.
+
+`HandleInputLayer` hooks `onTouch` of those three listeners. A gesture whose first touch lands on the island (its touchable region, in screen coordinates) is skipped by them for the whole gesture, so nothing is pilfered and the handle does not start; any other gesture reaches them unchanged. A missing class is skipped, and the diagnostics report shows `handle input layer` with the number of listeners hooked. `scripts/check_systemui.py` only looks for `com.android.systemui` and `com.samsung` names, so these `com.android.wm.shell` names are checked by hand against the dex.
+
 ## One UI 7 specifics
 
 What differs from One UI 8 and how the module handles it (found by comparing the symbols with `scripts/check_systemui.py`):

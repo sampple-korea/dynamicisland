@@ -842,6 +842,18 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         footprint.restingPill(out);
     }
 
+    /** Whether a point in screen coordinates is in the part of the window that takes touches. */
+    public boolean containsScreenPoint(float screenX, float screenY) {
+        if (!isAttachedToWindow()) {
+            return false;
+        }
+        int[] at = new int[2];
+        getLocationOnScreen(at);
+        Region region = new Region();
+        getTouchRegion(region);
+        return region.contains(Math.round(screenX - at[0]), Math.round(screenY - at[1]));
+    }
+
     /** The part of the window that should receive touches; everything else lets them through. */
     public void getTouchRegion(Region out) {
         footprint.touchRegion(out);
