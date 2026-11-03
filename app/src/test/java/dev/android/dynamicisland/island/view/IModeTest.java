@@ -1033,6 +1033,25 @@ public class IModeTest {
         }
     }
 
+    @Test public void aShortPopupIsTheMainPillEvenWhenTheRowWasPagedToAnotherOne() {
+        try(Fixture f=new Fixture(3)) {
+            RectF main=new RectF();
+            f.scene.iMode.next(1);f.step(16,80);f.scene.iMode.mainBounds(main);
+            String paged=f.scene.iMode.hit(main.centerX(),main.centerY(),0);
+            assertEquals("the row was paged to the next pill","item1",paged);
+            IslandItem popup=new IslandItem("event:toggle:dnd");
+            popup.kind=IslandItem.Kind.EVENT;popup.title="Do Not Disturb on";popup.transientPopup=true;
+            popup.icon=GlyphIcon.of(GlyphIcon.Kind.BELL);
+            popup.trailing=IslandItem.Trailing.TEXT;popup.trailingText="On";
+            List<IslandItem> items=new ArrayList<>();
+            items.add(popup);items.addAll(f.items);
+            f.view.setItems(items);f.step(16,80);f.scene.iMode.mainBounds(main);
+            assertEquals("the popup is the main pill, not a sub pill waiting behind",popup.key,f.scene.iMode.hit(main.centerX(),main.centerY(),0));
+            f.view.setItems(f.items);f.step(16,80);f.scene.iMode.mainBounds(main);
+            assertEquals("when it is over the row is back where it was",paged,f.scene.iMode.hit(main.centerX(),main.centerY(),0));
+        }
+    }
+
     @Test public void aPullDownOnASubPillOpensThatActivity() {
         try(Fixture f=new Fixture(3)) {
             RectF sub=new RectF();f.scene.iMode.bubbleBounds(sub);
