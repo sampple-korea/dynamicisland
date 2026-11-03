@@ -23,7 +23,20 @@ final class ShadeMaterialAppearance {
     private static final Map<View, State> ROWS = new WeakHashMap<>();
     private View owner, row;
 
+    private static volatile ClassLoader hookLoader;
+    private static boolean hooked;
+
+    /** The two hooks below are on views of the whole System UI, so they go on when a card first takes a row. */
     static void install(ClassLoader loader) {
+        hookLoader = loader;
+    }
+
+    private static synchronized void hookOnce() {
+        ClassLoader loader = hookLoader;
+        if (hooked || loader == null) {
+            return;
+        }
+        hooked = true;
         // System UI turns clipToOutline back on whenever it updates a row's outline (the roundness changes, the lock
         // screen opens). While a Frosted card owns the row the circular outline would cut the corners of its own
         // perimeter again, so the views the lease switched off stay off.
@@ -47,6 +60,7 @@ final class ShadeMaterialAppearance {
 
     /** Run before RenderNode/parent clips are recorded, including the very first draw. */
     void follow(View host, BooleanSupplier active) {
+        hookOnce();
         ViewTreeObserver.OnPreDrawListener listener = () -> {
             try {
                 sync(host, FrostedSurface.requested() && host.isHardwareAccelerated()

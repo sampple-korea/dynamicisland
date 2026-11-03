@@ -50,7 +50,7 @@ public final class ShadeLiveCards {
             if (Refl.hookAll(cl, CONTENT_BINDER + "$Companion", "access$apply", new ReapplyHook()) == 0) {
                 return;
             }
-            int measure = Refl.hookAll(cl, CONTENT_VIEW, "onMeasure", new MeasureHook());
+            int measure = ContentMeasureHooks.add(cl, new MeasureHook());
             int minHeight = Refl.hookAll(cl, CONTENT_VIEW, "getMinHeight",
                     SafeHook.after("shade card min height", ShadeLiveCards::reportCardHeightAsMinHeight));
             if (measure == 0 || minHeight == 0) {
