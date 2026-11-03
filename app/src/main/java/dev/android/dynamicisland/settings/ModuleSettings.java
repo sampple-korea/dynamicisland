@@ -320,6 +320,7 @@ public final class ModuleSettings {
         if (listener != null) {
             listener.run();
         }
+        readSoon();
     }
 
     /** True while the settings app is moving the island: it shows a sample item so there is something to move. */
@@ -453,14 +454,20 @@ public final class ModuleSettings {
             HandlerThread thread = new HandlerThread("DynamicIslandPrefs", Process.THREAD_PRIORITY_BACKGROUND);
             thread.start();
             final Handler handler = new Handler(thread.getLooper());
-            handler.post(new Runnable() {
+            Runnable loop = new Runnable() {
                 @Override
                 public void run() {
                     refresh();
                     watchChanges(handler);
-                    handler.postDelayed(this, observing && loaded ? SAFETY_RELOAD_MS : RELOAD_INTERVAL_MS);
+                    // while the island is being moved its real position is put back by the read after the preview
+                    // ends, so that read is not left to the slow look
+                    slowLoop = observing && loaded && !placementPreviewActive();
+                    handler.postDelayed(this, slowLoop ? SAFETY_RELOAD_MS : RELOAD_INTERVAL_MS);
                 }
-            });
+            };
+            reloadHandler = handler;
+            reloadLoop = loop;
+            handler.post(loop);
         } catch (Throwable ignored) {
             // keep the defaults
         }
@@ -468,6 +475,20 @@ public final class ModuleSettings {
 
     /** Whether the module app's change notice is being received (reload thread only). */
     private static boolean observing;
+    private static volatile Handler reloadHandler;
+    private static volatile Runnable reloadLoop;
+    /** The loop is waiting the long time: it has to be brought forward to see a state that just began. */
+    private static volatile boolean slowLoop;
+
+    /** Brings the next read forward, so the loop sees a state that just began (a placement preview). */
+    private static void readSoon() {
+        Handler handler = reloadHandler;
+        Runnable loop = reloadLoop;
+        if (slowLoop && handler != null && loop != null) {
+            handler.removeCallbacks(loop);
+            handler.post(loop);
+        }
+    }
 
     /**
      * Reads the settings again when the module app says it wrote some, instead of looking every few seconds. Retried
@@ -571,11 +592,29 @@ public final class ModuleSettings {
     /** The preference store the settings app writes and the provider reads: world-readable on LSPosed, private otherwise. */
     @SuppressWarnings({"deprecation", "WorldReadableFiles"})
     public static SharedPreferences openStore(android.content.Context ctx) {
+        SharedPreferences store;
         try {
-            return ctx.getSharedPreferences(FILE, android.content.Context.MODE_WORLD_READABLE);
+            store = ctx.getSharedPreferences(FILE, android.content.Context.MODE_WORLD_READABLE);
         } catch (SecurityException e) {
-            return ctx.getSharedPreferences(FILE, android.content.Context.MODE_PRIVATE);
+            store = ctx.getSharedPreferences(FILE, android.content.Context.MODE_PRIVATE);
         }
+        announceWrites(ctx, store);
+        return store;
+    }
+
+    private static final java.util.Map<SharedPreferences, SharedPreferences.OnSharedPreferenceChangeListener> NOTICES =
+            new java.util.WeakHashMap<>();
+
+    /** Whichever store the settings app ends up writing to tells System UI about each write, once per store. */
+    private static synchronized void announceWrites(android.content.Context ctx, SharedPreferences store) {
+        if (NOTICES.containsKey(store)) {
+            return;
+        }
+        final android.content.Context app = ctx.getApplicationContext() != null ? ctx.getApplicationContext() : ctx;
+        SharedPreferences.OnSharedPreferenceChangeListener notice =
+                (preferences, key) -> app.getContentResolver().notifyChange(SettingsProvider.CHANGED_URI, null);
+        NOTICES.put(store, notice);
+        store.registerOnSharedPreferenceChangeListener(notice);
     }
 
     /** Re-reads the preferences when they changed; runs on the reload thread only. */
