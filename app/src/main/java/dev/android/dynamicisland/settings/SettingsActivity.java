@@ -365,6 +365,8 @@ public final class SettingsActivity extends Activity {
         });
     }
 
+    static final String REPOSITORY_URL = "https://github.com/sampple-korea/dynamicisland";
+
     private void aboutPage() {
         subPage(getString(R.string.ui_about));
         LinearLayout information = ui.card(page);
@@ -373,7 +375,10 @@ public final class SettingsActivity extends Activity {
             recommendations.showAgain();
             while(stack.size()>1) stack.pop();stack.peek().scrollY=0;render();
         });
-        ui.actionRow(information, getString(R.string.hub_author), getString(R.string.hub_author_text), null);
+        ui.actionRow(information, getString(R.string.hub_author), getString(R.string.hub_author_text), () -> {
+            try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(REPOSITORY_URL))); }
+            catch (RuntimeException noBrowser) { }
+        });
         ui.details(page, getString(R.string.hub_credits), getString(R.string.hub_credits_text));
     }
 
