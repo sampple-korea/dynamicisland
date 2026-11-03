@@ -5,6 +5,7 @@ import android.view.HapticFeedbackConstants;
 import dev.android.dynamicisland.island.feedback.Haptics;
 import dev.android.dynamicisland.island.graphics.Easing;
 import dev.android.dynamicisland.island.graphics.Motion;
+import dev.android.dynamicisland.island.graphics.Spring;
 import dev.android.dynamicisland.island.model.IslandItem;
 import dev.android.dynamicisland.island.view.card.MediaBody;
 import dev.android.dynamicisland.island.view.card.SliderBody;
@@ -496,8 +497,16 @@ final class Director {
     static final float PULL_OPEN_FLICK_MIN_DP = 12.0f;
     /** Each lower card starts to open this share of the pull later than the one above it. */
     static final float PULL_OPEN_STAGGER = 0.12f;
+    /**
+     * The fastest a card may be sent towards its size when the pull is let go, as a multiple of what is left to open
+     * per second. The finger's own speed is much higher than a card should travel: unbounded it threw the cards far
+     * past their size before they settled.
+     */
+    static final float PULL_OPEN_MAX_SPEED_PER_S = 2.5f;
     /** How much of a pull beyond the full distance is still followed (the cards stretch a little). */
     static final float PULL_OPEN_RUBBER = 0.12f;
+    /** The most (as a share of the full size) the cards stretch past their size however far the finger goes on. */
+    static final float PULL_OPEN_MAX_STRETCH = 0.04f;
 
     private boolean quietOpen;
     private boolean pullingOpen;
@@ -552,7 +561,8 @@ final class Director {
         if (!pullingOpen) {
             return;
         }
-        float p = progress <= 1.0f ? Math.max(0.0f, progress) : 1.0f + (progress - 1.0f) * PULL_OPEN_RUBBER;
+        float p = progress <= 1.0f ? Math.max(0.0f, progress)
+                : 1.0f + Math.min(PULL_OPEN_MAX_STRETCH, (progress - 1.0f) * PULL_OPEN_RUBBER);
         for (Card c : scene.cards) {
             if (c.leaving) {
                 continue;
@@ -591,11 +601,12 @@ final class Director {
             c.cy.animateTo(c.targetCy, Motion.CARD_DROP);
             c.w.animateTo(c.targetW, Motion.CARD_WIDEN);
             c.h.animateTo(c.targetH, Motion.CARD_GROW);
-            // the card travels (target - start) over the finger's PULL_OPEN_DISTANCE: its speed follows from the finger's
+            // the card travels (target - start) over the finger's PULL_OPEN_DISTANCE: its height and place follow the
+            // finger's speed, but never more than lets them arrive about when a tap-open would; the width, which is
+            // quick anyway, is left to its own spring
             float speed = Math.min(downSpeed, m.dp(6000.0f)) / distance;
-            c.cy.impulse(speed * (c.targetCy - c.pullFromCy));
-            c.w.impulse(speed * (c.targetW - c.pullFromW));
-            c.h.impulse(speed * (c.targetH - c.pullFromH));
+            kick(c.cy, speed * (c.targetCy - c.pullFromCy), c.targetCy);
+            kick(c.h, speed * (c.targetH - c.pullFromH), c.targetH);
             c.startAt = t;
         }
         scheduleAutoCollapse(ModuleSettings.autoCollapseMs());
@@ -605,6 +616,16 @@ final class Director {
         view.scheduleFrame();
         view.scheduleTick();
         view.notifyHost();
+    }
+
+    /** Gives a spring that is heading for {@code target} a push of at most {@code PULL_OPEN_MAX_SPEED_PER_S} times what is left. */
+    private static void kick(Spring spring, float velocity, float target) {
+        float left = target - spring.value();
+        float cap = Math.abs(left) * PULL_OPEN_MAX_SPEED_PER_S;
+        float v = Math.min(Math.abs(velocity), cap) * Math.signum(left);
+        if (v != 0.0f) {
+            spring.impulse(v);
+        }
     }
 
     /** Opens the stack from the current item lists (a tap on the pill). */

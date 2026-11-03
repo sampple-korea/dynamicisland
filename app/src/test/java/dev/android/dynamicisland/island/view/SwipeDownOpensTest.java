@@ -36,6 +36,8 @@ public class SwipeDownOpensTest {
     private final List<String> shadePulls = new ArrayList<>();
 
     private IslandView view(Context context) {
+        ShadowChoreographer.setFrameDelay(Duration.ofMillis(16));
+        ShadowChoreographer.setPaused(true);
         IslandHost host = (IslandHost) java.lang.reflect.Proxy.newProxyInstance(getClass().getClassLoader(),
                 new Class<?>[] {IslandHost.class}, (proxy, method, args) -> switch (method.getName()) {
                     case "onShadeDragStart" -> { shadePulls.add("start"); yield null; }
@@ -274,6 +276,60 @@ public class SwipeDownOpensTest {
             assertEquals("both cards are shown", 2, scene.cards.stream().filter(c -> !c.leaving).count());
         } finally {
             reset(prefs);
+        }
+    }
+
+    /** The most the first card goes past its final height, width and bottom edge in the 160 frames after the open starts. */
+    private static float[] overshoot(IslandView view, Card card) {
+        float maxH = 0, maxW = 0, maxBottom = 0;
+        for (int i = 0; i < 160; i++) {
+            step(view, 1);
+            maxH = Math.max(maxH, card.h.value() - card.targetH);
+            maxW = Math.max(maxW, card.w.value() - card.targetW);
+            maxBottom = Math.max(maxBottom, card.cy.value() + card.h.value() / 2 - (card.targetCy + card.targetH / 2));
+        }
+        return new float[] {maxH, maxW, maxBottom};
+    }
+
+    @Test public void aFastFlickOpensTheCardsNoFurtherPastTheirSizeThanATapDoes() {
+        Context context = RuntimeEnvironment.getApplication();
+        for (boolean legacy : new boolean[] {false, true}) {
+            SharedPreferences prefs = stackPrefs(context, "pull-overshoot-" + legacy);
+            try {
+                prefs.edit().putBoolean(ModuleSettings.KEY_LEGACY_ANIMATION, legacy).commit();
+                ModuleSettings.configurePreview(prefs);
+                // what the plain tap-open does on its own is the yardstick
+                IslandView tapView = view(context);
+                Scene tapScene = ReflectionHelpers.getField(tapView, "scene");
+                RectF tapPill = pillOf(tapView);
+                long tapDown = SystemClock.uptimeMillis();
+                touchAt(tapView, MotionEvent.ACTION_DOWN, tapDown, tapDown, tapPill.centerX(), tapPill.centerY());
+                touchAt(tapView, MotionEvent.ACTION_UP, tapDown, tapDown + 40, tapPill.centerX(), tapPill.centerY());
+                Card tapCard = firstCard(tapScene);
+                float[] tap = overshoot(tapView, tapCard);
+                float margin = tapCard.targetH * 0.05f;
+                for (int speedPxPerMs : new int[] {1, 2, 4, 8}) {
+                    shadePulls.clear();
+                    IslandView view = view(context);
+                    Scene scene = ReflectionHelpers.getField(view, "scene");
+                    RectF pill = pillOf(view);
+                    float x = pill.centerX(), y = pill.centerY();
+                    long down = SystemClock.uptimeMillis();
+                    touchAt(view, MotionEvent.ACTION_DOWN, down, down, x, y);
+                    int steps = 6;
+                    for (int i = 1; i <= steps; i++) touchAt(view, MotionEvent.ACTION_MOVE, down, down + 5L * i, x, y + 5f * speedPxPerMs * i);
+                    touchAt(view, MotionEvent.ACTION_UP, down, down + 5L * steps + 2, x, y + 5f * speedPxPerMs * steps);
+                    Card card = firstCard(scene);
+                    String what = (legacy ? "classic" : "default") + ", " + speedPxPerMs + " px/ms: ";
+                    float[] pull = overshoot(view, card);
+                    assertEquals(what + "opened", Mode.EXPANDED, scene.mode);
+                    assertTrue(what + "height over " + pull[0] + " (a tap: " + tap[0] + ")", pull[0] <= tap[0] + margin);
+                    assertTrue(what + "width over " + pull[1] + " (a tap: " + tap[1] + ")", pull[1] <= tap[1] + margin);
+                    assertTrue(what + "bottom edge over " + pull[2] + " (a tap: " + tap[2] + ")", pull[2] <= tap[2] + margin);
+                }
+            } finally {
+                reset(prefs);
+            }
         }
     }
 }
