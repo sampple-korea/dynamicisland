@@ -27,6 +27,7 @@ public final class CompactContent extends Content {
     float trailW;
     String leadingLabel;
     float leadingLabelW;
+    private final dev.android.dynamicisland.island.graphics.BatteryBar bar = new dev.android.dynamicisland.island.graphics.BatteryBar();
 
     CompactContent(IslandView owner, IslandItem item) {
         super(owner, item);
@@ -49,9 +50,10 @@ public final class CompactContent extends Content {
         leadingLabelW = 0;
         if (item.compactLabel != null && item.trailing == IslandItem.Trailing.TEXT
                 && !item.compactLabel.toString().equals(text)) {
+            float lead = wideBattery() ? 0 : owner.leadSize + owner.innerGap;
             float room = owner.holeD > 0 ? (widthCap() - owner.holeD) / 2 - owner.holeGap - owner.padding
-                    - Math.min(owner.holeTextPadding, owner.dp(16)) - owner.leadSize - owner.innerGap
-                    : widthCap() - owner.padding * 2 - owner.leadSize - owner.innerGap * 2
+                    - Math.min(owner.holeTextPadding, owner.dp(16)) - lead
+                    : widthCap() - owner.padding * 2 - lead - owner.innerGap
                     - Math.max(owner.dp(MIN_TRAILING_DP), text == null ? 0 : owner.trailPaint.measureText(text));
             if (room >= owner.dp(16)) {
                 leadingLabel = TextUtils.ellipsize(item.compactLabel, owner.trailPaint,
@@ -82,6 +84,10 @@ public final class CompactContent extends Content {
                 text = TextUtils.ellipsize(text, owner.trailPaint, maxTrail, TextUtils.TruncateAt.END).toString();
             }
             width = Math.min(owner.trailingWidth(item, text), maxTrail);
+            if (wideBattery()) {
+                // the percentage stays beside a battery glyph on the far right
+                width += barW() + (text != null ? owner.innerGap : 0.0f);
+            }
         }
         boolean changed = Math.abs(width - trailW) > 0.5f;
         trailText = text;
@@ -141,7 +147,21 @@ public final class CompactContent extends Content {
         return Math.max(owner.minPillW, Math.min(width, widthCap()));
     }
 
+    /** The wide charging pill: the word on the left, the percentage and a battery glyph on the right, no gauge. */
+    private boolean wideBattery() {
+        return item.fullWidth && item.eventLayout == IslandItem.EventLayout.BATTERY && item.batteryPercent >= 0;
+    }
+
+    private float barH() {
+        return owner.leadSize * 0.78f;
+    }
+
+    private float barW() {
+        return barH() * dev.android.dynamicisland.island.graphics.BatteryBar.ASPECT;
+    }
+
     private float leadingWidth() {
+        if (wideBattery()) return leadingLabelW;
         if (!owner.hasRecordingWaveform(item)) return owner.leadSize + (leadingLabel == null ? 0 : owner.innerGap + leadingLabelW);
         float available = owner.holeD > 0 ? (widthCap() - owner.holeD) / 2f - owner.holeGap - owner.padding
                 : widthCap() - owner.padding * 2f - owner.innerGap - owner.dp(MIN_TRAILING_DP);
@@ -165,9 +185,9 @@ public final class CompactContent extends Content {
             owner.drawRecordingWaveform(c, item, shape.left + owner.padding, midY,
                     Math.max(1f, Math.min(leadingWidth(), room)), lead * .9f, alpha);
         } else {
-            owner.drawLeadingMono(c, item, shape.left + owner.padding, midY, lead, alpha);
+            if (!wideBattery()) owner.drawLeadingMono(c, item, shape.left + owner.padding, midY, lead, alpha);
             if (leadingLabel != null) {
-                float left = shape.left + owner.padding + owner.leadSize + owner.innerGap;
+                float left = shape.left + owner.padding + (wideBattery() ? 0.0f : owner.leadSize + owner.innerGap);
                 float limit = owner.holeD > 0 ? shape.centerX() - owner.holeD / 2 - owner.holeGap - holeClearance()
                         : shape.right - owner.padding - trailW - owner.innerGap;
                 int save = c.save();
@@ -177,6 +197,15 @@ public final class CompactContent extends Content {
                 c.drawText(leadingLabel, left, midY - (fm.ascent + fm.descent) / 2, owner.trailPaint);
                 c.restoreToCount(save);
             }
+        }
+        if (wideBattery()) {
+            float right = shape.right - owner.padding;
+            bar.draw(c, right, midY, barH(), item.batteryPercent, item.fillAccent(), alpha);
+            if (trailText != null) {
+                float textW = Math.max(0.0f, trailW - barW() - owner.innerGap);
+                owner.drawTrailing(c, item, trailText, right - barW() - owner.innerGap, midY, textW, alpha);
+            }
+            return;
         }
         if (trailW > 0.0f) {
             owner.drawTrailing(c, item, trailText, shape.right - owner.padding, midY, trailW, alpha);
