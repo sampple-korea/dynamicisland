@@ -53,6 +53,35 @@ The expanded island defaults to Classic, with the existing fill, native blur, ri
 - `Diagnostics` keeps a report (stages, facts, errors) and publishes it to the global setting `dynamicisland_report`, which the settings app reads.
 - The island window is created when the status bar view attaches, or by a 15 second fallback timer.
 
+### Samsung incoming-call mini window
+
+Samsung InCallUI owns the mini incoming-call window; it is not a SystemUI heads-up
+notification. InCallUI 18.1.00.75 registers an exported dynamic receiver for
+`com.samsung.rcs.intent.action.ACTION_HIDE_MINI_MODE_CALL_VIEW`, whose handler
+finishes the popup rather than answering or ending the call.
+
+`SamsungCallPopupTakeover` sends this command from SystemUI, explicitly targeting
+`com.samsung.android.incallui` and the matching notification's user. No additional
+LSPosed scope is required. Every new or updated Samsung call notification starts a
+short hide-request burst immediately, independently of island visibility, expanded
+controls, app filtering or audio mode. This also applies to call waiting and ongoing
+calls. Multiple call notifications share one burst per user. Unchanged snapshots do
+not restart it; removed or replaced postings cancel their queued requests.
+
+Four attempts over one second cover popup receiver registration timing without
+continuous polling. The command closes whichever mini call window is present for
+that user; it has no call identifier or acknowledgement. This is best effort and
+cannot guarantee the popup is never briefly visible or dismiss a later recreation
+without a new call-notification update. No notifications, ringtones or phone
+preferences are changed. A device test confirmed prompt dismissal; other InCallUI
+builds and call-waiting scenarios still need verification.
+
+Answer and decline/end buttons use rounded Lottie handsets with a brief entrance
+animation and matching static fallbacks. Button colours, hit bounds and call actions
+stay unchanged. The animations respect still-icons/low-performance mode and stop
+requesting frames once settled. Regenerate them with `tools/lottie/calls.py`, then
+`tools/lottie/embed.py`.
+
 ## Rules
 
 Delivery, ride, route and device-connection cards, the code words of the verification-code detector and the words of the text-progress detector come from rule files in LiveBridge's dictionary format. The module ships two rule files of its own, `builtin-ko.json` (built from recorded Korean notifications) and `builtin-en.json` (written for English-language apps; no LiveBridge file is copied or bundled), merged with each other and with the user's own file. Stage names and module-owned UI text come from the English-first Android string resources, with generated classloader catalogs for SystemUI. English, Korean, Japanese, Simplified Chinese, Russian and Turkish are registered in `res/xml/locales_config.xml`; unknown locales fall back to English. See [TRANSLATING.md](TRANSLATING.md). User labels override shipped translations; legacy English-only user edits remain visible in newly translated languages unless explicitly overridden. Patterns that could backtrack without end are refused when a file is read, and notification text is capped before matching. Extra fields: `ttl_min`, `final_ttl_min`, `cooldown_min`, and a signal's `percent_group`.

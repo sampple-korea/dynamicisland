@@ -68,6 +68,7 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
     private final ItemLedger ledger = new ItemLedger();
     private final IslandPlacement placement;
     private final HeadsUpTakeover headsUp;
+    private final SamsungCallPopupTakeover callPopup;
     private final ItemLauncher launcher;
     private final ShadeDragRelay shadeDrag;
     private final ShadeWatch shadeWatch;
@@ -87,6 +88,7 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
         haptics = new Haptics(ctx);
         placement = new IslandPlacement(ctx, main, classLoader, this, this, audio);
         headsUp = new HeadsUpTakeover(sources, placement, this::refreshNow);
+        callPopup = new SamsungCallPopupTakeover(ctx, main);
         shadeWatch = new ShadeWatch(main, () -> {
             IslandView current = placement.view();
             return current == null ? null : new ShadeWatch.Target() {
@@ -252,6 +254,13 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
     /** Fed by the notification list hook: progress notifications become cards. */
     public void onNotificationsSnapshot(List<StatusBarNotification> all) {
         lastNotifications = new ArrayList<>(all);
+        if (Looper.myLooper() == main.getLooper()) {
+            callPopup.setNotifications(lastNotifications);
+        }
+        else {
+            List<StatusBarNotification> calls = lastNotifications;
+            main.post(() -> callPopup.setNotifications(calls));
+        }
         List<StatusBarNotification> allowed = new ArrayList<>(all.size());
         for (StatusBarNotification sbn : all) {
             if (sbn != null && ModuleSettings.appAllowed(sbn.getPackageName())) {
