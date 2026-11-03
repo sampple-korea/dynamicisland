@@ -587,7 +587,16 @@ final class TouchController {
     private void cancel(MotionEvent e) {
         if (pullingOpen) {
             pullingOpen = false;
-            director.endPullOpen(false, 0.0f);
+            // System UI takes a pull down from the top of an app for its own gestures and cancels ours; a pull that
+            // had clearly started is what the finger meant, so the cards open instead of folding back
+            boolean meant = y(e) - downY > touchSlop;
+            dev.android.dynamicisland.xposed.Diagnostics.event("pull down cancelled by the system, cards " + (meant ? "opened" : "folded"));
+            director.endPullOpen(meant, meant ? downwardSpeed() : 0.0f);
+        } else if (cutShortPullDown(e)) {
+            dev.android.dynamicisland.xposed.Diagnostics.event("pull down cancelled by the system before it began, cards opened");
+            ignoreGesture = true;
+            Haptics.perform(view, HAPTIC_CONFIRM);
+            director.expandFromPill();
         }
         if(scene.iMode!=null) scene.iMode.releasePress();
         if(scene.iMode!=null) scene.iMode.cancelPage();
@@ -607,6 +616,17 @@ final class TouchController {
             director.postAutoCollapse();
         }
         view.scheduleFrame();
+    }
+
+    /** A clear start of a pull down on the small pill that the system cancelled before it was a pull of ours. */
+    private boolean cutShortPullDown(MotionEvent e) {
+        if (scene.iMode != null || scene.mode != Mode.COMPACT || !(downOnPill || downOnBubble) || forwardingShade
+                || !ModuleSettings.swipeDownOpens() || ignoreGesture) {
+            return false;
+        }
+        float dy = y(e) - downY;
+        float dx = x(e) - downX;
+        return dy > touchSlop * 0.5f && dy > Math.abs(dx) * SWIPE_DOMINANCE;
     }
 
     /** Lets the dragged cards spring back to their places. */

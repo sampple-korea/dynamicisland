@@ -176,9 +176,50 @@ public class SwipeDownOpensTest {
             assertEquals("and it is still the finger, not the clock, that sets it", card.h.target(), card.h.value(), 0.01f);
             touchAt(view, MotionEvent.ACTION_CANCEL, down, down + 160, pill.centerX(), pill.centerY() + 80);
             step(view, 120);
-            assertEquals("a cancelled pull folds back", Mode.COMPACT, scene.mode);
-            assertTrue(scene.cards.isEmpty());
+            assertEquals("a pull that System UI cancelled (as it does inside an app) still opens the cards", Mode.EXPANDED, scene.mode);
+            assertFalse(scene.cards.isEmpty());
             assertEquals(0, shadePulls.size());
+        } finally {
+            reset(prefs);
+        }
+    }
+
+    @Test public void aPullTheSystemCutShortJustAfterItStartedStillOpensTheCards() {
+        Context context = RuntimeEnvironment.getApplication();
+        SharedPreferences prefs = stackPrefs(context, "pull-cut-short");
+        try {
+            IslandView view = view(context);
+            Scene scene = ReflectionHelpers.getField(view, "scene");
+            RectF pill = pillOf(view);
+            long down = SystemClock.uptimeMillis();
+            touchAt(view, MotionEvent.ACTION_DOWN, down, down, pill.centerX(), pill.centerY());
+            float slop = android.view.ViewConfiguration.get(context).getScaledTouchSlop();
+            touchAt(view, MotionEvent.ACTION_MOVE, down, down + 20, pill.centerX(), pill.centerY() + slop * 0.6f);
+            touchAt(view, MotionEvent.ACTION_CANCEL, down, down + 40, pill.centerX(), pill.centerY() + slop * 0.7f);
+            step(view, 120);
+            assertEquals(Mode.EXPANDED, scene.mode);
+        } finally {
+            reset(prefs);
+        }
+    }
+
+    @Test public void aTouchCancelledWithoutMovingDownDoesNotOpenTheCards() {
+        Context context = RuntimeEnvironment.getApplication();
+        SharedPreferences prefs = stackPrefs(context, "pull-cancel-still");
+        try {
+            IslandView view = view(context);
+            Scene scene = ReflectionHelpers.getField(view, "scene");
+            RectF pill = pillOf(view);
+            long down = SystemClock.uptimeMillis();
+            touchAt(view, MotionEvent.ACTION_DOWN, down, down, pill.centerX(), pill.centerY());
+            touchAt(view, MotionEvent.ACTION_CANCEL, down, down + 40, pill.centerX(), pill.centerY() + 1);
+            step(view, 60);
+            assertEquals(Mode.COMPACT, scene.mode);
+            touchAt(view, MotionEvent.ACTION_DOWN, down + 100, down + 100, pill.centerX(), pill.centerY());
+            touchAt(view, MotionEvent.ACTION_MOVE, down + 100, down + 120, pill.centerX() + 30, pill.centerY() + 6);
+            touchAt(view, MotionEvent.ACTION_CANCEL, down + 100, down + 140, pill.centerX() + 30, pill.centerY() + 6);
+            step(view, 60);
+            assertEquals("a sideways drag is not a pull down", Mode.COMPACT, scene.mode);
         } finally {
             reset(prefs);
         }
