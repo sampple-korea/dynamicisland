@@ -29,7 +29,8 @@ public class FullWidthPillTest {
         assertTrue("the plain pill is narrower than the widest it may be", own < widest);
         assertEquals("it fills the status bar, not just the widest ordinary pill", view.fullPillW, widest, 0.01f);
         assertTrue("and that is wider than an ordinary pill may be", view.fullPillW > view.maxPillW);
-        assertEquals("wide, but with room left on each side of the screen, like on an iPhone", 360 * 0.86f, view.fullPillW, 0.01f);
+        assertEquals("as long for its height as the iPhone's charging pill", 8.8f, view.fullPillW / (float) org.robolectric.util.ReflectionHelpers.getField(
+                org.robolectric.util.ReflectionHelpers.getField(view, "metrics"), "pillH"), 0.01f);
     }
 
     @Test

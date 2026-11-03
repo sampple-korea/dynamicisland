@@ -91,18 +91,19 @@ final class Metrics {
     static final float AUTO_MAX_TABLET_SHARE = 0.40f;
 
     /**
-     * Width of a popup that fills the status bar, as a full-width charging popup does: most of the screen, with room
-     * on each side, kept symmetric around the camera hole so it never runs off the nearer edge. Never less than the
-     * widest an ordinary pill may be.
+     * Width of the wide popup (the charging one): the pill's own height times the width-to-height ratio of the
+     * iPhone's charging pill, so it is as long as that pill is for its height, not a share of the screen. Kept
+     * symmetric around the camera hole so it never runs off the nearer edge, and never less than the widest an
+     * ordinary pill may be.
      */
     float fullPillW() {
-        float wide = screenW * FULL_WIDTH_SHARE;
+        float wide = pillH * FULL_WIDTH_ASPECT;
         float room = 2.0f * Math.min(cx, screenW - cx) - 2.0f * dp(FULL_WIDTH_MARGIN_DP);
         return Math.max(maxPillW, Math.min(wide, room));
     }
 
-    /** Share of the screen width a full-width popup takes: wide, with room left on each side, as on an iPhone. */
-    static final float FULL_WIDTH_SHARE = 0.86f;
+    /** Width over height of the iPhone's charging pill (about 506 by 57 in a frame of its video). */
+    static final float FULL_WIDTH_ASPECT = 8.8f;
     /** Gap a full-width popup always keeps from the nearer screen edge, on a screen where the hole sits off-centre. */
     static final float FULL_WIDTH_MARGIN_DP = 8.0f;
 

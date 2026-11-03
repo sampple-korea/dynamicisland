@@ -46,15 +46,16 @@ public class FullWidthPillRenderTest {
         canvas.scale(scale, scale);
         CompactContent content = new CompactContent(view, charging(71));
         float w = content.desiredWidth();
-        RectF shape = new RectF(180 - w / 2, 10, 180 + w / 2, 10 + 34);
+        float h = org.robolectric.util.ReflectionHelpers.getField(org.robolectric.util.ReflectionHelpers.getField(view, "metrics"), "pillH");
+        RectF shape = new RectF(180 - w / 2, 10, 180 + w / 2, 10 + h);
         android.graphics.Paint black = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
         black.setColor(Color.BLACK);
-        canvas.drawRoundRect(shape, 17, 17, black);
+        canvas.drawRoundRect(shape, h / 2, h / 2, black);
         content.draw(canvas, shape, 1f, 0);
         RenderCapture.write(sheet, new File("build/renders/full-width-charging.png"));
 
         int greenLeft = 0, greenRight = 0;
-        int mid = (int) ((shape.top + 17) * scale);
+        int mid = (int) ((shape.top + h / 2) * scale);
         for (int x = (int) (shape.left * scale); x < (int) (shape.right * scale); x++) {
             int p = sheet.getPixel(x, mid);
             boolean green = Color.green(p) > 150 && Color.red(p) < 120 && Color.blue(p) < 130;
