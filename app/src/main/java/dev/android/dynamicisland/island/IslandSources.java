@@ -147,7 +147,11 @@ final class IslandSources {
         guarded("headset", () -> headset.collect(items));
         guarded("hotspot", () -> hotspot.collect(items));
         guarded("unlock notice", () -> unlock.collect(items));
-        if (charging.isOffering()) items.removeIf(item -> "event:charging".equals(item.key));
+        // the wide charging popup comes first even with the details card on, and the card follows it; with Samsung's
+        // own effect shown the card replaces the popup, as before
+        if (charging.isOffering() && ModuleSettings.stockChargingAnimation()) {
+            items.removeIf(item -> "event:charging".equals(item.key));
+        }
         guarded("torch", () -> torch.collect(items));
         if (ModuleSettings.placementPreviewActive()) {
             items.add(placementSample());

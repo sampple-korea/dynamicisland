@@ -91,17 +91,19 @@ final class Metrics {
     static final float AUTO_MAX_TABLET_SHARE = 0.40f;
 
     /**
-     * Width of a popup that fills the status bar, as a full-width charging popup does: the screen less a small margin
+     * Width of a popup that fills the status bar, as a full-width charging popup does: most of the screen, with room
      * on each side, kept symmetric around the camera hole so it never runs off the nearer edge. Never less than the
      * widest an ordinary pill may be.
      */
     float fullPillW() {
-        float margin = dp(FULL_WIDTH_MARGIN_DP);
-        float room = 2.0f * Math.min(cx, screenW - cx) - 2.0f * margin;
-        return Math.max(maxPillW, Math.min(screenW - 2.0f * margin, room));
+        float wide = screenW * FULL_WIDTH_SHARE;
+        float room = 2.0f * Math.min(cx, screenW - cx) - 2.0f * dp(FULL_WIDTH_MARGIN_DP);
+        return Math.max(maxPillW, Math.min(wide, room));
     }
 
-    /** Gap kept between a full-width popup and each screen edge. */
+    /** Share of the screen width a full-width popup takes: wide, with room left on each side, as on an iPhone. */
+    static final float FULL_WIDTH_SHARE = 0.86f;
+    /** Gap a full-width popup always keeps from the nearer screen edge, on a screen where the hole sits off-centre. */
     static final float FULL_WIDTH_MARGIN_DP = 8.0f;
 
     private void recomputeMaxWidth() {

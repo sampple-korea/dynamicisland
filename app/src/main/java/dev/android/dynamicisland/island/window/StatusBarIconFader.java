@@ -69,6 +69,7 @@ public final class StatusBarIconFader {
      */
     private View contentsView;
     private IconAlphaFade contentsFade;
+    private boolean contentsHidden;
     private boolean mobileLogged;
     /** The candidate list must be rebuilt before the next {@link #apply()}. */
     private boolean dirty = true;
@@ -93,6 +94,8 @@ public final class StatusBarIconFader {
         View contents = find(phoneStatusBarView, "status_bar_contents");
         watched = contents != null ? contents : phoneStatusBarView;
         contentsView = contents;
+        dev.android.dynamicisland.xposed.Diagnostics.fact("status bar contents container", contents != null
+                ? "found " + contents.getClass().getSimpleName() : "missing: a wide popup cannot hide the status bar");
         watched.getViewTreeObserver().addOnGlobalLayoutListener(layoutListener);
         dirty = true;
     }
@@ -205,6 +208,10 @@ public final class StatusBarIconFader {
             contentsFade = new IconAlphaFade(contents);
         }
         contentsFade.animateTo(hide ? 0.0f : 1.0f);
+        if (hide != contentsHidden) {
+            contentsHidden = hide;
+            dev.android.dynamicisland.xposed.Diagnostics.event(hide ? "status bar contents hidden for a wide popup" : "status bar contents restored");
+        }
     }
 
     // ---- pushing the notification icons aside ---------------------------------------------------

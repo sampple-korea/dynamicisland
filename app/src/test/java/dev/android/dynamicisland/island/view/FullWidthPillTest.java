@@ -29,7 +29,7 @@ public class FullWidthPillTest {
         assertTrue("the plain pill is narrower than the widest it may be", own < widest);
         assertEquals("it fills the status bar, not just the widest ordinary pill", view.fullPillW, widest, 0.01f);
         assertTrue("and that is wider than an ordinary pill may be", view.fullPillW > view.maxPillW);
-        assertTrue("with a margin left on each side of the screen", view.fullPillW <= 360 - 2 * 8 + 0.01f);
+        assertEquals("wide, but with room left on each side of the screen, like on an iPhone", 360 * 0.86f, view.fullPillW, 0.01f);
     }
 
     @Test
