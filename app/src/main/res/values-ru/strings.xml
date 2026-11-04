@@ -648,7 +648,7 @@
     <string name="imode_desc">Разворачивайте одно действие с плавным движением и размытием. Листайте влево или вправо для переключения между всеми действиями. Смахните вверх, чтобы скрыть все капсулы, и потяните вниз у отверстия камеры, чтобы вернуть их.</string>
     <string name="recommend_label">Новое в этом обновлении</string>
     <string name="recommend_open">Посмотреть</string>
-    <string name="recommend_next">Следующий совет</string>
+    <string name="recommend_next">Далее</string>
     <string name="recommend_dismiss">Скрыть рекомендации для этой версии</string>
     <string name="recommend_about">Что нового</string>
     <string name="recommend_motion">Капсула плавно разворачивается в карточку. Листайте влево или вправо, чтобы просматривать действия.</string>
@@ -707,9 +707,9 @@
     <string name="recommend16_idle_title">Остров остаётся</string>
     <string name="recommend16_idle">Оставьте пустую «таблетку» вокруг камеры, даже когда ничего не происходит: первое действие вырастет из неё.</string>
     <string name="recommend16_hide_title">Скрывать по-своему</string>
-    <string name="recommend16_hide">Удерживайте маленькую «таблетку», чтобы скрыть её, или отключите скрытие свайпом вверх, чтобы не скрыть случайно.</string>
+    <string name="recommend16_hide">В iMotion удерживайте маленькую капсулу, чтобы скрыть её. Скрытие смахиванием вверх можно отключить отдельно.</string>
     <string name="recommend16_perf_title">Облегчайте по одному эффекту</string>
-    <string name="recommend16_perf">Новая страница «Производительность» отключает отдельные эффекты, например свечение музыки, волну или анимированные значки, без всего режима низкой нагрузки.</string>
+    <string name="recommend16_perf">На странице «Производительность» отдельно отключайте свечение музыки, движение волн и анимацию значков.</string>
     <string name="recommend16_colour_title">Цвета из ваших обоев</string>
     <string name="recommend16_colour">Полосы прогресса и кнопки следуют цвету Material ваших обоев и меняются вместе с ними.</string>
     <string name="reset_all">Сбросить все настройки</string>
@@ -723,4 +723,14 @@
     <string name="island_charge_now">Сейчас: %1$s</string>
     <string name="island_charge_text_on">Экран вкл.: %1$s • %2$s</string>
     <string name="island_charge_text_off">Экран выкл.: %1$s • %2$s</string>
+    <string name="recommend16_pull_title">Потяните вниз, чтобы открыть</string>
+    <string name="recommend16_pull">Смахните вниз по маленькой капсуле, чтобы открыть карточки. В режиме стопки они следуют за пальцем.</string>
+    <string name="recommend16_popups_title">Больше времени на уведомления</string>
+    <string name="recommend16_popups">Выберите от 3 до 6 секунд для коротких всплывающих сообщений. Они подождут, пока панель быстрых настроек закроется.</string>
+    <string name="recommend16_charging_title">Широкая капсула зарядки</string>
+    <string name="recommend16_charging">Отключите эффект зарядки батареи Samsung, чтобы видеть зарядку в широкой капсуле с процентом и значком батареи.</string>
+    <string name="recommend16_charging_text_title">Зарядка текстом</string>
+    <string name="recommend16_charging_text">Включите подробности зарядки и выберите строки текста вместо индикатора. Можно добавить статистику с включённым и выключенным экраном.</string>
+    <string name="recommend16_privacy_title">Камера и микрофон</string>
+    <string name="recommend16_privacy">Показывайте камеру и микрофон даже для открытого приложения. Сначала включите индикаторы приватности.</string>
 </resources>

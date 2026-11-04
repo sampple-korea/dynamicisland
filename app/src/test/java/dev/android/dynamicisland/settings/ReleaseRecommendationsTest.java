@@ -138,12 +138,12 @@ public class ReleaseRecommendationsTest {
         }
     }
 
-    @Test public void release0116HasFourCardsAndEachOpensItsRealSetting() throws Exception {
+    @Test public void release0116CardsRotateAndOpenTheirRealSettingsWithoutChangingThem() throws Exception {
         pin("0.1.16-dev4");clearHistory();
         var release=ReleaseHighlights.forVersion("0.1.16-dev4");
         assertNotNull("the pre-release of the family shows the cards",release);
         assertSame("and so does the stable one",release,ReleaseHighlights.forVersion("0.1.16"));
-        assertEquals(java.util.Set.of("idle","hide","performance","colour"),
+        assertEquals(java.util.Set.of("idle","hide","performance","colour","pull-open","popup-time","wide-charging","charging-text","privacy-in-app"),
                 release.features().stream().map(ReleaseHighlights.Feature::id).collect(java.util.stream.Collectors.toSet()));
         try(var controller=Robolectric.buildActivity(SettingsActivity.class).setup()) {
             SettingsActivity a=controller.get();ReleaseRecommendations rec=ReflectionHelpers.getField(a,"recommendations");
@@ -166,11 +166,23 @@ public class ReleaseRecommendationsTest {
 
     @Test @Category(RenderCapture.class) public void capture0116Cards() throws Exception {
         pin("0.1.16");clearHistory();
-        try(var controller=Robolectric.buildActivity(SettingsActivity.class).setup()) {
-            SettingsActivity a=controller.get();ReleaseRecommendations rec=ReflectionHelpers.getField(a,"recommendations");
-            for(var feature:ReleaseHighlights.forVersion("0.1.16").features()) {
-                rec.restore(feature.id());a.refresh();SettingsRenderTest.render(a,"recommendation_0116_"+feature.id());
+        try {
+            for(String locale:new String[]{"en-rUS","ko-rKR","ja-rJP","zh-rCN","ru-rRU","tr-rTR","pt-rBR"}) {
+                RuntimeEnvironment.setQualifiers(locale+"-w360dp-h800dp-night-xxhdpi");
+                try(var controller=Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                    SettingsActivity a=controller.get();ReleaseRecommendations rec=ReflectionHelpers.getField(a,"recommendations");
+                    for(var feature:ReleaseHighlights.forVersion("0.1.16").features()) {
+                        rec.restore(feature.id());a.refresh();
+                        View banner=a.page().findViewWithTag(ReleaseRecommendations.BANNER);assertNotNull(banner);
+                        banner.measure(View.MeasureSpec.makeMeasureSpec(984,View.MeasureSpec.EXACTLY),
+                                View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));
+                        banner.layout(0,0,984,banner.getMeasuredHeight());
+                        android.graphics.Bitmap image=android.graphics.Bitmap.createBitmap(984,banner.getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
+                        banner.draw(new android.graphics.Canvas(image));
+                        RenderCapture.write(image,new java.io.File("build/render/recommendation_0116_"+locale+"_"+feature.id()+".png"));image.recycle();
+                    }
+                }
             }
-        } finally { clearHistory(); }
+        } finally {RuntimeEnvironment.setQualifiers("ko-rKR-w360dp-h800dp-night-xxhdpi");clearHistory();}
     }
 }

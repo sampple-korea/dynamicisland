@@ -707,9 +707,9 @@
     <string name="recommend16_idle_title">没有活动，胶囊也在</string>
     <string name="recommend16_idle">没有活动时也能在摄像头周围保留一个空胶囊，第一个活动会从它里面长出来。</string>
     <string name="recommend16_hide_title">按你的方式隐藏</string>
-    <string name="recommend16_hide">长按小胶囊即可隐藏，也可以关掉上滑隐藏，避免误触。</string>
+    <string name="recommend16_hide">在iMotion中，长按小胶囊即可隐藏。也可以单独关闭上滑隐藏，避免误操作。</string>
     <string name="recommend16_perf_title">逐项精简效果</string>
-    <string name="recommend16_perf">新的性能页可以不开整个低性能模式，只逐项关闭音乐光晕、波形或动画图标等效果。</string>
+    <string name="recommend16_perf">在新的性能页面，可单独关闭音乐光晕、波形动态和图标动画。</string>
     <string name="recommend16_colour_title">跟随壁纸的颜色</string>
     <string name="recommend16_colour">进度条和按钮跟随壁纸的 Material 颜色，并随壁纸变化。</string>
     <string name="reset_all">重置所有设置</string>
@@ -723,4 +723,14 @@
     <string name="island_charge_now">当前：%1$s</string>
     <string name="island_charge_text_on">屏幕亮起: %1$s • %2$s</string>
     <string name="island_charge_text_off">屏幕熄灭: %1$s • %2$s</string>
+    <string name="recommend16_pull_title">下拉即可展开卡片</string>
+    <string name="recommend16_pull">在小胶囊上向下滑动即可打开卡片。堆叠模式下，卡片会跟随手指展开。</string>
+    <string name="recommend16_popups_title">给弹窗留足阅读时间</string>
+    <string name="recommend16_popups">短时弹窗可选择显示3至6秒。快捷面板打开时，弹窗会等面板关闭后再显示。</string>
+    <string name="recommend16_charging_title">更宽的充电胶囊</string>
+    <string name="recommend16_charging">关闭三星电池充电效果后，充电时会显示更宽的胶囊，内含电量百分比和电池图标。</string>
+    <string name="recommend16_charging_text_title">用文字查看充电详情</string>
+    <string name="recommend16_charging_text">开启充电详情后，可用文字行替代电池仪表，也可显示亮屏和息屏时的统计数据。</string>
+    <string name="recommend16_privacy_title">也显示当前应用的相机和麦克风</string>
+    <string name="recommend16_privacy">可选择显示当前使用的应用的相机和麦克风活动。请先开启隐私使用指示。</string>
 </resources>

@@ -716,9 +716,9 @@
     <string name="recommend16_idle_title">Always an island</string>
     <string name="recommend16_idle">Keep an empty pill around the camera even when nothing is happening. The first activity grows out of it.</string>
     <string name="recommend16_hide_title">Hide it your way</string>
-    <string name="recommend16_hide">Hold the small pill to hide it, or switch the swipe-up gesture off so it never hides by accident.</string>
+    <string name="recommend16_hide">In iMotion, hold the small pill to hide it. You can also turn off swipe-up hiding.</string>
     <string name="recommend16_perf_title">Lighter, one effect at a time</string>
-    <string name="recommend16_perf">The new Performance page turns off single effects, such as the music glow, the waveform or animated icons, without the whole low-performance mode.</string>
+    <string name="recommend16_perf">Reduce music glow, waveform motion and animated icons individually on the new Performance page.</string>
     <string name="recommend16_colour_title">Colours from your wallpaper</string>
     <string name="recommend16_colour">Let progress bars and buttons follow the Material colour of your wallpaper and change with it.</string>
     <string name="reset_all">Reset all settings</string>
@@ -732,4 +732,14 @@
     <string name="island_charge_now">Now: %1$s</string>
     <string name="island_charge_text_on">Screen On: %1$s • %2$s</string>
     <string name="island_charge_text_off">Screen Off: %1$s • %2$s</string>
+    <string name="recommend16_pull_title">Pull down to open</string>
+    <string name="recommend16_pull">Swipe down on the small pill to open its cards. In the stack layout, they follow your finger.</string>
+    <string name="recommend16_popups_title">Give popups time</string>
+    <string name="recommend16_popups">Choose 3–6 seconds for short popups. If the quick panel is open, they wait until it closes.</string>
+    <string name="recommend16_charging_title">A wider charging pill</string>
+    <string name="recommend16_charging">With the Samsung battery charging effect off, charging appears in a wide pill with a percentage and battery icon.</string>
+    <string name="recommend16_charging_text_title">Charging details as text</string>
+    <string name="recommend16_charging_text">With charging details on, switch from the battery gauge to text and optional screen-on and screen-off statistics.</string>
+    <string name="recommend16_privacy_title">See camera and mic use</string>
+    <string name="recommend16_privacy">Optionally show camera and microphone activity even for the app you are using. Turn on privacy indicators first.</string>
 </resources>

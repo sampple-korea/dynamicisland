@@ -242,6 +242,45 @@ final class ReleaseRecommendations {
                     paint.setColor(ui.dark ? 0xff080e19 : 0xff2b4b78);canvas.drawCircle(36,36,7,paint);
                     paint.setColor(ui.accent);canvas.drawCircle(36,36,4.4f,paint);
                 }
+                case PULL -> {
+                    paint.setColor(ui.dark ? 0xff080e19 : 0xff2b4b78);canvas.drawRoundRect(19,9,53,22,6.5f,6.5f,paint);
+                    paint.setColor(ui.dark ? 0xff4372ac : 0xff98bceb);canvas.drawRoundRect(10,42,62,65,9,9,paint);
+                    paint.setColor(0xff94c2ff);canvas.drawRoundRect(18,49,43,52,1.5f,1.5f,paint);
+                    canvas.drawRoundRect(18,56,53,59,1.5f,1.5f,paint);
+                    paint.setColor(ui.accent);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(3.5f);paint.setStrokeCap(Paint.Cap.ROUND);
+                    canvas.drawLine(36,27,36,36,paint);canvas.drawLine(30,32,36,38,paint);canvas.drawLine(42,32,36,38,paint);
+                    paint.setStyle(Paint.Style.FILL);
+                }
+                case POPUP_TIME -> {
+                    paint.setColor(ui.dark ? 0xff080e19 : 0xff2b4b78);canvas.drawRoundRect(8,17,64,39,11,11,paint);
+                    paint.setColor(0xff94c2ff);canvas.drawCircle(19,28,3.5f,paint);canvas.drawRoundRect(29,26,53,30,2,2,paint);
+                    paint.setColor(ui.accent);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(3);paint.setStrokeCap(Paint.Cap.ROUND);
+                    canvas.drawCircle(45,49,13,paint);canvas.drawLine(45,42,45,49,paint);canvas.drawLine(45,49,51,52,paint);
+                    paint.setStyle(Paint.Style.FILL);paint.setColor(ui.dark ? 0xff4372ac : 0xff98bceb);
+                    for(int i=0;i<3;i++)canvas.drawCircle(13+i*6,54,1.5f,paint);
+                }
+                case CHARGING -> {
+                    paint.setColor(ui.dark ? 0xff080e19 : 0xff2b4b78);canvas.drawRoundRect(4,23,68,45,11,11,paint);
+                    paint.setColor(0xff94c2ff);canvas.drawRoundRect(12,32,34,36,2,2,paint);
+                    paint.setColor(0xff7fd6a6);canvas.drawRoundRect(42,28,59,40,3,3,paint);canvas.drawRoundRect(61,32,63,36,1,1,paint);
+                    paint.setColor(ui.dark ? 0xff080e19 : 0xff2b4b78);canvas.drawRoundRect(53,30,57,38,1,1,paint);
+                    paint.setColor(ui.dark ? 0xff4372ac : 0xff98bceb);canvas.drawRoundRect(22,52,50,56,2,2,paint);
+                }
+                case CHARGING_TEXT -> {
+                    paint.setColor(ui.dark ? 0xff080e19 : 0xff2b4b78);canvas.drawRoundRect(10,10,62,62,12,12,paint);
+                    paint.setColor(0xff7fd6a6);canvas.drawRoundRect(19,19,33,28,2,2,paint);canvas.drawRoundRect(34,22,36,25,1,1,paint);
+                    paint.setColor(0xff94c2ff);canvas.drawRoundRect(19,36,53,40,2,2,paint);
+                    paint.setColor(ui.dark ? 0xff4372ac : 0xff98bceb);canvas.drawRoundRect(19,46,46,49,1.5f,1.5f,paint);
+                    canvas.drawRoundRect(19,53,49,56,1.5f,1.5f,paint);
+                }
+                case PRIVACY -> {
+                    paint.setColor(ui.dark ? 0xff080e19 : 0xff2b4b78);canvas.drawRoundRect(17,7,55,65,9,9,paint);
+                    paint.setColor(ui.dark ? 0xff4372ac : 0xff98bceb);canvas.drawRoundRect(22,22,50,58,5,5,paint);
+                    paint.setColor(0xff7fd6a6);canvas.drawCircle(45,15,3,paint);
+                    paint.setColor(0xff94c2ff);canvas.drawRoundRect(27,33,42,45,3,3,paint);
+                    path.reset();path.moveTo(42,36);path.lineTo(47,33);path.lineTo(47,45);path.lineTo(42,42);path.close();canvas.drawPath(path,paint);
+                    paint.setColor(ui.dark ? 0xff080e19 : 0xff2b4b78);canvas.drawCircle(34.5f,39,2.5f,paint);
+                }
                 case GLASS -> {
                     paint.setColor(0xff699cf0);canvas.drawCircle(25,29,18,paint);paint.setColor(0xffa98be3);canvas.drawCircle(48,47,18,paint);
                     paint.setShader(new LinearGradient(14,14,57,59,ui.dark ? 0xaadecaff : 0xccffffff,ui.dark ? 0x443d6296 : 0x7783ace9,Shader.TileMode.CLAMP));

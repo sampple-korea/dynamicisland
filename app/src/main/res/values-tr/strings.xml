@@ -685,4 +685,22 @@
     <string name="perf_covered">Yukarıdaki düşük performans modu bunların hepsini zaten uyguluyor.</string>
     <string name="perf_glow_link">Parıltıyı kapatın veya daha zayıf ve sakin yapın</string>
     <string name="perf_material_link">Buzlu cam yerine klasik malzeme çok daha hafif çizilir</string>
+    <string name="recommend16_pull_title">Açmak için aşağı çekin</string>
+    <string name="recommend16_pull">Kartları açmak için küçük kapsülü aşağı kaydırın. Yığın düzeninde kartlar parmağınızı takip eder.</string>
+    <string name="recommend16_popups_title">Açılır bildirimleri rahatça okuyun</string>
+    <string name="recommend16_popups">Kısa bildirimler için 3–6 saniye seçin. Hızlı panel açıksa bildirimler panelin kapanmasını bekler.</string>
+    <string name="recommend16_charging_title">Daha geniş şarj kapsülü</string>
+    <string name="recommend16_charging">Samsung pil şarj efekti kapalıyken şarj, yüzde ve pil simgesi içeren geniş bir kapsülde gösterilir.</string>
+    <string name="recommend16_charging_text_title">Metinle şarj bilgisi</string>
+    <string name="recommend16_charging_text">Şarj ayrıntılarını açın ve pil göstergesi yerine metin satırlarını seçin. Ekran açık ve kapalı istatistikleri de eklenebilir.</string>
+    <string name="recommend16_privacy_title">Kamera ve mikrofon</string>
+    <string name="recommend16_privacy">Açık uygulamadaki kamera ve mikrofon kullanımını da gösterin. Önce gizlilik göstergelerini açın.</string>
+    <string name="recommend16_hide">iMotion modunda küçük kapsülü basılı tutarak gizleyin. Yukarı kaydırarak gizlemeyi ayrıca kapatabilirsiniz.</string>
+    <string name="recommend16_idle_title">Ada hep burada</string>
+    <string name="recommend16_idle">Hiçbir etkinlik yokken bile kameranın çevresinde boş bir kapsül kalsın. İlk etkinlik bu kapsülden büyüyerek çıkar.</string>
+    <string name="recommend16_hide_title">İstediğiniz gibi gizleyin</string>
+    <string name="recommend16_perf_title">Efektleri tek tek azaltın</string>
+    <string name="recommend16_perf">Yeni Performans sayfasından müzik parıltısını, dalga hareketini ve simge animasyonlarını ayrı ayrı kapatın.</string>
+    <string name="recommend16_colour_title">Duvar kâğıdınızın renkleri</string>
+    <string name="recommend16_colour">İlerleme çubukları ve düğmeler duvar kâğıdınızın Material rengini izler ve duvar kâğıdıyla birlikte değişir.</string>
 </resources>

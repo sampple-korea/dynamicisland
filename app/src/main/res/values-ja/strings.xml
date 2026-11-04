@@ -707,9 +707,9 @@
     <string name="recommend16_idle_title">何もなくてもピルはそのまま</string>
     <string name="recommend16_idle">何も起きていなくてもカメラの周りに空のピルを残せます。最初のアクティビティはそこから伸びて現れます。</string>
     <string name="recommend16_hide_title">自分好みに隠す</string>
-    <string name="recommend16_hide">小さなピルを長押しして隠したり、上スワイプで隠す操作をオフにして誤って隠れるのを防げます。</string>
+    <string name="recommend16_hide">iMotionでは小さなピルを長押しして非表示にできます。上スワイプで隠す操作は個別にオフにできます。</string>
     <string name="recommend16_perf_title">効果を1つずつ軽く</string>
-    <string name="recommend16_perf">新しいパフォーマンスページで、音楽のグローや波形、アニメーションアイコンなどを低負荷モードなしで1つずつ切れます。</string>
+    <string name="recommend16_perf">新しいパフォーマンス画面で、音楽のグロー、波形の動き、アイコンのアニメーションを個別にオフにできます。</string>
     <string name="recommend16_colour_title">壁紙の色に合わせて</string>
     <string name="recommend16_colour">進行バーとボタンが壁紙のMaterialカラーに従い、壁紙を変えると一緒に変わります。</string>
     <string name="reset_all">すべての設定をリセット</string>
@@ -723,4 +723,14 @@
     <string name="island_charge_now">現在: %1$s</string>
     <string name="island_charge_text_on">画面オン: %1$s • %2$s</string>
     <string name="island_charge_text_off">画面オフ: %1$s • %2$s</string>
+    <string name="recommend16_pull_title">下に引いてカードを開く</string>
+    <string name="recommend16_pull">小さなピルを下にスワイプしてカードを開きます。スタック表示では指に合わせて展開します。</string>
+    <string name="recommend16_popups_title">ポップアップを読む時間を</string>
+    <string name="recommend16_popups">短いポップアップの表示時間を3〜6秒から選べます。クイックパネルが開いている間は、閉じるまで待ちます。</string>
+    <string name="recommend16_charging_title">充電を横長のピルで</string>
+    <string name="recommend16_charging">Samsungのバッテリー充電エフェクトをオフにすると、残量とバッテリーアイコンを横長のピルで表示します。</string>
+    <string name="recommend16_charging_text_title">充電情報をテキストで</string>
+    <string name="recommend16_charging_text">充電の詳細をオンにすると、ゲージの代わりにテキストを選べます。画面オン・オフ時の統計も表示できます。</string>
+    <string name="recommend16_privacy_title">使用中のアプリのカメラとマイクも</string>
+    <string name="recommend16_privacy">使用中のアプリのカメラとマイクの動作も表示できます。先にプライバシー使用表示をオンにしてください。</string>
 </resources>

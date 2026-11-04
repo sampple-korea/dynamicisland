@@ -5,7 +5,7 @@ import java.util.List;
 
 /** Curated release content, independent of selection history and presentation. Add entries here at release time. */
 final class ReleaseHighlights {
-    enum Art { MOTION, FLASHLIGHT, SEARCH, GLASS, PREVIEW, SWIPE, BLUR, NOTIFY, PROGRESS, HOTSPOT, UNLOCK, HEADSET, IDLE, HOLD, PERFORMANCE, PALETTE }
+    enum Art { MOTION, FLASHLIGHT, SEARCH, GLASS, PREVIEW, SWIPE, BLUR, NOTIFY, PROGRESS, HOTSPOT, UNLOCK, HEADSET, IDLE, HOLD, PERFORMANCE, PALETTE, PULL, POPUP_TIME, CHARGING, CHARGING_TEXT, PRIVACY }
     record Feature(String id,int title,int summary,Art art,SettingsSearchCatalog.Route route,int settingTitle) { }
     record Release(String family,List<Feature> features) { }
 
@@ -50,7 +50,17 @@ final class ReleaseHighlights {
                     new Feature("performance",R.string.recommend16_perf_title,R.string.recommend16_perf,Art.PERFORMANCE,
                             SettingsSearchCatalog.Route.PERFORMANCE,R.string.low_performance_mode),
                     new Feature("colour",R.string.recommend16_colour_title,R.string.recommend16_colour,Art.PALETTE,
-                            SettingsSearchCatalog.Route.ACCENT,R.string.accent_enabled)))
+                            SettingsSearchCatalog.Route.ACCENT,R.string.accent_enabled),
+                    new Feature("pull-open",R.string.recommend16_pull_title,R.string.recommend16_pull,Art.PULL,
+                            SettingsSearchCatalog.Route.BEHAVIOR,R.string.swipe_down_opens),
+                    new Feature("popup-time",R.string.recommend16_popups_title,R.string.recommend16_popups,Art.POPUP_TIME,
+                            SettingsSearchCatalog.Route.EVENTS,R.string.popup_time),
+                    new Feature("wide-charging",R.string.recommend16_charging_title,R.string.recommend16_charging,Art.CHARGING,
+                            SettingsSearchCatalog.Route.EVENTS,R.string.setting_stock_charging_animation),
+                    new Feature("charging-text",R.string.recommend16_charging_text_title,R.string.recommend16_charging_text,Art.CHARGING_TEXT,
+                            SettingsSearchCatalog.Route.EVENTS,R.string.setting_charging_text),
+                    new Feature("privacy-in-app",R.string.recommend16_privacy_title,R.string.recommend16_privacy,Art.PRIVACY,
+                            SettingsSearchCatalog.Route.EVENTS,R.string.setting_privacy_in_app)))
     );
 
     static Release forVersion(String version) {
