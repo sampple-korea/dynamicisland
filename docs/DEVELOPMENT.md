@@ -135,6 +135,8 @@ One-time setup (Settings → Secrets and variables → Actions → New repositor
 
 To release: raise `versionCode` / `versionName` in `app/build.gradle` and `CrashGuard.BUILD`, commit, then `git tag v<version> && git push origin v<version>`. The workflow can also be started by hand (Actions → Release → Run workflow, branch `main`): it then creates the tag `v<versionName>` itself. The release text is `docs/release-notes/<versionName>.md` (English and Korean) when that file exists, otherwise it is generated from the commits; running the workflow again for an existing version updates the assets and the text. `ci.yml` runs the tests on every push and pull request.
 
+For release preparation without publishing, run `gh workflow run release.yml --ref main -f draft=true` after committing and pushing the version and notes. This builds and signs with the same repository key but saves a draft release. It refuses to overwrite a published release in draft mode. Inspect the draft, APK metadata, checksum and certificate before publishing. A normal tag push or manual run with the default `draft=false` retains the publishing behaviour above.
+
 ## Tests
 
 ```bash
