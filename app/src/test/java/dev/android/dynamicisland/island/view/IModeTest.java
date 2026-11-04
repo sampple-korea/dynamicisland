@@ -1052,6 +1052,44 @@ public class IModeTest {
         }
     }
 
+    @Test public void chargingPreemptsAPageAndSurvivesLowerPriorityArrivalsAndUpdates() {
+        try(Fixture f=new Fixture(3)) {
+            f.scene.iMode.next(1);f.step(16,80);
+            IslandItem system=item("event:toggle:dnd",0);
+            system.kind=IslandItem.Kind.EVENT;system.transientPopup=true;
+            List<IslandItem> items=new ArrayList<>(f.items);items.add(0,system);
+            f.view.setItems(items);f.step(16,40);
+            assertMain(f,system.key);
+
+            // A high-priority arrival during an unfinished swipe used to be ignored forever.
+            assertTrue(f.scene.iMode.dragCompact(-30));
+            IslandItem charging=item("event:charging",0);
+            charging.kind=IslandItem.Kind.EVENT;charging.transientPopup=true;charging.fullWidth=true;
+            items.add(0,charging);f.view.setItems(items);f.step(16,40);
+            assertMain(f,charging.key);
+            IslandItem message=item("peek:message",0);
+            message.kind=IslandItem.Kind.PEEK;message.transientPopup=true;
+            items.add(2,message);f.view.setItems(items);f.step(16,40);
+            assertMain(f,charging.key);
+            assertFalse("a message cannot open over charging",f.view.peek(message,4000));
+            f.view.setItems(items);f.step(16,40);assertMain(f,charging.key);
+
+            items.remove(charging);f.view.setItems(items);f.step(16,40);assertMain(f,system.key);
+            // An expanded ongoing card must not keep a new system popup in the sub-pill either.
+            f.scene.iMode.open("item0",true);f.step(16,40);
+            IslandItem headset=item("event:bt:headset",0);
+            headset.kind=IslandItem.Kind.EVENT;headset.transientPopup=true;headset.postTime=100;
+            items.add(0,headset);f.view.setItems(items);f.step(16,40);assertMain(f,headset.key);
+            f.scene.iMode.collapse();f.view.setItems(f.items);f.step(16,80);
+            assertMain(f,"item1");
+        }
+    }
+
+    private static void assertMain(Fixture f,String key) {
+        RectF main=new RectF();f.scene.iMode.mainBounds(main);
+        assertEquals(key,f.scene.iMode.hit(main.centerX(),main.centerY(),0));
+    }
+
     @Test public void aPullDownOnASubPillOpensThatActivity() {
         try(Fixture f=new Fixture(3)) {
             RectF sub=new RectF();f.scene.iMode.bubbleBounds(sub);

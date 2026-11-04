@@ -85,6 +85,24 @@ public class ItemLedgerTest {
     }
 
     @Test
+    public void chargingThenSystemPopupsOutrankNewerNotificationPeeksAndBoosts() {
+        ItemLedger ledger = new ItemLedger();
+        IslandItem charging = popup("event:charging", 1);
+        IslandItem system = popup("event:toggle:dnd", 2);
+        IslandItem peek = item("peek:message", IslandItem.Kind.PEEK, 3);
+        peek.transientPopup = true;
+        IslandItem call = item("call", IslandItem.Kind.CALL, 4);
+        List<IslandItem> items = list(call, peek, system, charging);
+        ledger.arrange(items, NONE, 1000);
+        ledger.minimize(peek);
+        ledger.restore(); // Even an explicit boost does not put a message above short system feedback.
+        assertEquals(java.util.Arrays.asList(charging.key, system.key, peek.key, call.key),
+                keys(ledger.arrange(items, NONE, 1100).shown));
+        assertEquals(java.util.Arrays.asList(system.key, peek.key, call.key),
+                keys(ledger.arrange(list(call, peek, system), NONE, 1200).shown));
+    }
+
+    @Test
     public void thePopupGoesAndTheOthersComeBackInTheirOrder() {
         ItemLedger ledger = new ItemLedger();
         IslandItem match = item("match", IslandItem.Kind.LIVE, 1);

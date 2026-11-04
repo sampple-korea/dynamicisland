@@ -93,6 +93,8 @@ public class EventSourceTest {
         out.clear();
         s.collect(out);
         assertEquals("55%", out.get(0).trailingText.toString());
+        assertTrue("battery updates must retain popup priority", out.get(0).transientPopup);
+        assertEquals("updates do not restart its lifetime", it.expiresAtUptime, out.get(0).expiresAtUptime);
 
         ShadowSystemClock.advanceBy(Duration.ofSeconds(5));
         out.clear();

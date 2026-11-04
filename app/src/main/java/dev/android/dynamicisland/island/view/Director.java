@@ -174,7 +174,9 @@ final class Director {
             return;
         }
         if (scene.mode == Mode.EXPANDED) {
-            rebuildStack();
+            // An already open notification peek must not conceal short system feedback behind its single card.
+            if (scene.peekOpen && primary.popupPriority() >= 2 && !primary.key.equals(peekKey)) collapse();
+            else rebuildStack();
         } else if (scene.mode == Mode.HIDDEN) {
             appear(primary, hint == IslandView.HINT_FROM_LEFT);
         } else {

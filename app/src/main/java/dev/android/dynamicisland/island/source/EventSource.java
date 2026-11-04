@@ -396,6 +396,7 @@ public final class EventSource {
                 IslandItem fresh = chargingItem(percent, plugged, i);
                 fresh.expiresAtUptime = old.expiresAtUptime;
                 fresh.postTime = old.postTime;
+                fresh.transientPopup = old.transientPopup;
                 events.put(fresh.key, fresh);
                 onChange.run();
             }

@@ -674,6 +674,9 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         if (!canPeek() || item == null) {
             return false;
         }
+        for (IslandItem live : scene.items) {
+            if (live.popupPriority() >= 2 && live.priority() > item.priority()) return false;
+        }
         director.peek(item, ms);
         return true;
     }

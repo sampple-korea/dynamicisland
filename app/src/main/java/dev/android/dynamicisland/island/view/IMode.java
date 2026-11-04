@@ -165,12 +165,10 @@ final class IMode {
         boolean wasIdle = scene.restingShown() && scene.springs.visibility.value() > .5f;
         activities.clear();
         for (Node node : nodes.values()) node.removed=true;
-        String arrivedPopup=null;
         for (IslandItem item : scene.stackItems(Integer.MAX_VALUE)) {
             Node node=nodes.get(item.key);
             if (node!=null && !node.removed) continue; // a minimized source must not duplicate a live one
             activities.add(item);
-            if (node==null && item.transientPopup && arrivedPopup==null) arrivedPopup=item.key;
             if (node==null) {
                 node=new Node(view,item); seed(node);
                 if (wasIdle && activities.size()==1) {
@@ -185,9 +183,9 @@ final class IMode {
             else node.refresh(view,item);
             node.removed=false;
         }
-        followPopup(arrivedPopup);
         if(compactPage!=null && (compactPage.from.stream().anyMatch(n->n.removed)
                 || compactPage.to.stream().anyMatch(n->n.removed))) finishCompactInteraction();
+        followPopup();
         if (scene.items.isEmpty()) {
             if(scene.mode==Mode.EXPANDED) collapse();
             selected=null;
@@ -228,15 +226,25 @@ final class IMode {
      * be seen as the main pill the moment it comes: when the row had been paged to another pill the popup used to
      * wait as the first sub pill and was gone before anyone saw it. When it is over the row goes back to where it was.
      */
-    private void followPopup(String arrived) {
-        if(popupAnchor!=null && !listed(popupAnchor)) {
+    private void followPopup() {
+        IslandItem winner=null;
+        for(IslandItem item:activities) {
+            if(!item.transientPopup) continue;
+            if(winner==null || item.priority()>winner.priority()
+                    || item.priority()==winner.priority() && item.postTime>winner.postTime) winner=item;
+        }
+        if(winner==null) {
+            if(popupAnchor==null) return;
+            finishCompactInteraction();
             if(rowAnchor!=null && rowAnchor.equals(popupAnchor)) rowAnchor=listed(anchorBeforePopup) ? anchorBeforePopup : null;
             popupAnchor=null;anchorBeforePopup=null;
+            return;
         }
-        if(arrived==null || selected!=null || compactPage!=null) return;
+        if(winner.key.equals(popupAnchor)) return;
+        finishCompactInteraction();
         if(popupAnchor==null) anchorBeforePopup=rowAnchor;
-        popupAnchor=arrived;
-        rowAnchor=arrived;
+        popupAnchor=winner.key;
+        rowAnchor=winner.key;
     }
 
     private void refreshCard(Node node) {

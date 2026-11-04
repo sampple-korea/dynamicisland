@@ -16,7 +16,7 @@ import java.util.function.LongConsumer;
  *
  * <p>The sources in {@code island.source} create and fill items (each source only sets the fields
  * that make sense for it, everything else keeps its default), the controller collects them into the
- * list sorted by {@link Kind#priority}, and the views in {@code island.view} only read them.
+ * list sorted by {@link #priority()}, and the views in {@code island.view} only read them.
  * It is a plain data holder with public fields; items are replaced rather than mutated by the views.
  */
 public final class IslandItem {
@@ -314,8 +314,15 @@ public final class IslandItem {
         return false;
     }
 
+    /** Short feedback has its own tier: charging, other system feedback, notification peeks, ongoing activities. */
+    public int popupPriority() {
+        if (!transientPopup) return 0;
+        if ("event:charging".equals(key)) return 3;
+        return kind == Kind.EVENT ? 2 : 1;
+    }
+
     public int priority() {
-        return kind.priority;
+        return popupPriority() * 1000 + kind.priority;
     }
 
     /** Estimated playback position in ms at {@code nowElapsed}, or -1 when the position is unknown. */

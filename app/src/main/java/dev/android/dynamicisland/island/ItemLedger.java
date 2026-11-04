@@ -125,10 +125,10 @@ final class ItemLedger {
         return new Arrangement(shown, bubbledInOrder, hint, flyIn && wasVisible, nextDeferred);
     }
 
-    /** Boosted items first (newest boost first), then by priority, then newest post time. */
+    /** Popup tiers cannot be overridden by boosts; within a tier, keep boosts, kind and recency. */
     private int byBoostThenRank(IslandItem a, IslandItem b) {
-        if (a.transientPopup != b.transientPopup) {
-            return a.transientPopup ? -1 : 1; // a popup that is about to go comes before anything that stays
+        if (a.popupPriority() != b.popupPriority()) {
+            return Integer.compare(b.popupPriority(), a.popupPriority());
         }
         Long boostA = boostedAt.get(a.key);
         Long boostB = boostedAt.get(b.key);
