@@ -288,6 +288,8 @@ public final class IslandItem {
      * comes before everything else on the island, calls included, and what was on the island returns when it is gone.
      */
     public boolean transientPopup;
+    /** A ringing call, announced as a persistent banner independently of ordinary card auto-open. */
+    public boolean incomingCall;
 
     /** The pill takes the widest size it may have, e.g. to cover an animation that plays under it (the charging popup). */
     public boolean fullWidth;
@@ -316,6 +318,7 @@ public final class IslandItem {
 
     /** Short feedback has its own tier: charging, other system feedback, notification peeks, ongoing activities. */
     public int popupPriority() {
+        if (incomingCall) return 2;
         if (!transientPopup) return 0;
         if ("event:charging".equals(key)) return 3;
         return kind == Kind.EVENT ? 2 : 1;

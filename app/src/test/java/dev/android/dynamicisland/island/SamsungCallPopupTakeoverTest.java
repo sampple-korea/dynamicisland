@@ -53,8 +53,9 @@ public class SamsungCallPopupTakeoverTest {
         for (int i = 0; i < 500; i++) takeover.setNotifications(List.of(sbn));
         advance(149);assertEquals(1, requests.size());advance(1);assertEquals(2, requests.size());
         advance(850);assertEquals(4, requests.size());
+        advance(4000);assertEquals(7, requests.size());
         takeover.setNotifications(List.of(sbn));advance(10_000);
-        assertEquals("unchanged snapshots do not restart the retry burst", 4, requests.size());
+        assertEquals("unchanged snapshots do not restart the retry burst", 7, requests.size());
     }
 
     @Test public void removalAndRepostingCancelOldRequestsAndStartOnlyTheNewGeneration() {
@@ -108,4 +109,12 @@ public class SamsungCallPopupTakeoverTest {
         rejected.setNotifications(List.of(sbn));advance(2000);assertEquals(1, requests.size());
         rejected.setNotifications(List.of(sbn));advance(2000);assertEquals(1, requests.size());
     }
+    @Test public void aMiniWindowReceiverCreatedAfterThreeSecondsStillGetsTheHideRequest() {
+        long ready=android.os.SystemClock.uptimeMillis()+3000;List<Integer> delivered=new ArrayList<>();
+        var delayed=new SamsungCallPopupTakeover(main,user->{if(android.os.SystemClock.uptimeMillis()>=ready) delivered.add(user);});
+        delayed.setNotifications(List.of(notification(1,1000)));advance(3000);assertTrue(delivered.isEmpty());
+        advance(500);assertEquals(List.of(0),delivered);
+        delayed.setNotifications(List.of());advance(10000);assertEquals("ending the call cancels later attempts",1,delivered.size());
+    }
+
 }

@@ -17,7 +17,7 @@ import java.util.Map;
 final class SamsungCallPopupTakeover {
     static final String PACKAGE = "com.samsung.android.incallui";
     static final String HIDE_ACTION = "com.samsung.rcs.intent.action.ACTION_HIDE_MINI_MODE_CALL_VIEW";
-    private static final long[] ATTEMPTS_MS = {0, 150, 500, 1000};
+    private static final long[] ATTEMPTS_MS = {0, 150, 500, 1000, 2000, 3500, 5000};
     private final Handler main;
     private final Sender sender;
     private final Map<Integer, Target> targets = new HashMap<>();

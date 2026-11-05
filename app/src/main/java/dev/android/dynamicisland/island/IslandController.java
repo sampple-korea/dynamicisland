@@ -68,6 +68,7 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
     private final ItemLedger ledger = new ItemLedger();
     private final IslandPlacement placement;
     private final HeadsUpTakeover headsUp;
+    private final IncomingCallBanner incomingBanner = new IncomingCallBanner();
     private final SamsungCallPopupTakeover callPopup;
     private final ItemLauncher launcher;
     private final ShadeDragRelay shadeDrag;
@@ -148,8 +149,13 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
     private final SourcePeekRequests sourcePeekRequests = ENABLE_SOURCE_PEEKS ? new SourcePeekRequests() : null;
     private List<StatusBarNotification> lastNotifications = java.util.Collections.emptyList();
 
-    public boolean ownsHeadsUp(String key) { return headsUp.owns(key); }
-    public Object headsUpOwner(String key) { return headsUp.owner(key); }
+    public boolean ownsHeadsUp(String key) { return headsUpOwner(key) != null; }
+    public Object headsUpOwner(String key) {
+        IslandItem call = sources.incoming.item(key);
+        IslandView view = placement.view();
+        return call != null && view != null && !view.isSuppressedNow() && view.isShowingCard(call)
+                ? call : headsUp.owner(key);
+    }
 
     public boolean isShownAsCard(IslandItem item) {
         IslandView view = placement.view();
@@ -239,6 +245,12 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
      * @return true when the island took it (the stock banner must stay away)
      */
     public boolean peekHeadsUp(StatusBarNotification sbn) {
+        boolean wasIncoming = sbn != null && sources.incoming.item(sbn.getKey()) != null;
+        if (sources.incoming.posted(sbn)) {
+            refreshNow();
+            return ownsHeadsUp(sbn.getKey());
+        }
+        if (wasIncoming) refreshNow();
         return headsUp.take(sbn);
     }
 
@@ -265,6 +277,7 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
         }
         Runnable policies = () -> {
             callPopup.setNotifications(snapshot);
+            if (sources.incoming.update(snapshot)) requestRefresh();
             java.util.Set<String> live = new java.util.HashSet<>();
             for (StatusBarNotification sbn : snapshot) if (sbn != null) live.add(sbn.getKey());
             autoOpenCards.notifications(live);
@@ -572,7 +585,12 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
             long now = SystemClock.uptimeMillis();
             ItemLedger.Arrangement shape = ledger.arrange(gathered.items, gathered.hiddenByForeground, now);
             view.setGlowSession(gathered.glowSession);
+            incomingBanner.beforeUpdate(view, sources.incoming.activeKeys(), shape.shown);
             view.setItems(shape.shown, shape.hint, shape.bubbled);
+            if (incomingBanner.show(view, shape.shown)) {
+                for (IslandItem item : shape.shown) if (item.incomingCall && view.isShowingCard(item))
+                    dev.android.dynamicisland.xposed.hooks.HeadsUpHooks.dismissStock(item.sourceKey);
+            }
             if (sourcePeekRequests != null) {
                 IslandItem requested = sourcePeekRequests.next(shape.shown, ModuleSettings.autoOpenCards(), now);
                 if (requested != null && !view.isExpanded() && view.canPeek()) {
