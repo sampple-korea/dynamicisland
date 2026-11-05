@@ -5,6 +5,9 @@ import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
+import android.content.BroadcastReceiver;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioDeviceCallback;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
@@ -64,6 +67,14 @@ public final class OutputSource {
 
     /** Starts watching audio devices and media routes so {@link #current()} stays fresh. */
     void start() {
+        try {
+            ctx.registerReceiver(new BroadcastReceiver() {
+                @Override public void onReceive(Context context, Intent intent) { invalidate(); }
+            }, new IntentFilter("android.bluetooth.device.action.BATTERY_LEVEL_CHANGED"),
+                    "android.permission.BLUETOOTH_CONNECT", main, Context.RECEIVER_EXPORTED);
+        } catch (RuntimeException error) {
+            XLog.once("OutputSource.battery", error);
+        }
         try {
             AudioManager audio = ctx.getSystemService(AudioManager.class);
             audio.registerAudioDeviceCallback(new AudioDeviceCallback() {

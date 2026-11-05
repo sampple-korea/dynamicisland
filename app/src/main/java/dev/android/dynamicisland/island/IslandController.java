@@ -243,6 +243,8 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
 
     /** True when the island shows a card for this notification and the setting asks to drop the shade row. */
     public boolean hidesOriginal(String notificationKey) {
+        IslandView view = placement.view();
+        if (view == null || view.isSuppressedNow()) return false;
         return (ModuleSettings.hideProgressOriginals() && sources.progress.isShownOnIsland(notificationKey))
                 || (ModuleSettings.hideProgressOriginals() && sources.promoted.isShownOnIsland(notificationKey))
                 || (ModuleSettings.hideProgressOriginals() && sources.recorder.isShownOnIsland(notificationKey))

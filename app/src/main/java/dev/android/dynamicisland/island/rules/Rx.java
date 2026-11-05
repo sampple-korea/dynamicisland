@@ -84,6 +84,7 @@ public final class Rx {
                 if (!groups.isEmpty()) {
                     // what a group holds counts for the group around it as well
                     groups.peek()[0] |= group[0] || repeatedWithoutLimit;
+                    groups.peek()[1] |= group[1];
                 }
             } else if (!groups.isEmpty() && unboundedQuantifierAt(p, i) && i > 0) {
                 groups.peek()[0] = true;

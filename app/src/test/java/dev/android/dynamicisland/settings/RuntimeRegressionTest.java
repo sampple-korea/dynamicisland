@@ -218,4 +218,25 @@ public class RuntimeRegressionTest {
         assertEquals("different rule content must not be ignored because its hash collides","BB",collision);
     }
 
+    @Test public void replacingAFilterEntryWithTheSameCountRefreshesCardsExactlyOnce() {
+        Context app=RuntimeEnvironment.getApplication();
+        Robolectric.buildContentProvider(SettingsProvider.class).create(SettingsProvider.AUTHORITY);
+        SharedPreferences store=ModuleSettings.openStore(app);
+        store.edit().clear().putStringSet(ModuleSettings.KEY_APPS_LISTED,java.util.Set.of("example.a")).commit();
+        ReflectionHelpers.setStaticField(ModuleSettings.class,"started",true);
+        ReflectionHelpers.setStaticField(ModuleSettings.class,"prefs",null);
+        ReflectionHelpers.setStaticField(ModuleSettings.class,"loaded",false);
+        ReflectionHelpers.setStaticField(ModuleSettings.class,"viaProvider",false);
+        ReflectionHelpers.setStaticField(ModuleSettings.class,"lastRemote",null);
+        ReflectionHelpers.callStaticMethod(ModuleSettings.class,"refresh");
+        assertFalse(ModuleSettings.appAllowed("example.a"));assertTrue(ModuleSettings.appAllowed("example.b"));
+        java.util.concurrent.atomic.AtomicInteger changes=new java.util.concurrent.atomic.AtomicInteger();
+        ModuleSettings.setOnSwitchesChanged(changes::incrementAndGet);
+        store.edit().putStringSet(ModuleSettings.KEY_APPS_LISTED,java.util.Set.of("example.b")).commit();
+        ReflectionHelpers.callStaticMethod(ModuleSettings.class,"refresh");
+        assertEquals("a changed package list must refresh the source cards even when the count is unchanged",1,changes.get());
+        assertTrue(ModuleSettings.appAllowed("example.a"));assertFalse(ModuleSettings.appAllowed("example.b"));
+        ReflectionHelpers.callStaticMethod(ModuleSettings.class,"refresh");assertEquals(1,changes.get());
+    }
+
 }

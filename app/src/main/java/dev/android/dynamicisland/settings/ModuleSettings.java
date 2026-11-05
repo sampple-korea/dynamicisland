@@ -719,10 +719,11 @@ public final class ModuleSettings {
             otpAutoCopy = source.getBoolean(KEY_OTP_AUTO_COPY, false);
             thirdPartyCalls = source.getBoolean(KEY_THIRD_PARTY_CALLS, true);
             Set<String> listed = source.getStringSet(KEY_APPS_LISTED, null);
+            AppFilter previousFilter = appFilter;
             appFilter = new AppFilter(source.getBoolean(KEY_APPS_ONLY_LISTED, false),
                     listed == null ? null : new java.util.HashSet<>(listed));
             String switches = switchSignature();
-            boolean switchesChanged = lastSwitches != null && !switches.equals(lastSwitches);
+            boolean switchesChanged = lastSwitches != null && (!switches.equals(lastSwitches) || !previousFilter.equals(appFilter));
             lastSwitches = switches;
             logChanges(source);
             Runnable switchListener = onSwitchesChanged;

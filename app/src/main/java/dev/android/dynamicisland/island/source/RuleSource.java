@@ -115,15 +115,21 @@ public final class RuleSource {
             }
             retire(present, now);
         }
+        List<IslandItem> newest = new ArrayList<>(fresh.values());
+        newest.sort((a, b) -> {
+            int priority = Integer.compare(b.priority(), a.priority());
+            return priority != 0 ? priority : Long.compare(b.postTime, a.postTime);
+        });
+        fresh.clear();
+        for (IslandItem item : newest) {
+            if (fresh.size() >= MAX_ITEMS) break;
+            fresh.put(item.key, item);
+        }
         if (sameCards(fresh)) {
             return;
         }
         items.clear();
-        for (IslandItem it : fresh.values()) {
-            if (items.size() < MAX_ITEMS) {
-                items.put(it.key, it);
-            }
-        }
+        items.putAll(fresh);
         notifyChanged();
     }
 
@@ -306,7 +312,7 @@ public final class RuleSource {
         String title = clean(n.extras.getCharSequence(Notification.EXTRA_TITLE));
         String body = clean(n.extras.getCharSequence(Notification.EXTRA_TEXT));
         String status = rules.statusText(rule.id, hit.stage, locale);
-        IslandItem it = new IslandItem(KEY_PREFIX + pkg + ":" + rule.id);
+        IslandItem it = new IslandItem(KEY_PREFIX + sbn.getKey() + ":" + rule.id);
         it.sourceKey = sbn.getKey();
         it.kind = rule.id.equals("navigation") ? IslandItem.Kind.NAVIGATION : IslandItem.Kind.TASK;
         it.packageName = pkg;
@@ -377,7 +383,7 @@ public final class RuleSource {
     }
 
     private boolean sameCards(Map<String, IslandItem> fresh) {
-        if (fresh.size() != items.size() && !(fresh.size() > MAX_ITEMS && items.size() == MAX_ITEMS)) {
+        if (fresh.size() != items.size()) {
             return false;
         }
         for (Map.Entry<String, IslandItem> e : items.entrySet()) {

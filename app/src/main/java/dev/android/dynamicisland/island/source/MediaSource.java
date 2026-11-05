@@ -107,12 +107,7 @@ public final class MediaSource {
     }
 
     public void start() {
-        output = new OutputSource(ctx, main, () -> {
-            for (Session s : sessions.values()) {
-                s.card = null; // rebuilt with the new output device
-            }
-            onChange.run();
-        });
+        output = new OutputSource(ctx, main, onChange);
         output.start();
         try {
             MediaSessionManager manager = ctx.getSystemService(MediaSessionManager.class);
@@ -352,6 +347,9 @@ public final class MediaSource {
                 retiredRecordings.put(controller.getSessionToken(), Boolean.TRUE);
             } else if (hasContent()) {
                 IslandItem last = card();
+                long now = SystemClock.elapsedRealtime();
+                last.mediaPosition = last.currentMediaPosition(now);
+                last.mediaPositionUpdateTime = now;
                 last.playing = false;
                 retired.put(controller.getSessionToken(), last);
             }
@@ -461,7 +459,7 @@ public final class MediaSource {
 
         /** The card of this session, rebuilt only after the state, metadata or output device changed. */
         IslandItem card() {
-            if (card == null) {
+            if (card == null || !sameOutput(card)) {
                 card = buildCard();
             }
             return card;
@@ -540,12 +538,26 @@ public final class MediaSource {
             }
         }
 
+        private GlyphIcon.Kind outputGlyph;
+
+        private boolean sameOutput(IslandItem it) {
+            OutputSource.Output current = output == null ? null : output.current();
+            if (current == null || current.name == null) return it.mediaOutput == null && it.mediaOutputBattery == -1;
+            return java.util.Objects.equals(it.mediaOutput, current.name) && it.mediaOutputBattery == current.battery
+                    && outputGlyph == current.icon;
+        }
+
         private void bindOutput(IslandItem it) {
             OutputSource.Output current = output == null ? null : output.current();
             if (current != null && current.name != null) {
                 it.mediaOutput = current.name;
-                it.mediaOutputIcon = GlyphIcon.of(current.icon);
+                if (it.mediaOutputIcon == null || outputGlyph != current.icon) it.mediaOutputIcon = GlyphIcon.of(current.icon);
+                outputGlyph = current.icon;
                 it.mediaOutputBattery = current.battery;
+            } else {
+                it.mediaOutput = null;
+                it.mediaOutputIcon = null;
+                it.mediaOutputBattery = -1;
             }
         }
 
@@ -567,7 +579,8 @@ public final class MediaSource {
             }
             it.mediaPosition = state.getPosition();
             it.mediaPositionUpdateTime = state.getLastPositionUpdateTime();
-            it.mediaSpeed = state.getPlaybackSpeed() == 0.0f ? 1.0f : state.getPlaybackSpeed();
+            float speed = state.getPlaybackSpeed();
+            it.mediaSpeed = Float.isFinite(speed) ? speed : 0.0f;
             if ((state.getActions() & PlaybackState.ACTION_SEEK_TO) != 0) {
                 it.mediaSeek = controls::seekTo;
             }
