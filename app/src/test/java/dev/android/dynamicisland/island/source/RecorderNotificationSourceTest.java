@@ -171,4 +171,11 @@ public class RecorderNotificationSourceTest {
         assertFalse(source.isShownOnIsland(upload.getKey()));
     }
 
+    @Test public void contentIntentThatOnlyOpensTheRecorderIsNotOfferedAsAStopButton() {
+        var source=source();var n=note("com.android.systemui","screen_record",true,true);
+        n.getNotification().extras.putCharSequence(Notification.EXTRA_TEXT,"Recording in progress");
+        var open=n.getNotification().contentIntent;source.update(List.of(n));var card=card(source);
+        assertTrue(card.actions.isEmpty());assertEquals(open,card.contentIntent);
+    }
+
 }

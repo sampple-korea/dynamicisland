@@ -102,7 +102,6 @@ public final class OaSource {
             order = collectOne(data, order, out, foreground, pip, hiddenByForeground, packages);
         }
         calls.collect(callController, out, packages, hiddenByForeground, foreground, foregroundConfirmed);
-        cards.pruneStopwatches(out);
     }
 
     /** Adds the card of one activity to {@code out}; returns the next sort order. */

@@ -42,17 +42,23 @@ public final class HeadsUpHooks {
         return controller != null && controller.ownsHeadsUp(key);
     }
 
+    private static Object owner(String key) {
+        IslandController controller = IslandController.get();
+        return controller == null ? null : controller.headsUpOwner(key);
+    }
+
     public static String dismissStock(String key) {
         if (ModuleSettings.experimentalRecovery()) return dismissStockCompat(key);
         Object heads = manager;
         if (heads == null || key == null || !owned(key)) return "not currently owned by the island";
+        Object posting = owner(key);
         try {
             if (!remove(heads, key)) return "unsupported removal API";
             Boolean up = status(heads, key);
             if (Boolean.FALSE.equals(up)) return "stock banner removed";
             for (long delay : new long[]{150, 500}) {
                 new dev.android.dynamicisland.xposed.GuardedHandler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                    if (manager != heads || !owned(key) || Boolean.FALSE.equals(status(heads, key))) return;
+                    if (manager != heads || posting == null || owner(key) != posting || Boolean.FALSE.equals(status(heads, key))) return;
                     try { remove(heads, key); }
                     catch (Throwable t) { XLog.once("heads-up retry", t); }
                 }, delay);
@@ -70,6 +76,7 @@ public final class HeadsUpHooks {
         if (heads == null || key == null) {
             return "no heads-up manager seen yet";
         }
+        Object posting = owner(key);
         Method removal = removalMethod(heads.getClass());
         if (removal == null) return "no supported removeNotification signature";
         try {
@@ -83,8 +90,8 @@ public final class HeadsUpHooks {
             if (!stillUpCompat(heads, key)) {
                 return "removed on the second call";
             }
-            retryCompatLater(heads, removal, key, 150L);
-            retryCompatLater(heads, removal, key, 500L);
+            retryCompatLater(heads, removal, key, posting, 150L);
+            retryCompatLater(heads, removal, key, posting, 500L);
             return "still up after two calls; retrying";
         } catch (Throwable t) {
             XLog.once("HeadsUpHooks.dismissStock", t);
@@ -101,10 +108,10 @@ public final class HeadsUpHooks {
     }
 
     /** One more attempt after {@code delayMs}, on the main thread. */
-    private static void retryCompatLater(Object heads, Method removal, String key, long delayMs) {
+    private static void retryCompatLater(Object heads, Method removal, String key, Object posting, long delayMs) {
         try {
             new dev.android.dynamicisland.xposed.GuardedHandler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                if (!ModuleSettings.experimentalRecovery()) return;
+                if (!ModuleSettings.experimentalRecovery() || manager != heads || posting == null || owner(key) != posting) return;
                 try {
                     if (stillUpCompat(heads, key)) {
                         remove(heads, removal, key);

@@ -149,6 +149,7 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
     private List<StatusBarNotification> lastNotifications = java.util.Collections.emptyList();
 
     public boolean ownsHeadsUp(String key) { return headsUp.owns(key); }
+    public Object headsUpOwner(String key) { return headsUp.owner(key); }
 
     public boolean isShownAsCard(IslandItem item) {
         IslandView view = placement.view();
@@ -267,15 +268,15 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
             java.util.Set<String> live = new java.util.HashSet<>();
             for (StatusBarNotification sbn : snapshot) if (sbn != null) live.add(sbn.getKey());
             autoOpenCards.notifications(live);
-            headsUp.setSnapshot(allowed);
+            headsUp.setSnapshot(snapshot);
         };
         if (Looper.myLooper() == main.getLooper()) policies.run();
         else main.post(policies);
         sources.recorder.update(all); // recording lifecycle is not an ordinary-notification app-filter rule
-        sources.promoted.update(allowed);
+        sources.promoted.update(snapshot);
         sources.progress.update(allowed);
         sources.rules.update(allowed);
-        List<StatusBarNotification> forCodes = new ArrayList<>(allowed);
+        List<StatusBarNotification> forCodes = new ArrayList<>(snapshot);
         Runnable scan = () -> {
             try {
                 headsUp.scanForCodes(forCodes);
@@ -403,6 +404,7 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
 
     /** Opens the text field for answering the message of {@code item}; false when it cannot be shown. */
     private boolean startReply(IslandItem item, IslandItem.Action action) {
+        if (!ReplyInputs.hasFreeForm(action.remoteInputs)) return false;
         IslandWindow window = placement.window();
         if (window == null) {
             return false;

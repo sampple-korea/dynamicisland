@@ -734,4 +734,5 @@
     <string name="recommend16_privacy_title">Камера и микрофон</string>
     <string name="recommend16_privacy">Показывайте камеру и микрофон даже для открытого приложения. Сначала включите индикаторы приватности.</string>
     <string name="island_reply_failed">Не удалось отправить ответ. Введённый текст сохранён.</string>
+    <string name="rules_limit_reached">Можно добавить до 40 пользовательских правил. Сначала измените или удалите существующее правило.</string>
 </resources>

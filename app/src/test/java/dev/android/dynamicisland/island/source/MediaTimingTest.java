@@ -86,4 +86,48 @@ public class MediaTimingTest {
         output[0]=null;ShadowSystemClock.advanceBy(Duration.ofSeconds(11));
         var card=source.itemForSession(controller.getSessionToken());assertNull(card.mediaOutput);assertEquals(-1,card.mediaOutputBattery);
     }
+    @Test public void aRemoteSessionDoesNotBorrowThePhonesHeadphoneRoute() throws Exception {
+        var source = source();var controller = controller(PlaybackState.STATE_PLAYING, 10000, 1);
+        OutputSource outputs = new OutputSource(app,new Handler(Looper.getMainLooper()),()->{},
+                ()->new OutputSource.Output("Phone Buds",GlyphIcon.Kind.HEADPHONES,80));
+        ReflectionHelpers.setField(source,"output",outputs);
+        var remote = ReflectionHelpers.callConstructor(MediaController.PlaybackInfo.class,
+                ReflectionHelpers.ClassParameter.from(int.class,MediaController.PlaybackInfo.PLAYBACK_TYPE_REMOTE),
+                ReflectionHelpers.ClassParameter.from(int.class,2),ReflectionHelpers.ClassParameter.from(int.class,15),
+                ReflectionHelpers.ClassParameter.from(int.class,5),
+                ReflectionHelpers.ClassParameter.from(android.media.AudioAttributes.class,new android.media.AudioAttributes.Builder().build()),
+                ReflectionHelpers.ClassParameter.from(String.class,"tv"));
+        shadowOf(controller).setPlaybackInfo(remote);
+        source.sync(List.of(controller));var card = source.itemForSession(controller.getSessionToken());
+        assertNull(card.mediaOutput);assertEquals(-1,card.mediaOutputBattery);assertNull(card.mediaOutputIcon);
+    }
+
+    @Test public void sessionsOfTheSameAppDoNotBorrowOneAnothersArtwork() throws Exception {
+        var source=source();var a=controller(PlaybackState.STATE_PLAYING,0,1);var b=controller(PlaybackState.STATE_PLAYING,0,1);
+        var art=android.graphics.Bitmap.createBitmap(8,8,android.graphics.Bitmap.Config.ARGB_8888);art.eraseColor(0xffff0000);
+        shadowOf(a).setMetadata(new MediaMetadata.Builder().putString(MediaMetadata.METADATA_KEY_TITLE,"Same title")
+                .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART,art).build());
+        shadowOf(b).setMetadata(new MediaMetadata.Builder().putString(MediaMetadata.METADATA_KEY_TITLE,"Same title").build());
+        source.sync(List.of(a,b));assertSame(art,source.itemForSession(a.getSessionToken()).art);
+        assertNull(source.itemForSession(b.getSessionToken()).art);
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(50));assertNull(source.itemForSession(b.getSessionToken()).art);
+    }
+
+    @Test public void changingOutputPlaybackTypeRefreshesTheCardWithoutPollingTheService() throws Exception {
+        var source=source();var controller=controller(PlaybackState.STATE_PLAYING,0,1);
+        OutputSource outputs=new OutputSource(app,new Handler(Looper.getMainLooper()),()->{},
+                ()->new OutputSource.Output("Local Buds",GlyphIcon.Kind.HEADPHONES,80));
+        ReflectionHelpers.setField(source,"output",outputs);source.sync(List.of(controller));
+        assertEquals("Local Buds",source.itemForSession(controller.getSessionToken()).mediaOutput);
+        var info=ReflectionHelpers.callConstructor(MediaController.PlaybackInfo.class,
+                ReflectionHelpers.ClassParameter.from(int.class,MediaController.PlaybackInfo.PLAYBACK_TYPE_REMOTE),
+                ReflectionHelpers.ClassParameter.from(int.class,2),ReflectionHelpers.ClassParameter.from(int.class,15),
+                ReflectionHelpers.ClassParameter.from(int.class,5),
+                ReflectionHelpers.ClassParameter.from(android.media.AudioAttributes.class,new android.media.AudioAttributes.Builder().build()),
+                ReflectionHelpers.ClassParameter.from(String.class,"tv"));
+        java.util.Map<?,?> sessions=ReflectionHelpers.getField(source,"sessions");
+        ((MediaController.Callback)sessions.get(controller.getSessionToken())).onAudioInfoChanged(info);
+        assertNull(source.itemForSession(controller.getSessionToken()).mediaOutput);
+    }
+
 }

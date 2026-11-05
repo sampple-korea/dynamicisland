@@ -59,4 +59,5 @@
     <string name="recommend_dismiss">Ocultar sugestões desta versão</string>
     <string name="recommend_about">Novidades</string>
     <string name="island_reply_failed">Não foi possível enviar a resposta. O texto digitado foi mantido.</string>
+    <string name="rules_limit_reached">Você pode adicionar até 40 regras personalizadas. Edite ou remova uma regra existente primeiro.</string>
 </resources>

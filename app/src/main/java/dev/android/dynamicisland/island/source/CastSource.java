@@ -17,6 +17,7 @@ import java.util.Locale;
  * {@code castToOtherDevice}). Only the {@code Active} states of those models are shown.
  */
 public final class CastSource {
+    private final ChronometerClock chronometers = new ChronometerClock();
     private static final int BLUE = 0xFF0A84FF;
     private static final int RED = -50384;
 
@@ -143,6 +144,7 @@ public final class CastSource {
             it.actions.add(new IslandItem.Action(IslandText.get(ctx, "island_stop"), null, null, () -> clickStopChip((View) chip), true));
         }
         it.postTime = Long.MAX_VALUE - 1; // above everything else of its kind
+        chronometers.bind(it);
         return it;
     }
 

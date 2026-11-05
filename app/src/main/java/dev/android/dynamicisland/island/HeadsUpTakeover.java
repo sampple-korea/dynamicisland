@@ -73,13 +73,18 @@ final class HeadsUpTakeover {
         peeked.keySet().retainAll(live);
     }
 
+    Object owner(String key) { return owns(key) ? sources.peeks.showing() : null; }
+
     boolean owns(String key) {
         IslandItem item = sources.peeks.showing();
         if (item == null || !item.key.equals("peek:" + key) || !placement.view().isShowingCard(item)) return false;
-        if (!ModuleSettings.appAllowed(item.packageName)) return false;
+        if (item.otpCode == null && !ModuleSettings.appAllowed(item.packageName)) return false;
         if (item.otpCode != null ? !ModuleSettings.otpCard() : !(ModuleSettings.headsUpIsland() || ModuleSettings.allNotifications())) return false;
         for (StatusBarNotification notification : snapshot) {
-            if (notification.getKey().equals(key) && notification.getPostTime() != item.postTime) return false;
+            if (notification.getKey().equals(key)) {
+                Shown claim = shown.get(key);
+                if (notification.getPostTime() != item.postTime || (claim != null && !claim.content.equals(contentOf(notification)))) return false;
+            }
         }
         return true;
     }
@@ -95,7 +100,13 @@ final class HeadsUpTakeover {
             if (sbn == null || !placement.ready()) {
                 return false;
             }
-            if (!ModuleSettings.appAllowed(sbn.getPackageName())) {
+            // Pin decisions can precede the next list snapshot. Invalidate ownership of an older posting immediately.
+            List<StatusBarNotification> observed = new java.util.ArrayList<>(snapshot);
+            observed.removeIf(previous -> previous.getKey().equals(sbn.getKey()));
+            observed.add(sbn);
+            snapshot = observed;
+            IslandItem code = sources.peeks.buildOtp(sbn);
+            if (code == null && !ModuleSettings.appAllowed(sbn.getPackageName())) {
                 reject("banner of " + sbn.getPackageName() + ": the app is kept out of the island");
                 return false; // the user keeps this app out of the island: its banner stays stock
             }
@@ -109,7 +120,6 @@ final class HeadsUpTakeover {
                 return false;
             }
             // a code card is shown whatever the "notifications in the island" setting and even over an open card
-            IslandItem code = sources.peeks.buildOtp(sbn);
             if (code != null) {
                 if (isRepeat(code.otpCode)) {
                     // the same code again (re-posted, or mirrored by another app): one card is enough
@@ -319,7 +329,9 @@ final class HeadsUpTakeover {
         }
         shown.put(sbn.getKey(), new Shown(contentOf(sbn), sbn.getPostTime(), hasMessageIdentity(sbn), SystemClock.uptimeMillis()));
         final String key = sbn.getKey();
-        placement.view().postDelayed(() -> HeadsUpHooks.dismissStock(key), STOCK_DISMISS_DELAY_MS);
+        placement.view().postDelayed(() -> {
+            if (owner(key) == item) HeadsUpHooks.dismissStock(key);
+        }, STOCK_DISMISS_DELAY_MS);
         if (item.otpCode != null) {
             lastOtpCode = item.otpCode;
             lastOtpAt = SystemClock.uptimeMillis();

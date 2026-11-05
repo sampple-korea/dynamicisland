@@ -242,7 +242,7 @@ public final class RecorderNotificationSource {
                 }
             }
         }
-        if (it.actions.isEmpty() && n.contentIntent != null) {
+        if (it.actions.isEmpty() && n.contentIntent != null && tapToStop(n)) {
             // the recorder stops when its notification is tapped ("tap to stop"): the card gets that as a stop button
             it.actions.add(new IslandItem.Action(IslandText.get(ctx, "island_stop"),
                     null, n.contentIntent, null, true));
@@ -251,4 +251,15 @@ public final class RecorderNotificationSource {
         }
         return it;
     }
+    private static boolean tapToStop(Notification notification) {
+        String text = dev.android.dynamicisland.island.detect.NotificationText.callStatus(notification).toString()
+                .toLowerCase(java.util.Locale.ROOT);
+        return java.util.regex.Pattern.compile("(?:tap|touch|click).{0,30}(?:stop|end)|"
+                + "(?:누르|눌러|터치).{0,30}(?:중지|종료)|(?:중지|종료).{0,30}(?:누르|눌러|터치)|"
+                + "(?:タップ|タッチ).{0,30}(?:停止|終了)|(?:停止|終了).{0,30}(?:タップ|タッチ)|"
+                + "(?:点[击擊]|轻触).{0,30}(?:停止|结束)|нажмите.{0,30}(?:останов|заверш)|"
+                + "(?:parar|encerrar).{0,30}toque|toque.{0,30}(?:parar|encerrar)|durdur.{0,30}dokun")
+                .matcher(text).find();
+    }
+
 }

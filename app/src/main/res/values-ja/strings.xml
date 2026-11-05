@@ -734,4 +734,5 @@
     <string name="recommend16_privacy_title">使用中のアプリのカメラとマイクも</string>
     <string name="recommend16_privacy">使用中のアプリのカメラとマイクの動作も表示できます。先にプライバシー使用表示をオンにしてください。</string>
     <string name="island_reply_failed">返信を送信できませんでした。入力した内容は保持されています。</string>
+    <string name="rules_limit_reached">カスタムルールは40件まで追加できます。既存のルールを編集または削除してください。</string>
 </resources>

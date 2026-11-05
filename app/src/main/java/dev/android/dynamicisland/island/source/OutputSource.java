@@ -145,7 +145,8 @@ public final class OutputSource {
             case MediaRoute2Info.TYPE_BLUETOOTH_A2DP:
             case MediaRoute2Info.TYPE_HEARING_AID:
             case MediaRoute2Info.TYPE_BLE_HEADSET:
-                return bluetooth(name);
+                Object address = Refl.call(route, "getAddress", new Object[0]);
+                return bluetooth(name, address instanceof String ? (String) address : null);
             case MediaRoute2Info.TYPE_WIRED_HEADPHONES:
             case MediaRoute2Info.TYPE_WIRED_HEADSET:
             case MediaRoute2Info.TYPE_USB_HEADSET:
@@ -157,32 +158,42 @@ public final class OutputSource {
 
     // Bluetooth lookup runs in SystemUI and handles denied or unavailable access.
     @android.annotation.SuppressLint("MissingPermission")
-    private Output bluetooth(String routeName) {
+    private Output bluetooth(String routeName, String routeAddress) {
         GlyphIcon.Kind icon = GlyphIcon.Kind.HEADPHONES;
         int battery = -1;
         try {
             BluetoothAdapter adapter = ctx.getSystemService(BluetoothManager.class).getAdapter();
             Set<BluetoothDevice> bonded = adapter == null ? null : adapter.getBondedDevices();
-            if (bonded != null) {
-                for (BluetoothDevice d : bonded) {
-                    String alias = d.getAlias() != null ? d.getAlias() : d.getName();
-                    if (alias == null || !alias.equals(routeName) || !Boolean.TRUE.equals(Refl.call(d, "isConnected"))) {
-                        continue;
-                    }
-                    Object level = Refl.call(d, "getBatteryLevel");
-                    if (level instanceof Integer && ((Integer) level) >= 0) {
-                        battery = (Integer) level;
-                    }
-                    BluetoothClass cls = d.getBluetoothClass();
-                    if (cls != null && cls.getDeviceClass() == BluetoothClass.Device.AUDIO_VIDEO_LOUDSPEAKER) {
-                        icon = GlyphIcon.Kind.SPEAKER;
-                    }
-                    break;
-                }
+            BluetoothDevice device = selectBluetooth(bonded, routeName, routeAddress);
+            if (device != null) {
+                Object level = Refl.call(device, "getBatteryLevel");
+                if (level instanceof Integer && (Integer) level >= 0 && (Integer) level <= 100) battery = (Integer) level;
+                BluetoothClass cls = device.getBluetoothClass();
+                if (cls != null && cls.getDeviceClass() == BluetoothClass.Device.AUDIO_VIDEO_LOUDSPEAKER)
+                    icon = GlyphIcon.Kind.SPEAKER;
             }
         } catch (Throwable t) {
             XLog.once("OutputSource.bluetooth", t);
         }
         return new Output(routeName, icon, battery);
     }
+    /** An exact route address wins. An ambiguous display name never chooses an arbitrary device. */
+    @android.annotation.SuppressLint("MissingPermission")
+    static BluetoothDevice selectBluetooth(Set<BluetoothDevice> devices, String name, String address) {
+        BluetoothDevice unique = null;
+        int matches = 0;
+        if (devices == null) return null;
+        boolean hasAddress = address != null && !address.isEmpty();
+        for (BluetoothDevice device : devices) {
+            if (!Boolean.TRUE.equals(Refl.call(device, "isConnected"))) continue;
+            if (hasAddress) {
+                if (address.equalsIgnoreCase(device.getAddress())) return device;
+                continue;
+            }
+            String alias = device.getAlias() != null ? device.getAlias() : device.getName();
+            if (name != null && name.equals(alias)) { unique = device; matches++; }
+        }
+        return matches == 1 ? unique : null;
+    }
+
 }

@@ -359,7 +359,7 @@ public final class PeekSource {
         it.otpCode = otp.code;
         final String code = otp.code;
         IslandItem.Action copy = new IslandItem.Action(copied ? IslandText.get(ctx, "island_copied") : IslandText.get(ctx, "island_copy"), null, null, () -> {
-            copy(code);
+            if (!copy(code)) return;
             show(otpItem(sbn, otp, true), OTP_COPIED_MS);
             onChange.run();
         }, false);
@@ -370,19 +370,21 @@ public final class PeekSource {
     }
 
     /** Copies the code to the clipboard, flagged as sensitive so no preview is shown. */
-    public void copy(String code) {
+    public boolean copy(String code) {
         try {
             ClipboardManager cm = ctx.getSystemService(ClipboardManager.class);
             if (cm == null) {
-                return;
+                return false;
             }
             ClipData clip = ClipData.newPlainText(IslandText.get(ctx, "island_otp"), code);
             PersistableBundle extras = new PersistableBundle();
             extras.putBoolean("android.content.extra.IS_SENSITIVE", true); // keeps the code out of the clipboard preview
             clip.getDescription().setExtras(extras);
             cm.setPrimaryClip(clip);
+            return true;
         } catch (Throwable t) {
             XLog.once("PeekSource.copy", t);
+            return false;
         }
     }
 

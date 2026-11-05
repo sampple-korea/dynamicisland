@@ -704,4 +704,5 @@
     <string name="recommend16_colour_title">Duvar kâğıdınızın renkleri</string>
     <string name="recommend16_colour">İlerleme çubukları ve düğmeler duvar kâğıdınızın Material rengini izler ve duvar kâğıdıyla birlikte değişir.</string>
     <string name="island_reply_failed">Yanıt gönderilemedi. Yazdığınız metin korundu.</string>
+    <string name="rules_limit_reached">En fazla 40 özel kural ekleyebilirsiniz. Önce mevcut bir kuralı düzenleyin veya silin.</string>
 </resources>

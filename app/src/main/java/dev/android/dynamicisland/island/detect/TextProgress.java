@@ -24,7 +24,7 @@ public final class TextProgress {
             if (total <= 0 || done > total) {
                 continue;
             }
-            if (!allowed(context(text, m.start(), m.end()), rules)) {
+            if (!allowed(context(text, m.start(), m.end(), rules.textProgressContextWindow), rules)) {
                 continue;
             }
             return (int) Math.round(100.0 * done / total);
@@ -47,7 +47,6 @@ public final class TextProgress {
         }
     }
 
-    private static final int WINDOW = 80;
     // "12.5%" / "42,0 %": the decimals belong to the number
     private static final Pattern PERCENT = Pattern.compile("(?<![\\d.,])(\\d{1,3}(?:[.,]\\d+)?)\\s*%");
     private static final Pattern INCLUDE = Pattern.compile(
@@ -68,8 +67,8 @@ public final class TextProgress {
     private static final Pattern REMAINING_AFTER = Pattern.compile("^\\s*" + REMAINING);
     private static final Pattern REMAINING_BEFORE = Pattern.compile(REMAINING + "\\s*[:：]?\\s*$");
 
-    private static String context(String text, int start, int end) {
-        return text.substring(Math.max(0, start - WINDOW), Math.min(text.length(), end + WINDOW)).toLowerCase(Locale.ROOT);
+    private static String context(String text, int start, int end, int window) {
+        return text.substring(Math.max(0, start - window), Math.min(text.length(), end + window)).toLowerCase(Locale.ROOT);
     }
 
     private static boolean allowed(String context, RuleDictionary rules) {
@@ -101,7 +100,7 @@ public final class TextProgress {
             if (value < 0 || value > 100) {
                 continue;
             }
-            if (!allowed(context(text, m.start(), m.end()), rules)) {
+            if (!allowed(context(text, m.start(), m.end(), rules.textProgressContextWindow), rules)) {
                 continue;
             }
             boolean remaining = REMAINING_AFTER.matcher(text.substring(m.end(), Math.min(text.length(), m.end() + 32)).toLowerCase(Locale.ROOT)).find()

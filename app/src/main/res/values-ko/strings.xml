@@ -734,4 +734,5 @@
     <string name="recommend16_privacy_title">사용 중인 앱의 카메라·마이크도</string>
     <string name="recommend16_privacy">지금 쓰는 앱의 카메라·마이크 사용도 표시할 수 있어요. 개인정보 사용 표시를 먼저 켜 주세요.</string>
     <string name="island_reply_failed">답장을 보내지 못했습니다. 작성한 내용은 유지됩니다.</string>
+    <string name="rules_limit_reached">사용자 규칙은 최대 40개까지 추가할 수 있어요. 기존 규칙을 수정하거나 삭제해 주세요.</string>
 </resources>

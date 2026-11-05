@@ -734,4 +734,5 @@
     <string name="recommend16_privacy_title">也显示当前应用的相机和麦克风</string>
     <string name="recommend16_privacy">可选择显示当前使用的应用的相机和麦克风活动。请先开启隐私使用指示。</string>
     <string name="island_reply_failed">回复发送失败。已保留输入的内容。</string>
+    <string name="rules_limit_reached">最多可添加40条自定义规则。请先编辑或删除现有规则。</string>
 </resources>

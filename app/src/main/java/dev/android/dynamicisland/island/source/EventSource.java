@@ -211,15 +211,19 @@ public final class EventSource {
     /** The callback reports every camera once on registration: those first values are only a baseline. */
     void onTorch(String cameraId, boolean enabled) {
         Boolean before = torchState.put(cameraId, enabled);
-        if (before == null || before == enabled) {
-            return;
-        }
         boolean any = false;
         for (Boolean on : torchState.values()) {
             any |= on;
         }
+        if (before == null) {
+            toggleState.put("torch", any);
+            return;
+        }
+        if (before == enabled) return;
         if (!TorchSource.handlesTorch()) {
             onToggle("torch", any); // with a brightness card the flashlight needs no extra popup
+        } else {
+            toggleState.put("torch", any);
         }
     }
 

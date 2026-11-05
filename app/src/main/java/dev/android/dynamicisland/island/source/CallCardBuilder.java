@@ -32,6 +32,7 @@ import java.util.function.BooleanSupplier;
  * end-call button that work even though the real call notification is hidden by the island.
  */
 final class CallCardBuilder {
+    private final ChronometerClock chronometers = new ChronometerClock();
     private static final String SPEAKER_TOGGLE = "com.samsung.rcs.intent.action.SPEAKER_TOGGLE";
     private static final String INCALLUI = "com.samsung.android.incallui";
     /** Apps whose calls Telecom can end and whose speaker the in-call UI can toggle. */
@@ -188,6 +189,7 @@ final class CallCardBuilder {
             startClock(it, info, key);
         }
         it.postTime = Long.MAX_VALUE;
+        chronometers.bind(it);
         return it;
     }
 
@@ -228,6 +230,7 @@ final class CallCardBuilder {
         PendingIntent hangUp = null;
         Drawable hangUpIcon = null;
         PendingIntent speaker = null;
+        PendingIntent answer = null;
         Notification.Action extra = null;
         Object actions = nowBar == null ? null : Refl.get(nowBar, "mActions");
         if (actions instanceof List) {
@@ -239,10 +242,11 @@ final class CallCardBuilder {
                 if (action.actionIntent == null || action.title == null) {
                     continue;
                 }
-                if (hangUp == null) {
-                    // a call notification lists its hang-up first
+                if (ActionWords.isDestructive(action.title) && !ActionWords.isMute(action.title) && !ActionWords.isSpeaker(action.title)) {
                     hangUp = action.actionIntent;
                     hangUpIcon = icons.load(action.getIcon(), pkg);
+                } else if (ActionWords.isAnswer(action.title)) {
+                    answer = action.actionIntent;
                 } else if (ActionWords.isSpeaker(action.title)) {
                     speaker = action.actionIntent;
                 } else if (extra == null && !ActionWords.isMute(action.title)) {
@@ -253,13 +257,13 @@ final class CallCardBuilder {
 
         boolean telecom = pkg == null || TELECOM_PACKAGES.contains(pkg);
         if (ringing) {
-            addRingingButtons(it, telecom, hangUp, extra == null ? null : extra.actionIntent);
+            addRingingButtons(it, telecom, hangUp, answer);
             return;
         }
         AudioManager audio = ctx.getSystemService(AudioManager.class);
         if (audio != null && (telecom || speaker != null)) {
             PendingIntent viaAction = speaker;
-            IslandItem.Action toggle = new IslandItem.Action(IslandText.get(ctx, "island_speaker"), null, null, () -> toggleSpeaker(viaAction, telecom), false);
+            IslandItem.Action toggle = new IslandItem.Action(IslandText.get(ctx, "island_speaker"), null, null, () -> toggleSpeaker(viaAction, pkg != null && pkg.startsWith("com.samsung.")), false);
             toggle.glyph = GLYPH_SPEAKER;
             toggle.active = isSpeakerRoute(audio);
             it.actions.add(toggle);
@@ -362,14 +366,23 @@ final class CallCardBuilder {
         }
     }
 
-    private void toggleSpeaker(PendingIntent viaAction, boolean telecom) {
+    private void toggleSpeaker(PendingIntent viaAction, boolean samsung) {
         try {
-            if (telecom) {
-                ctx.sendBroadcast(new Intent(SPEAKER_TOGGLE).setPackage(INCALLUI));
-                XLog.i("speaker toggled via incallui");
-            } else if (viaAction != null) {
+            if (viaAction != null) {
                 sendFromBackground(viaAction);
                 XLog.i("speaker toggled via call action");
+            } else if (samsung) {
+                ctx.sendBroadcast(new Intent(SPEAKER_TOGGLE).setPackage(INCALLUI));
+                XLog.i("speaker toggled via incallui");
+            } else {
+                AudioManager audio = ctx.getSystemService(AudioManager.class);
+                if (audio != null && isSpeakerRoute(audio)) audio.clearCommunicationDevice();
+                else if (audio != null) for (AudioDeviceInfo device : audio.getAvailableCommunicationDevices()) {
+                    if (device.getType() == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER) {
+                        audio.setCommunicationDevice(device);
+                        break;
+                    }
+                }
             }
         } catch (Throwable t) {
             XLog.e("speaker toggle failed", t);

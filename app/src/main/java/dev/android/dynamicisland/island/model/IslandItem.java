@@ -143,7 +143,7 @@ public final class IslandItem {
     public float progress = -1.0f;
     /** Chronometer base time in ms (start, or end when counting down); 0 = no chronometer. */
     public long chronoBase;
-    /** Recorder-only clock domain: immune to wall-clock changes; other sources keep their old path. */
+    /** Monotonic clock domain: elapsed time is immune to wall-clock changes. */
     public boolean chronoUsesElapsedRealtime;
     public long chronoElapsedBase;
     /** The chronometer counts down to {@link #chronoBase}. */

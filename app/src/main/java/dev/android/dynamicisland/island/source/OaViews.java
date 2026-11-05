@@ -43,6 +43,7 @@ final class OaViews {
     /** A chronometer: wall-clock base, direction, whether it ticks and, if frozen, the text it shows. */
     static final class Chrono {
         final long base;
+        Long elapsedBase;
         final boolean countDown;
         final boolean running;
         /** What a stopped chronometer displays; null while running. */
@@ -125,7 +126,9 @@ final class OaViews {
             }
             long wallBase = System.currentTimeMillis() - (SystemClock.elapsedRealtime() - clock.getBase());
             boolean ticking = Refl.getBool(clock, "mStarted", true);
-            return new Chrono(wallBase, clock.isCountDown(), ticking, ticking ? null : clock.getText());
+            Chrono result = new Chrono(wallBase, clock.isCountDown(), ticking, ticking ? null : clock.getText());
+            result.elapsedBase = clock.getBase();
+            return result;
         } catch (Throwable t) {
             XLog.e("chronometer RemoteViews", t);
             return null;
