@@ -733,4 +733,5 @@
     <string name="recommend16_charging_text">Включите подробности зарядки и выберите строки текста вместо индикатора. Можно добавить статистику с включённым и выключенным экраном.</string>
     <string name="recommend16_privacy_title">Камера и микрофон</string>
     <string name="recommend16_privacy">Показывайте камеру и микрофон даже для открытого приложения. Сначала включите индикаторы приватности.</string>
+    <string name="island_reply_failed">Не удалось отправить ответ. Введённый текст сохранён.</string>
 </resources>

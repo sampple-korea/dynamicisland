@@ -67,6 +67,10 @@ final class HeadsUpTakeover {
 
     void setSnapshot(List<StatusBarNotification> notifications) {
         snapshot = new java.util.ArrayList<>(notifications);
+        Set<String> live = new HashSet<>();
+        for (StatusBarNotification sbn : notifications) if (sbn != null) live.add(sbn.getKey());
+        shown.keySet().retainAll(live);
+        peeked.keySet().retainAll(live);
     }
 
     boolean owns(String key) {
@@ -240,7 +244,17 @@ final class HeadsUpTakeover {
      */
     private boolean recentlyShown(StatusBarNotification sbn) {
         Shown last = shown.get(sbn.getKey());
-        return last != null && SystemClock.uptimeMillis() - last.at < REPEAT_QUIET_MS && last.content.equals(contentOf(sbn));
+        return last != null && (last.postTime == sbn.getPostTime() || last.messageIdentity)
+                && SystemClock.uptimeMillis() - last.at < REPEAT_QUIET_MS && last.content.equals(contentOf(sbn));
+    }
+
+    /** A real latest-message timestamp lets an app refresh its notification without announcing the same message again. */
+    private static boolean hasMessageIdentity(StatusBarNotification sbn) {
+        android.os.Bundle extras = sbn.getNotification().extras;
+        if (extras == null) return false;
+        android.os.Parcelable[] messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES, android.os.Parcelable.class);
+        if (messages == null || messages.length == 0 || !(messages[messages.length - 1] instanceof android.os.Bundle)) return false;
+        return ((android.os.Bundle) messages[messages.length - 1]).getLong("time") > 0;
     }
 
     /** What a card of this notification would say: its texts and how many messages it holds. */
@@ -252,15 +266,26 @@ final class HeadsUpTakeover {
             out.append(extras.getCharSequence(key)).append('\u0001');
         }
         android.os.Parcelable[] messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES, android.os.Parcelable.class);
-        return out.append(messages == null ? 0 : messages.length).toString();
+        out.append(messages == null ? 0 : messages.length);
+        if (messages != null) for (android.os.Parcelable message : messages) {
+            if (message instanceof android.os.Bundle) {
+                android.os.Bundle data = (android.os.Bundle) message;
+                out.append('\u0001').append(data.getLong("time")).append('\u0001').append(data.getCharSequence("text"));
+            }
+        }
+        return out.toString();
     }
 
     private static final class Shown {
         final String content;
         final long at;
+        final long postTime;
+        final boolean messageIdentity;
 
-        Shown(String content, long at) {
+        Shown(String content, long postTime, boolean messageIdentity, long at) {
             this.content = content;
+            this.postTime = postTime;
+            this.messageIdentity = messageIdentity;
             this.at = at;
         }
     }
@@ -292,7 +317,7 @@ final class HeadsUpTakeover {
         if (shown.size() > MAX_PEEKED) {
             shown.clear();
         }
-        shown.put(sbn.getKey(), new Shown(contentOf(sbn), SystemClock.uptimeMillis()));
+        shown.put(sbn.getKey(), new Shown(contentOf(sbn), sbn.getPostTime(), hasMessageIdentity(sbn), SystemClock.uptimeMillis()));
         final String key = sbn.getKey();
         placement.view().postDelayed(() -> HeadsUpHooks.dismissStock(key), STOCK_DISMISS_DELAY_MS);
         if (item.otpCode != null) {

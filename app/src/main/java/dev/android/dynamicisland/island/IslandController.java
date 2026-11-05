@@ -247,27 +247,28 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
                 || (ModuleSettings.hideProgressOriginals() && sources.promoted.isShownOnIsland(notificationKey))
                 || (ModuleSettings.hideProgressOriginals() && sources.recorder.isShownOnIsland(notificationKey))
                 || sources.rules.isShownOnIsland(notificationKey)
-                || (sources.torch.replacesStockNotification() && TorchSource.isStockNotification(notificationKey))
-                || (ModuleSettings.hideProgressOriginals() && sources.cast.hidesOriginal(notificationKey));
+                || (sources.torch.replacesStockNotification() && TorchSource.isStockNotification(notificationKey));
     }
 
     /** Fed by the notification list hook: progress notifications become cards. */
     public void onNotificationsSnapshot(List<StatusBarNotification> all) {
         lastNotifications = new ArrayList<>(all);
-        if (Looper.myLooper() == main.getLooper()) {
-            callPopup.setNotifications(lastNotifications);
-        }
-        else {
-            List<StatusBarNotification> calls = lastNotifications;
-            main.post(() -> callPopup.setNotifications(calls));
-        }
+        List<StatusBarNotification> snapshot = lastNotifications;
         List<StatusBarNotification> allowed = new ArrayList<>(all.size());
         for (StatusBarNotification sbn : all) {
             if (sbn != null && ModuleSettings.appAllowed(sbn.getPackageName())) {
                 allowed.add(sbn);
             }
         }
-        headsUp.setSnapshot(allowed);
+        Runnable policies = () -> {
+            callPopup.setNotifications(snapshot);
+            java.util.Set<String> live = new java.util.HashSet<>();
+            for (StatusBarNotification sbn : snapshot) if (sbn != null) live.add(sbn.getKey());
+            autoOpenCards.notifications(live);
+            headsUp.setSnapshot(allowed);
+        };
+        if (Looper.myLooper() == main.getLooper()) policies.run();
+        else main.post(policies);
         sources.recorder.update(all); // recording lifecycle is not an ordinary-notification app-filter rule
         sources.promoted.update(allowed);
         sources.progress.update(allowed);
@@ -410,8 +411,8 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
                 IslandText.get(ctx, "island_send"), new IslandWindow.ReplyListener() {
             @Override
             public void onSend(CharSequence text) {
-                launcher.sendReply(action, text);
-                endReply(window);
+                if (launcher.sendReply(action, text)) endReply(window);
+                else window.replyFailed(IslandText.get(ctx, "island_reply_failed"));
             }
 
             @Override

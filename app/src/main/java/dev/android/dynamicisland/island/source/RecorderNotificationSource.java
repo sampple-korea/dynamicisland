@@ -45,6 +45,8 @@ public final class RecorderNotificationSource {
     private long lastSeen;
     private int sessionGeneration;
     private boolean present;
+    /** Package-only compatibility guesses may render a fallback, but cannot identify a chip's hidden original. */
+    private boolean notificationIdentified;
 
     public RecorderNotificationSource(Context ctx, Runnable onChange) {
         this(ctx, onChange, System::currentTimeMillis, SystemClock::elapsedRealtime);
@@ -130,6 +132,9 @@ public final class RecorderNotificationSource {
             // Unknown observations must not erase the last positively observed start generation.
             if (startToken > 0L) lifecycleStartToken = startToken;
             selectedKey = recorder.getKey();
+            String channel = n.getChannelId() == null ? "" : n.getChannelId().toLowerCase(Locale.ROOT);
+            notificationIdentified = channel.contains("screen") && channel.contains("record")
+                    || (SMART_CAPTURE.equals(recorder.getPackageName()) && channel.equals("capture"));
             present = true;
             lastSeen = elapsed;
             fresh = build(recorder, activeCardKey, clock.base(wall, elapsed));
@@ -143,6 +148,7 @@ public final class RecorderNotificationSource {
             // Hide missing content immediately; never keep a stale Stop PendingIntent alive.
             // A short gap is bridged only with a matching system start or observed lifecycle token.
             present = false;
+            notificationIdentified = false;
         }
         IslandItem old = item;
         item = fresh;
@@ -171,14 +177,16 @@ public final class RecorderNotificationSource {
     public synchronized void collect(List<IslandItem> out) {
         IslandItem card = item;
         boolean covered = false;
+        boolean represented = false;
         for (IslandItem it : out) {
             if (it.kind == IslandItem.Kind.RECORDING && !it.key.startsWith("rec:")) {
                 covered = true;
-                break;
+                represented |= card != null && notificationIdentified && java.util.Objects.equals(it.packageName, card.packageName);
             }
         }
         if (card == null || covered) {
-            publish(Collections.emptySet());
+            // A chip can replace the fallback card, but only this exact notification is represented by it.
+            publish(card != null && represented ? Collections.singleton(card.sourceKey) : Collections.emptySet());
             return;
         }
         card.chronoBase = clock.base(wallTime.getAsLong(), elapsedTime.getAsLong());

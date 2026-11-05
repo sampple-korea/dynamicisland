@@ -742,4 +742,5 @@
     <string name="recommend16_charging_text">With charging details on, switch from the battery gauge to text and optional screen-on and screen-off statistics.</string>
     <string name="recommend16_privacy_title">See camera and mic use</string>
     <string name="recommend16_privacy">Optionally show camera and microphone activity even for the app you are using. Turn on privacy indicators first.</string>
+    <string name="island_reply_failed">Reply could not be sent. Your text is kept.</string>
 </resources>

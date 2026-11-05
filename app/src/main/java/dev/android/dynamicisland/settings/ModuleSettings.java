@@ -550,10 +550,14 @@ public final class ModuleSettings {
             return fresh ? prefs : null;
         }
         Map<String, Object> remote = readProvider();
-        if (remote == null || remote.isEmpty()) {
-            boolean fresh = !loaded;
+        if (remote == null) {
+            // A failed provider read is not an empty settings snapshot. Keep the last good values unless
+            // the shared file itself is readable and authoritatively reports an empty store.
+            if (!prefs.getFile().canRead()) return null;
+            boolean fresh = !loaded || first || fileChanged || viaProvider;
             loaded = true;
             viaProvider = false;
+            lastRemote = null;
             return fresh ? prefs : null;
         }
         if (loaded && viaProvider && remote.equals(lastRemote)) {
@@ -919,9 +923,10 @@ public final class ModuleSettings {
     private static RuleConfig readRulesConfig(SharedPreferences source) {
         String custom = source.getString(KEY_RULES_CUSTOM, null);
         Set<String> off = source.getStringSet(KEY_RULES_DISABLED, null);
-        RuleConfig next = new RuleConfig(custom == null || custom.isEmpty() ? null : custom,
-                off == null ? null : new java.util.HashSet<>(off));
-        return next.revision == rulesConfig.revision ? rulesConfig : next;
+        custom = custom == null || custom.isEmpty() ? null : custom;
+        Set<String> disabled = off == null ? java.util.Collections.emptySet() : off;
+        return java.util.Objects.equals(custom, rulesConfig.custom) && disabled.equals(rulesConfig.disabled)
+                ? rulesConfig : new RuleConfig(custom, disabled);
     }
 
     /** Staged cards from the rules (delivery, taxi, route, device connection). */

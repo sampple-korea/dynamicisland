@@ -62,6 +62,7 @@ public final class RuleSource {
     private final Runnable tick = new Runnable() {
         @Override
         public void run() {
+            lastNotify = SystemClock.uptimeMillis();
             onChange.run();
         }
     };
@@ -397,12 +398,11 @@ public final class RuleSource {
     private void notifyChanged() {
         long now = SystemClock.uptimeMillis();
         long wait = lastNotify + NOTIFY_INTERVAL_MS - now;
+        main.removeCallbacks(tick);
         if (wait <= 0) {
             lastNotify = now;
             onChange.run();
         } else {
-            main.removeCallbacks(tick);
-            lastNotify = now + wait;
             main.postDelayed(tick, wait);
         }
     }

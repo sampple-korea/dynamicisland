@@ -1,5 +1,7 @@
 package dev.android.dynamicisland.island.source;
 
+import static org.junit.Assert.assertFalse;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotEquals;
@@ -146,6 +148,27 @@ public class RecorderNotificationSourceTest {
     private StatusBarNotification recording(int id, long post, long when, boolean systemClock) {
         return note("com.samsung.android.app.smartcapture", "CHANNEL_ID_RECORDING_SCREEN", true,
                 false, systemClock, id, null, post, when);
+    }
+
+    @Test public void aChipHidesOnlyItsMatchingRecordingNotificationAcrossIdsAndTags() {
+        RecorderNotificationSource source=source();
+        StatusBarNotification recording=recording(1332,10000,1000,true);
+        StatusBarNotification upload=note("com.samsung.android.app.smartcapture","upload_failure",false,
+                false,false,999,"upload",10000);
+        source.update(List.of(recording,upload));
+        IslandItem chip=new IslandItem("cast:share");chip.kind=IslandItem.Kind.RECORDING;
+        chip.packageName="com.samsung.android.app.smartcapture";
+        List<IslandItem> out=new java.util.ArrayList<>(List.of(chip));source.collect(out);
+        assertEquals("the chip covers the fallback",1,out.size());
+        assertTrue(source.isShownOnIsland(recording.getKey()));
+        assertFalse(source.isShownOnIsland(upload.getKey()));
+        StatusBarNotification ongoingUpload=note(chip.packageName,"uploads",true);
+        source.update(List.of(ongoingUpload));source.collect(new java.util.ArrayList<>(List.of(chip)));
+        assertFalse("a package-only compatibility guess must not hide an unrelated chip-side notification",
+                source.isShownOnIsland(ongoingUpload.getKey()));
+        source.update(List.of(upload));source.collect(new java.util.ArrayList<>(List.of(chip)));
+        assertFalse("removing the recording notification clears its exact hide key",source.isShownOnIsland(recording.getKey()));
+        assertFalse(source.isShownOnIsland(upload.getKey()));
     }
 
 }

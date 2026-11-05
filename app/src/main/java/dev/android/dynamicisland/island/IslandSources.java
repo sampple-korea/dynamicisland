@@ -94,7 +94,6 @@ final class IslandSources {
         rules = new RuleSource(ctx, main, onChange);
         progress.setOnShownChanged(() -> main.post(HideDuplicated::rebuild));
         rules.setOnShownChanged(() -> main.post(HideDuplicated::rebuild));
-        cast.onRecordersChanged = () -> main.post(HideDuplicated::rebuild);
         torch.onShownChanged = () -> main.post(HideDuplicated::rebuild);
         calls = new CallSource(ctx, main, onChange, callClock);
         peeks = new PeekSource(ctx, main, onChange);

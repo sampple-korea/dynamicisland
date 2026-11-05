@@ -58,4 +58,5 @@
     <string name="recommend_next">Próxima</string>
     <string name="recommend_dismiss">Ocultar sugestões desta versão</string>
     <string name="recommend_about">Novidades</string>
+    <string name="island_reply_failed">Não foi possível enviar a resposta. O texto digitado foi mantido.</string>
 </resources>

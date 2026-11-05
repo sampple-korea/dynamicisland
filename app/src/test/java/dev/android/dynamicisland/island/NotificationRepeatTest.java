@@ -71,13 +71,17 @@ public class NotificationRepeatTest {
     @Test public void aRepostOfTheSameMessageGetsNoSecondCard() {
         IslandSources[] sources = new IslandSources[1];
         HeadsUpTakeover takeover = takeover(sources);
-        StatusBarNotification first = note(5, chat("on my way"), System.currentTimeMillis());
+        long sent = System.currentTimeMillis();
+        StatusBarNotification first = note(5, chat("on my way").setStyle(new Notification.MessagingStyle("Me")
+                .addMessage("on my way", sent, "Sender")), sent);
         takeover.setSnapshot(List.of(first));
         assertTrue(takeover.take(first));
         assertNotNull(sources[0].peeks.showing());
         sources[0].peeks.dismiss(sources[0].peeks.showing());
 
-        StatusBarNotification again = note(5, chat("on my way"), System.currentTimeMillis() + 4000);
+        // A new notification post time with the same actual message timestamp is a refresh of that message.
+        StatusBarNotification again = note(5, chat("on my way").setStyle(new Notification.MessagingStyle("Me")
+                .addMessage("on my way", sent, "Sender")), sent + 4000);
         takeover.setSnapshot(List.of(again));
         assertTrue("the banner stays away", takeover.take(again));
         assertNull("but no second card", sources[0].peeks.showing());
@@ -107,9 +111,9 @@ public class NotificationRepeatTest {
         assertTrue(takeover.take(first));
         sources[0].peeks.dismiss(sources[0].peeks.showing());
 
-        // the same last words again, but the conversation now holds one more message
+        // The app retains only the newest message: same words and message count, but a new message timestamp.
         StatusBarNotification second = note(7, chat("ok").setStyle(new Notification.MessagingStyle("Me")
-                .addMessage("ok", now, "Sender").addMessage("ok", now + 5000, "Sender")), now + 5000);
+                .addMessage("ok", now + 5000, "Sender")), now + 5000);
         takeover.setSnapshot(List.of(second));
         assertTrue(takeover.take(second));
         assertNotNull("a new message with the same words is still news", sources[0].peeks.showing());
