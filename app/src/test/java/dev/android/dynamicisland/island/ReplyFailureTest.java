@@ -32,6 +32,7 @@ public class ReplyFailureTest {
             listener=callback;open=true;return true;
         }
         @Implementation protected void hideReply() { open=false; }
+        @Implementation protected boolean isReplying() { return open; }
         @Implementation protected void replyFailed(CharSequence message) { error=message; }
     }
     @Test public void aFailedReplyMustKeepTheEditorAndDraftAvailable() throws Exception {
@@ -63,4 +64,40 @@ public class ReplyFailureTest {
         WindowShadow.listener.onDismiss();assertFalse(WindowShadow.open);
         assertEquals(Boolean.FALSE,ReflectionHelpers.getField(scene,"held"));
     }
+    @Test public void chargingCannotCloseTheEditorOrHeldCardWhileAReplyIsBeingWritten() throws Exception {
+        Context app=RuntimeEnvironment.getApplication();
+        var prefs=ModuleSettings.openStore(app);prefs.edit().clear().commit();ModuleSettings.configurePreview(prefs);
+        IslandController controller=ReflectionHelpers.callConstructor(IslandController.class,
+                ReflectionHelpers.ClassParameter.from(Context.class,app),
+                ReflectionHelpers.ClassParameter.from(ClassLoader.class,getClass().getClassLoader()));
+        var host=(dev.android.dynamicisland.island.view.IslandHost)java.lang.reflect.Proxy.newProxyInstance(
+                getClass().getClassLoader(),new Class<?>[]{dev.android.dynamicisland.island.view.IslandHost.class},
+                (proxy,method,args)->{
+                    if(method.getName().equals("onPeekClosed")) controller.onPeekClosed((String)args[0]);
+                    return method.getReturnType()==boolean.class ? false : null;
+                });
+        IslandView view=new IslandView(app,host);view.setGeometry(1080,540,66,90,false);view.layout(0,0,1080,900);
+        IslandWindow window=new IslandWindow(app,null,null);
+        IslandPlacement placement=ReflectionHelpers.getField(controller,"placement");
+        ReflectionHelpers.setField(placement,"view",view);ReflectionHelpers.setField(placement,"window",window);
+        IslandItem message=new IslandItem("peek:writing");message.kind=IslandItem.Kind.PEEK;message.title="Sender";
+        IslandSources sources=ReflectionHelpers.getField(controller,"sources");sources.peeks.show(message,4000);
+        view.setItems(java.util.List.of(message));assertTrue(view.peek(message,4000));
+        PendingIntent intent=PendingIntent.getBroadcast(app,1,new Intent("reply.hold").setPackage(app.getPackageName()),PendingIntent.FLAG_MUTABLE);
+        IslandItem.Action action=new IslandItem.Action("Reply",null,intent,null,false);
+        action.remoteInputs=new RemoteInput[]{new RemoteInput.Builder("reply").build()};
+        assertTrue((Boolean)ReflectionHelpers.callInstanceMethod(controller,"startReply",
+                ReflectionHelpers.ClassParameter.from(IslandItem.class,message),
+                ReflectionHelpers.ClassParameter.from(IslandItem.Action.class,action)));
+        var listener=WindowShadow.listener;
+        IslandItem charging=new IslandItem("event:charging");charging.kind=IslandItem.Kind.EVENT;
+        charging.transientPopup=true;charging.fullWidth=true;
+        view.setItems(java.util.List.of(charging,message));
+        assertTrue("the same reply editor, and hence its draft, remains attached",WindowShadow.open);
+        assertSame(listener,WindowShadow.listener);assertTrue(view.isExpanded());assertTrue(view.isPeekOpen());
+        assertSame(message,sources.peeks.showing());
+        Object scene=ReflectionHelpers.getField(view,"scene");assertEquals(Boolean.TRUE,ReflectionHelpers.getField(scene,"held"));
+        listener.onDismiss();assertFalse(WindowShadow.open);assertFalse(view.isExpanded());
+    }
+
 }

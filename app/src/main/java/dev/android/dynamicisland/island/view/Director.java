@@ -174,8 +174,8 @@ final class Director {
             return;
         }
         if (scene.mode == Mode.EXPANDED) {
-            // An already open notification peek must not conceal short system feedback behind its single card.
-            if (scene.peekOpen && primary.popupPriority() >= 2 && !primary.key.equals(peekKey)) collapse();
+            // System feedback can replace a peek, but typing a reply keeps its card and editor attached.
+            if (!scene.held && scene.peekOpen && primary.popupPriority() >= 2 && !primary.key.equals(peekKey)) collapse();
             else rebuildStack();
         } else if (scene.mode == Mode.HIDDEN) {
             appear(primary, hint == IslandView.HINT_FROM_LEFT);
