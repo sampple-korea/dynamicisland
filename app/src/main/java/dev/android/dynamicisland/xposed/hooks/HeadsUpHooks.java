@@ -22,8 +22,6 @@ public final class HeadsUpHooks {
 
     /** The heads-up manager, kept so that a banner that already came up can be taken away again. */
     private static volatile Object manager;
-    private static final int MAX_ASKED_LOGS = 10;
-    private static int askedLogs;
 
     private HeadsUpHooks() {
     }
@@ -241,29 +239,25 @@ public final class HeadsUpHooks {
         IslandController controller = IslandController.get();
         if (notPinned != null && controller != null && sbn instanceof StatusBarNotification
                 && controller.peekHeadsUp((StatusBarNotification) sbn)) {
-            if (askedLogs < MAX_ASKED_LOGS) {
-                askedLogs++;
-                XLog.event("heads-up pin by system taken over: " + ((StatusBarNotification) sbn).getPackageName());
-            }
+            XLog.event("heads-up pin by system taken over: " + ((StatusBarNotification) sbn).getPackageName());
             p.args[1] = notPinned;
         }
     }
 
     private static void afterPinDecision(XC_MethodHook.MethodHookParam p) {
         manager = p.thisObject;
-        if (askedLogs < MAX_ASKED_LOGS) {
-            askedLogs++;
-            Object entry = p.args.length > 0 ? p.args[0] : null;
-            Object sbnForLog = entry == null ? null : Refl.get(entry, "mSbn");
-            XLog.event("heads-up pin decision asked: " + (sbnForLog instanceof StatusBarNotification ? ((StatusBarNotification) sbnForLog).getPackageName() : "?") + " -> " + p.getResult());
-        }
-        if (p.hasThrowable() || !Boolean.TRUE.equals(p.getResult()) || p.args.length < 1 || p.args[0] == null) {
+        Object entry = p.args.length > 0 ? p.args[0] : null;
+        Object sbn = entry == null ? null : Refl.get(entry, "mSbn");
+        String app = sbn instanceof StatusBarNotification ? ((StatusBarNotification) sbn).getPackageName() : "?";
+        if (p.hasThrowable() || !Boolean.TRUE.equals(p.getResult()) || entry == null) {
+            XLog.event("heads-up pin decision: " + app + " -> " + (p.hasThrowable() ? "failed" : p.getResult()) + " (not pinned by the system)");
             return;
         }
-        Object sbn = Refl.get(p.args[0], "mSbn");
         IslandController controller = IslandController.get();
-        if (controller != null && sbn instanceof StatusBarNotification && controller.peekHeadsUp((StatusBarNotification) sbn)) {
+        boolean taken = controller != null && sbn instanceof StatusBarNotification && controller.peekHeadsUp((StatusBarNotification) sbn);
+        if (taken) {
             p.setResult(false);
         }
+        XLog.event("heads-up pin decision: " + app + " -> " + (taken ? "taken by the island" : "left to the stock banner"));
     }
 }

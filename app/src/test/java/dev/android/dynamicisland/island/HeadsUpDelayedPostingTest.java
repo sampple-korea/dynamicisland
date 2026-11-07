@@ -35,6 +35,13 @@ public class HeadsUpDelayedPostingTest {
         public boolean removeNotification(String key,String reason,boolean immediate) { removed++;return true; }
         public Object getHeadsUpEntry(String key) { return this; }
     }
+    /** A heads-up manager whose banner for the key comes up only once {@code up} is set. */
+    public static class LateManager {
+        boolean up;
+        int removedWhileUp;
+        public boolean removeNotification(String key,String reason,boolean immediate) { if(up) { removedWhileUp++;up=false; } return true; }
+        public Object getHeadsUpEntry(String key) { return up ? this : null; }
+    }
     private StatusBarNotification note(Context app,long post,String text) {
         var n = new Notification.Builder(app,"test").setSmallIcon(android.R.drawable.stat_notify_chat)
                 .setContentTitle("Sender").setContentText(text).build();
@@ -81,5 +88,15 @@ public class HeadsUpDelayedPostingTest {
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(700));
         assertEquals(2,manager.removed);
     }
-
+    @Test public void aStockBannerThatComesUpAfterTheCardIsStillRemoved() {
+        Context app=RuntimeEnvironment.getApplication();var takeover=takeover(app);
+        ReflectionHelpers.setStaticField(ModuleSettings.class,"experimentalRecovery",false);
+        var old=note(app,System.currentTimeMillis(),"Old message");takeover.setSnapshot(List.of(old));assertTrue(takeover.take(old));
+        LateManager manager=new LateManager();ReflectionHelpers.setStaticField(HeadsUpHooks.class,"manager",manager);
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(300));
+        assertEquals("nothing to remove yet",0,manager.removedWhileUp);
+        manager.up=true; // System UI binds the banner's view a moment after the card opened
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(2200));
+        assertEquals("the island looked again and took the late banner away",1,manager.removedWhileUp);
+    }
 }

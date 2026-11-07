@@ -24,7 +24,12 @@ final class HeadsUpTakeover {
     /** How long a heads-up card stays open unless the item asks for something else. */
     private static final long DEFAULT_PEEK_MS = 5000;
     /** Wait before the stock heads-up entry of a notification the island took is removed (it is added right after the decision). */
-    private static final long STOCK_DISMISS_DELAY_MS = 120;
+    /**
+     * When the island looks again for the system's banner of a card it opened. The list snapshot that opens a card
+     * comes before System UI has bound the banner's view, so the banner can appear a few hundred ms later, after the
+     * first look found nothing to remove.
+     */
+    private static final long[] STOCK_WATCH_MS = {120, 350, 700, 1200, 2000};
     /** A verification code is "fresh" (worth a card) for this long after its notification was posted. */
     private static final long OTP_FRESH_MS = 20000;
     /** A notification is "new" for the all-notifications pass for this long after it was posted. */
@@ -57,7 +62,6 @@ final class HeadsUpTakeover {
     private final Set<String> allChecked = new HashSet<>();
     private List<StatusBarNotification> snapshot = java.util.Collections.emptyList();
     private Map<String, Integer> importance = java.util.Collections.emptyMap();
-    private int rejectLogs;
     private int otpLogs;
     private String lastOtpCode;
     private long lastOtpAt;
@@ -204,18 +208,12 @@ final class HeadsUpTakeover {
     }
 
     private void note(String what) {
-        if (rejectLogs < MAX_OTP_LOGS) {
-            rejectLogs++;
-            XLog.event("notification card: " + what);
-        }
+        XLog.event("notification card: " + what);
     }
 
     /** Why a banner or a card was left to the stock UI; only the first few are logged. */
     private void reject(String why) {
-        if (rejectLogs < MAX_OTP_LOGS) {
-            rejectLogs++;
-            XLog.event("notification card not shown: " + why);
-        }
+        XLog.event("notification card not shown: " + why);
     }
 
     /**
@@ -352,9 +350,11 @@ final class HeadsUpTakeover {
         }
         shown.put(sbn.getKey(), new Shown(contentOf(sbn), sbn.getPostTime(), hasMessageIdentity(sbn), SystemClock.uptimeMillis()));
         final String key = sbn.getKey();
-        placement.view().postDelayed(() -> {
-            if (owner(key) == item) HeadsUpHooks.dismissStock(key);
-        }, STOCK_DISMISS_DELAY_MS);
+        for (long delay : STOCK_WATCH_MS) {
+            placement.view().postDelayed(() -> {
+                if (owner(key) == item) HeadsUpHooks.dismissStock(key);
+            }, delay);
+        }
         if (item.otpCode != null) {
             lastOtpCode = item.otpCode;
             lastOtpAt = SystemClock.uptimeMillis();
