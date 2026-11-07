@@ -35,6 +35,8 @@ final class HeadsUpTakeover {
     private static final long OTP_REPEAT_WINDOW_MS = 120000;
     /** An app re-posting the same message (Telegram does it on read, sync and edit) is not news for this long. */
     private static final long REPEAT_QUIET_MS = 180_000;
+    /** A notification that asked to alert only once (a battery level, a download) is not news again for this long. */
+    private static final long ALERT_ONCE_QUIET_MS = 600_000;
     /** Bounds of the "already seen" caches; they are simply cleared when exceeded. */
     private static final int MAX_PEEKED = 32;
     private static final int MAX_OTP_CHECKED = 128;
@@ -162,7 +164,7 @@ final class HeadsUpTakeover {
             if (age > ALL_FRESH_MS || age < -OTP_CLOCK_SKEW_MS || !allChecked.add(sbn.getKey() + "@" + sbn.getPostTime())) {
                 continue;
             }
-            if (alreadyHadCard(sbn) || recentlyShown(sbn) || !PeekSource.eligible(sbn) || !ModuleSettings.appAllowed(sbn.getPackageName())
+            if (alreadyHadCard(sbn) || recentlyShown(sbn) || quietUpdate(sbn) || !PeekSource.eligible(sbn) || !ModuleSettings.appAllowed(sbn.getPackageName())
                     || (!ModuleSettings.experimentalRecovery()
                     && (foregroundBlocked(sbn) || !PeekSource.preferred(sbn, snapshot)))) {
                 continue;
@@ -256,6 +258,16 @@ final class HeadsUpTakeover {
         Shown last = shown.get(sbn.getKey());
         return last != null && (last.postTime == sbn.getPostTime() || last.messageIdentity)
                 && SystemClock.uptimeMillis() - last.at < REPEAT_QUIET_MS && last.content.equals(contentOf(sbn));
+    }
+
+    /**
+     * An update of a notification that got a card and asked to alert only once: the app changes a number in it (the
+     * battery level, a download) and does not mean to announce it again. New messages of a conversation are news.
+     */
+    private boolean quietUpdate(StatusBarNotification sbn) {
+        Shown last = shown.get(sbn.getKey());
+        return last != null && (sbn.getNotification().flags & Notification.FLAG_ONLY_ALERT_ONCE) != 0
+                && !hasMessageIdentity(sbn) && SystemClock.uptimeMillis() - last.at < ALERT_ONCE_QUIET_MS;
     }
 
     /** A real latest-message timestamp lets an app refresh its notification without announcing the same message again. */

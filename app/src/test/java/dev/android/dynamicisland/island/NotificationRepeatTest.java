@@ -118,4 +118,33 @@ public class NotificationRepeatTest {
         assertTrue(takeover.take(second));
         assertNotNull("a new message with the same words is still news", sources[0].peeks.showing());
     }
+
+    private boolean scannedCardFor(Notification.Builder builder, long postTime, HeadsUpTakeover takeover, IslandSources[] sources) {
+        StatusBarNotification sbn = note(9, builder, postTime);
+        takeover.setSnapshot(List.of(sbn));
+        takeover.scanAll(List.of(sbn));
+        boolean shown = sources[0].peeks.showing() != null;
+        if (shown) sources[0].peeks.dismiss(sources[0].peeks.showing());
+        return shown;
+    }
+
+    @Test public void aNumberChangedInAnAlertOnceNotificationIsNotAnotherCard() {
+        ReflectionHelpers.setStaticField(ModuleSettings.class, "allNotifications", true);
+        IslandSources[] sources = new IslandSources[1];
+        HeadsUpTakeover takeover = takeover(sources);
+        long now = System.currentTimeMillis();
+        assertTrue("the first posting gets its card",
+                scannedCardFor(chat("Battery power 11%").setOnlyAlertOnce(true), now, takeover, sources));
+        assertFalse("the level dropping is not announced again",
+                scannedCardFor(chat("Battery power 10%").setOnlyAlertOnce(true), now + 2000, takeover, sources));
+    }
+
+    @Test public void anUpdateThatDoesNotAskToAlertOnlyOnceStillGetsItsCard() {
+        ReflectionHelpers.setStaticField(ModuleSettings.class, "allNotifications", true);
+        IslandSources[] sources = new IslandSources[1];
+        HeadsUpTakeover takeover = takeover(sources);
+        long now = System.currentTimeMillis();
+        assertTrue(scannedCardFor(chat("Parcel on its way"), now, takeover, sources));
+        assertTrue("an ordinary update is news", scannedCardFor(chat("Parcel delivered"), now + 2000, takeover, sources));
+    }
 }
