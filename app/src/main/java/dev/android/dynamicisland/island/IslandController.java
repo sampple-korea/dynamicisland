@@ -254,6 +254,13 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
         return headsUp.take(sbn);
     }
 
+    /** Whether the island takes this call over from Samsung's own window right now (else that window must stay). */
+    private boolean islandTakesCall(StatusBarNotification sbn) {
+        IslandView view = placement.view();
+        return SamsungCallPopupTakeover.replaceable(sbn.getNotification(), sources.incoming.item(sbn.getKey()) != null,
+                view != null && !view.isSuppressedNow());
+    }
+
     /** True when the island shows a card for this notification and the setting asks to drop the shade row. */
     public boolean hidesOriginal(String notificationKey) {
         IslandView view = placement.view();
@@ -276,8 +283,9 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
             }
         }
         Runnable policies = () -> {
-            callPopup.setNotifications(snapshot);
-            if (sources.incoming.update(snapshot)) requestRefresh();
+            boolean incomingChanged = sources.incoming.update(snapshot);
+            callPopup.setNotifications(snapshot, this::islandTakesCall);
+            if (incomingChanged) requestRefresh();
             java.util.Set<String> live = new java.util.HashSet<>();
             for (StatusBarNotification sbn : snapshot) if (sbn != null) live.add(sbn.getKey());
             autoOpenCards.notifications(live);

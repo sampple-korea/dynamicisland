@@ -117,4 +117,28 @@ public class SamsungCallPopupTakeoverTest {
         delayed.setNotifications(List.of());advance(10000);assertEquals("ending the call cancels later attempts",1,delivered.size());
     }
 
+
+    @Test public void samsungsWindowStaysWhileTheIslandCannotTakeTheCallAndGoesWhenItCan() {
+        StatusBarNotification sbn = notification(1, 1000);
+        takeover.setNotifications(List.of(sbn), n -> false);advance(5000);
+        assertTrue("the island cannot show the call: the stock window is left alone", requests.isEmpty());
+        takeover.setNotifications(List.of(sbn), n -> true);advance(0);
+        assertEquals("it goes once the island takes the call over", List.of(0), requests);
+        takeover.setNotifications(List.of(sbn), n -> false);advance(5000);
+        assertEquals("and the retries stop when the island lets go of it", 1, requests.size());
+    }
+
+    @Test public void aRingingCallNeedsACardAndACallInProgressOnlyAnIsland() {
+        Notification ringing = notification(1, 1000).getNotification();
+        assertFalse("no card could be built for it", SamsungCallPopupTakeover.replaceable(ringing, false, true));
+        assertFalse("the island is hidden", SamsungCallPopupTakeover.replaceable(ringing, true, false));
+        assertTrue(SamsungCallPopupTakeover.replaceable(ringing, true, true));
+        Notification ongoing = notification(SamsungCallPopupTakeover.PACKAGE, 2, 0, 1000, 2).getNotification();
+        assertTrue(SamsungCallPopupTakeover.replaceable(ongoing, false, true));
+        assertFalse(SamsungCallPopupTakeover.replaceable(ongoing, false, false));
+        Notification untyped = notification(SamsungCallPopupTakeover.PACKAGE, 3, 0, 1000, -1).getNotification();
+        assertFalse("an old-style ringing call without a card stays stock", SamsungCallPopupTakeover.replaceable(untyped, false, true));
+        untyped.extras.putBoolean(Notification.EXTRA_SHOW_CHRONOMETER, true);
+        assertTrue("one that runs a clock is in progress", SamsungCallPopupTakeover.replaceable(untyped, false, true));
+    }
 }

@@ -39,9 +39,17 @@ final class SamsungCallPopupTakeover {
 
     /** Start from the native call notification, before any card has to be built, opened or drawn. */
     void setNotifications(List<StatusBarNotification> notifications) {
+        setNotifications(notifications, sbn -> true);
+    }
+
+    /**
+     * As {@link #setNotifications(List)}, for the calls {@code replaceable} accepts: Samsung's window goes only when
+     * the island takes the call over, so that a call is never left with neither.
+     */
+    void setNotifications(List<StatusBarNotification> notifications, java.util.function.Predicate<StatusBarNotification> replaceable) {
         Map<Integer, Map<String, Long>> calls = new HashMap<>();
         for (StatusBarNotification sbn : notifications) {
-            if (!isSamsungCall(sbn)) continue;
+            if (!isSamsungCall(sbn) || !replaceable.test(sbn)) continue;
             int user = sbn.getUserId();
             if (user < 0 || user > Integer.MAX_VALUE / 100_000) continue;
             calls.computeIfAbsent(user, ignored -> new HashMap<>()).put(sbn.getKey(), sbn.getPostTime());
@@ -57,6 +65,20 @@ final class SamsungCallPopupTakeover {
             Target target = new Target(entry.getKey(), entry.getValue());
             targets.put(entry.getKey(), target);main.post(target);
         }
+    }
+
+    /**
+     * Whether the island takes this call over from Samsung's window. A ringing call needs a card it can build, a call
+     * in progress or being screened needs only an island that is showing; an older notification that says nothing of
+     * the call type counts as ringing unless it runs a clock.
+     */
+    static boolean replaceable(Notification notification, boolean cardBuilt, boolean islandShowing) {
+        if (!islandShowing || notification == null) return false;
+        int type = notification.extras == null ? -1 : notification.extras.getInt("android.callType", -1);
+        if (type == 1) return cardBuilt;
+        if (type == 2 || type == 3) return true;
+        boolean clock = notification.extras != null && notification.extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER, false);
+        return cardBuilt || clock;
     }
 
     private static boolean isSamsungCall(StatusBarNotification sbn) {
