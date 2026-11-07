@@ -177,6 +177,7 @@ final class CallCardBuilder {
             Drawable photo = icons.load((Icon) Refl.get(nowBar, "mNowbarIcon"));
             if (photo != null) {
                 it.cardImage = photo;
+                it.cardImageRound = true;
             }
         }
         boolean ringing = isRinging(info, pkg);
