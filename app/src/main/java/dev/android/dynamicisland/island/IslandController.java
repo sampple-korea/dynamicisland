@@ -254,6 +254,11 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
         return headsUp.take(sbn);
     }
 
+    /** Whether the island has this notification or will take it from the stock banner (nothing is shown). */
+    public boolean claimsNotification(StatusBarNotification sbn) {
+        return headsUp.claims(sbn);
+    }
+
     /** Whether the island takes this call over from Samsung's own window right now (else that window must stay). */
     private boolean islandTakesCall(StatusBarNotification sbn) {
         IslandView view = placement.view();

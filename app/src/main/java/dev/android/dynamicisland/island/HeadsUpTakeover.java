@@ -162,6 +162,27 @@ final class HeadsUpTakeover {
     }
 
     /**
+     * Whether the island has this notification or will take it from the stock banner. Nothing is shown or changed
+     * here: Samsung's other popups (Edge Lighting) ask, because they stay away only while a stock banner is up.
+     */
+    boolean claims(StatusBarNotification sbn) {
+        try {
+            if (sbn == null || !placement.ready()) return false;
+            if (isOnIslandNow(sbn) || recentlyShown(sbn)) return true;
+            boolean code = sources.peeks.buildOtp(sbn) != null;
+            if (!code && !ModuleSettings.appAllowed(sbn.getPackageName())) return false;
+            if (placement.view().isSuppressedNow() || !PeekSource.eligible(sbn)
+                    || (!ModuleSettings.experimentalRecovery()
+                    && (foregroundBlocked(sbn) || !PeekSource.preferred(sbn, snapshot)))) return false;
+            if (code) return true;
+            return (ModuleSettings.headsUpIsland() || ModuleSettings.allNotifications()) && sources.peeks.buildMessage(sbn) != null;
+        } catch (Throwable t) {
+            XLog.once("IslandController.claims", t);
+            return false;
+        }
+    }
+
+    /**
      * The "all notifications" setting: a fresh notification that never became a banner (silent, or the system
      * did not ask) still gets a card. Looks at each posting once and shows only the newest of a burst.
      */

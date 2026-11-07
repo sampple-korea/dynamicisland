@@ -32,6 +32,36 @@ public final class HeadsUpHooks {
         Refl.hookAll(cl, MANAGER, "updateNotificationInternal", SafeHook.after("heads-up manager", p -> manager = p.thisObject));
         // Android 17 also pins from a delayed runnable (several banners in a row) without asking the method above again
         Refl.hookAll(cl, MANAGER, "setEntryPinned", SafeHook.before("heads-up pin to island", HeadsUpHooks::beforeSetPinned));
+        // Samsung's Edge Lighting popup (the small brief one, which opens into the detailed one) is its own window. It
+        // stays away only while the entry's banner is pinned, and a banner the island took is not pinned.
+        if (Refl.hasClass(EDGE_CONDITIONS, cl)) {
+            Refl.hookAll(cl, EDGE_CONDITIONS, "isRowPinned", SafeHook.after("edge lighting popup", HeadsUpHooks::afterEdgeRowPinned));
+        }
+    }
+
+    private static final String EDGE_CONDITIONS = "com.android.systemui.edgelighting.SystemUIConditionListenerService$1";
+
+    /** After {@code isRowPinned(key)}: a notification the island has or takes counts as pinned, so Edge Lighting skips it. */
+    private static void afterEdgeRowPinned(XC_MethodHook.MethodHookParam p) {
+        if (p.hasThrowable() || Boolean.TRUE.equals(p.getResult()) || p.args.length < 1 || !(p.args[0] instanceof String)) {
+            return;
+        }
+        IslandController controller = IslandController.get();
+        Object service = Refl.get(p.thisObject, "this$0");
+        Object entries = service == null ? null : Refl.get(service, "mEntries");
+        if (controller == null || !(entries instanceof Iterable)) {
+            return;
+        }
+        for (Object entry : (Iterable<?>) entries) {
+            Object sbn = entry == null ? null : Refl.get(entry, "mSbn");
+            if (sbn instanceof StatusBarNotification && p.args[0].equals(((StatusBarNotification) sbn).getKey())) {
+                if (controller.claimsNotification((StatusBarNotification) sbn)) {
+                    p.setResult(true);
+                    XLog.event("edge lighting popup held back for the island: " + ((StatusBarNotification) sbn).getPackageName());
+                }
+                return;
+            }
+        }
     }
 
     /** Only dismiss a banner while the matching posting is still actually displayed by our overlay. */

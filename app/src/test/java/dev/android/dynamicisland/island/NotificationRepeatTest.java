@@ -161,4 +161,16 @@ public class NotificationRepeatTest {
             assertEquals("importance " + c[0], c[1] == 1, sources[0].peeks.showing() != null);
         }
     }
+
+    @Test public void theIslandClaimsWhatItWillTakeFromTheStockBannerAndNothingElse() {
+        ReflectionHelpers.setStaticField(ModuleSettings.class, "allNotifications", true);
+        IslandSources[] sources = new IslandSources[1];
+        HeadsUpTakeover takeover = takeover(sources);
+        long now = System.currentTimeMillis();
+        StatusBarNotification message = note(61, chat("Hello"), now);
+        assertTrue("an ordinary message is the island's", takeover.claims(message));
+        StatusBarNotification ongoing = note(62, chat("Syncing").setOngoing(true), now);
+        assertFalse("an ongoing one stays with the system", takeover.claims(ongoing));
+        assertEquals("claiming shows nothing", null, sources[0].peeks.showing());
+    }
 }
