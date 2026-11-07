@@ -570,6 +570,7 @@ public final class SettingsActivity extends Activity {
         OneUi.listen(chargingInfo, on -> chargingDependencies.run());
         chargingDependencies.run();
         toggle(device, R.string.setting_stock_charging_animation, R.string.setting_stock_charging_animation_desc, ModuleSettings.KEY_STOCK_CHARGING_ANIMATION, false);
+        toggle(device, R.string.setting_wide_charging, R.string.setting_wide_charging_desc, ModuleSettings.KEY_WIDE_CHARGING_POPUP, true);
         ui.details(page, getString(R.string.ui_details), getString(R.string.charging_statistics_note));
         ui.category(page, getString(R.string.group_events_audio), getString(R.string.desc_events_audio));
         device = ui.card(page);

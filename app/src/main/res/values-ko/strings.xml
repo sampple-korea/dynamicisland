@@ -574,6 +574,8 @@
     <string name="island_charge_seconds">%1$d초</string>
     <string name="setting_stock_charging_animation">삼성 배터리 충전 효과 표시</string>
     <string name="setting_stock_charging_animation_desc">충전 시작 시 상태표시줄 배터리가 커지며 색이 흐르는 효과를 표시합니다. 기본 꺼짐입니다.</string>
+    <string name="setting_wide_charging">넓은 충전 팝업</string>
+    <string name="setting_wide_charging_desc">충전기를 꽂으면 상태 표시줄 전체에 걸친 긴 알약으로 충전 팝업을 보여 줍니다. 끄면 보통 크기로 보여 줍니다. 삼성 충전 효과가 꺼져 있을 때만 적용됩니다.</string>
     <string name="concurrent_recording_input">동시 마이크 파형 (실험적)</string>
     <string name="concurrent_recording_input_desc">녹음기를 LSPosed 스코프에 추가하지 않고 삼성 음성 녹음의 실제 음량을 표시합니다. 기본 꺼짐입니다. 기기에 따라 동작이 다르며, 녹음에 영향이 있으면 꺼주세요.</string>
     <string name="card_roundness">카드 모서리</string>
@@ -610,6 +612,7 @@
     <string name="search_terms_music">노래 음악 뮤직 오디오 앨범 커버 아트 재생 플레이어 소리</string>
     <string name="search_terms_battery">충전 충전기 배터리 밧데리 잔량 전류 전압 와트 전력 온도 퍼센트</string>
     <string name="search_terms_charging_effect">삼성 기본 원래 충전 애니메이션 효과 번개 번쩍 배터리</string>
+    <string name="search_terms_wide_charging">넓은 긴 큰 작은 크기 충전 팝업 알약 너비</string>
     <string name="search_terms_notifications">알림 팝업 배너 헤드업 메시지 통지 채팅 무음 기본 카드 소리</string>
     <string name="search_terms_download">다운로드 전송 업로드 진행률 파일 받기</string>
     <string name="search_terms_calls">전화 통화 다이얼러 보이스톡 음성</string>

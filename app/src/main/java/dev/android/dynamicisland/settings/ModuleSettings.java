@@ -29,6 +29,7 @@ public final class ModuleSettings {
     public static final String KEY_SHADE_MEDIA = "shade_media_player";
     public static final String KEY_EVENT_CHARGING = "event_charging";
     public static final String KEY_STOCK_CHARGING_ANIMATION = "stock_charging_animation";
+    public static final String KEY_WIDE_CHARGING_POPUP = "wide_charging_popup";
     /** Experimental concurrent input; opt-in because vendor recording policies differ. */
     public static final String KEY_CONCURRENT_RECORDING_INPUT = "concurrent_recording_input";
     public static final String KEY_CHARGING_INFO = "charging_info";
@@ -195,6 +196,7 @@ public final class ModuleSettings {
     private static volatile boolean shadeMedia = true;
     private static volatile boolean eventCharging = true;
     private static volatile boolean stockChargingAnimation;
+    private static volatile boolean wideChargingPopup = true;
     private static volatile boolean concurrentRecordingInput;
     private static volatile boolean chargingInfo;
     private static volatile boolean chargingStats;
@@ -820,6 +822,7 @@ public final class ModuleSettings {
     public static boolean showInFullscreen() { ensureStarted(); return showInFullscreen; }
     public static boolean chargingInfo() { ensureStarted(); return eventCharging && chargingInfo; }
     public static boolean stockChargingAnimation() { ensureStarted(); return stockChargingAnimation; }
+    public static boolean wideChargingPopup() { ensureStarted(); return wideChargingPopup; }
     public static boolean concurrentRecordingInput() { ensureStarted(); return concurrentRecordingInput && !lowPerformance; }
     public static boolean chargingStats() { return chargingInfo() && chargingStats; }
     public static boolean eventHeadset() { ensureStarted(); return eventHeadset; }
@@ -845,6 +848,7 @@ public final class ModuleSettings {
         customCardRoundness = source.getBoolean(KEY_CUSTOM_CARD_ROUNDNESS, false);
         cardCornerRadiusDp = Math.max(0, Math.min(48, source.getInt(KEY_CARD_CORNER_RADIUS_DP, 28)));
         stockChargingAnimation = source.getBoolean(KEY_STOCK_CHARGING_ANIMATION, false);
+        wideChargingPopup = source.getBoolean(KEY_WIDE_CHARGING_POPUP, true);
         concurrentRecordingInput = source.getBoolean(KEY_CONCURRENT_RECORDING_INPUT, false);
         chargingInfo = source.getBoolean(KEY_CHARGING_INFO, false);
         chargingStats = source.getBoolean(KEY_CHARGING_STATS, false);

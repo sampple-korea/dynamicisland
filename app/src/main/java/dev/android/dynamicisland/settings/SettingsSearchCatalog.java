@@ -111,6 +111,7 @@ final class SettingsSearchCatalog {
         add(Route.EVENTS,R.string.setting_charging_stats,R.string.setting_charging_stats_desc,R.string.search_terms_battery,R.string.setting_charging_info);
         add(Route.EVENTS,R.string.setting_charging_text,R.string.setting_charging_text_desc,R.string.search_terms_battery,R.string.setting_charging_info);
         add(Route.EVENTS,R.string.setting_stock_charging_animation,R.string.setting_stock_charging_animation_desc,R.string.search_terms_charging_effect,0);
+        add(Route.EVENTS,R.string.setting_wide_charging,R.string.setting_wide_charging_desc,R.string.search_terms_wide_charging,0);
         add(Route.EVENTS,R.string.popup_time,R.string.desc_popup_time,R.string.search_terms_popup,0,R.string.popup_time_3,R.string.popup_time_6);
         add(Route.EVENTS,R.string.setting_event_ringer,R.string.setting_event_ringer_desc,R.string.search_terms_sound,0);
         add(Route.EVENTS,R.string.setting_event_bluetooth,R.string.setting_event_bluetooth_desc,R.string.search_terms_bluetooth,0);

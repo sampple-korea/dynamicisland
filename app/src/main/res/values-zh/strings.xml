@@ -574,6 +574,8 @@
     <string name="island_charge_seconds">%1$d秒</string>
     <string name="setting_stock_charging_animation">显示三星电池充电特效</string>
     <string name="setting_stock_charging_animation_desc">充电开始时，状态栏电池会展开并显示流动色彩。默认关闭。</string>
+    <string name="setting_wide_charging">宽充电弹窗</string>
+    <string name="setting_wide_charging_desc">接上充电器时，以横跨状态栏的长条胶囊显示充电弹窗。关闭后以普通大小显示。仅在三星充电效果关闭时生效。</string>
     <string name="concurrent_recording_input">并发麦克风波形（实验性）</string>
     <string name="concurrent_recording_input_desc">无需将录音机加入LSPosed作用域，即可显示三星录音机的实际音量。默认关闭，支持情况因设备而异。若影响录音，请关闭。</string>
     <string name="card_roundness">卡片圆角</string>
@@ -610,6 +612,7 @@
     <string name="search_terms_music">歌曲 音乐 音频 专辑 封面 播放 播放器</string>
     <string name="search_terms_battery">充电 充电器 电池 电量 电流 电压 功率 温度 百分比</string>
     <string name="search_terms_charging_effect">三星 原生 默认 充电 动画 电池 闪电 闪烁</string>
+    <string name="search_terms_wide_charging">宽 长 大 小 尺寸 充电 弹窗 胶囊 宽度</string>
     <string name="search_terms_notifications">通知 横幅 弹窗 消息 提醒 静默 卡片 系统 声音 聊天</string>
     <string name="search_terms_download">下载 传输 进度 上传 文件</string>
     <string name="search_terms_calls">电话 通话 拨号 语音 VoIP</string>

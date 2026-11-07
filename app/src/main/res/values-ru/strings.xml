@@ -574,6 +574,8 @@
     <string name="island_charge_seconds">%1$d с</string>
     <string name="setting_stock_charging_animation">Эффект зарядки батареи Samsung</string>
     <string name="setting_stock_charging_animation_desc">Цветная анимация с расширением значка батареи в строке состояния при начале зарядки. По умолчанию выключена.</string>
+    <string name="setting_wide_charging">Широкое окно зарядки</string>
+    <string name="setting_wide_charging_desc">При подключении зарядки показывать окно зарядки длинной капсулой во всю строку состояния. Выключите, чтобы окно было обычного размера. Работает, только когда эффект зарядки Samsung выключен.</string>
     <string name="concurrent_recording_input">Параллельная запись для волны (эксперимент)</string>
     <string name="concurrent_recording_input_desc">Показывает реальную громкость Samsung Диктофона без добавления его в область LSPosed. По умолчанию выключено. Поддержка зависит от устройства; выключите, если влияет на запись.</string>
     <string name="card_roundness">Углы карточек</string>
@@ -610,6 +612,7 @@
     <string name="search_terms_music">песня музыка аудио альбом обложка плеер воспроизведение</string>
     <string name="search_terms_battery">зарядка заряд батарея аккумулятор ток напряжение мощность температура проценты</string>
     <string name="search_terms_charging_effect">Samsung стандартная системная зарядка анимация батарея молния мигание</string>
+    <string name="search_terms_wide_charging">широкое длинное большое маленькое размер зарядка окно капсула ширина</string>
     <string name="search_terms_notifications">уведомление уведомления баннер всплывающее сообщения оповещение беззвучные карточка стандартный звук чат</string>
     <string name="search_terms_download">загрузка скачивание передача прогресс отправка файл</string>
     <string name="search_terms_calls">звонок звонки телефон набор голос VoIP</string>

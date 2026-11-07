@@ -583,6 +583,8 @@
     <string name="island_charge_seconds">%1$d s</string>
     <string name="setting_stock_charging_animation">Show Samsung battery charging effect</string>
     <string name="setting_stock_charging_animation_desc">Show the coloured animation that expands the status bar battery when charging starts. Off by default.</string>
+    <string name="setting_wide_charging">Wide charging popup</string>
+    <string name="setting_wide_charging_desc">When plugged in, show the charging popup as a long pill across the status bar. Turn off for an ordinary-size popup. Only applies while Samsung\'s charging effect is off.</string>
     <string name="concurrent_recording_input">Concurrent microphone waveform (experimental)</string>
     <string name="concurrent_recording_input_desc">Show real input levels for Samsung Voice Recorder without adding the recorder to LSPosed scope. Off by default. Turn off if recording is affected; support depends on your device.</string>
     <string name="card_roundness">Card corners</string>
@@ -619,6 +621,7 @@
     <string name="search_terms_music">song songs music audio album artwork player media sound playback</string>
     <string name="search_terms_battery">charge charging charger battery current voltage watt power temperature percent</string>
     <string name="search_terms_charging_effect">Samsung stock original charging animation battery lightning flash bolt</string>
+    <string name="search_terms_wide_charging">wide long big large small size charging popup pill width</string>
     <string name="search_terms_notifications">notification notifications banner banners headsup alerts popup pop-up messages message chat silent stock card cards sound</string>
     <string name="search_terms_download">download transfer progress upload file</string>
     <string name="search_terms_calls">call calls phone dialer VoIP voice</string>
