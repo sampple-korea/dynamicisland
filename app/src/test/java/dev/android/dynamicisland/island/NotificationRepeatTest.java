@@ -147,4 +147,18 @@ public class NotificationRepeatTest {
         assertTrue(scannedCardFor(chat("Parcel on its way"), now, takeover, sources));
         assertTrue("an ordinary update is news", scannedCardFor(chat("Parcel delivered"), now + 2000, takeover, sources));
     }
+
+    @Test public void aSilentNotificationGetsNoCardAndOneThatMakesASoundDoes() {
+        ReflectionHelpers.setStaticField(ModuleSettings.class, "allNotifications", true);
+        long now = System.currentTimeMillis();
+        for (int[] c : new int[][] {{android.app.NotificationManager.IMPORTANCE_LOW, 0}, {android.app.NotificationManager.IMPORTANCE_DEFAULT, 1}}) {
+            IslandSources[] sources = new IslandSources[1];
+            HeadsUpTakeover takeover = takeover(sources);
+            StatusBarNotification sbn = note(40 + c[0], chat("Hello " + c[0]), now);
+            takeover.setImportance(java.util.Map.of(sbn.getKey(), c[0]));
+            takeover.setSnapshot(List.of(sbn));
+            takeover.scanAll(List.of(sbn));
+            assertEquals("importance " + c[0], c[1] == 1, sources[0].peeks.showing() != null);
+        }
+    }
 }

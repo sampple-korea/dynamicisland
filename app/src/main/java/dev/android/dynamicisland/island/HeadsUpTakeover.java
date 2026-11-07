@@ -56,6 +56,7 @@ final class HeadsUpTakeover {
     /** Postings the "all notifications" pass already looked at. */
     private final Set<String> allChecked = new HashSet<>();
     private List<StatusBarNotification> snapshot = java.util.Collections.emptyList();
+    private Map<String, Integer> importance = java.util.Collections.emptyMap();
     private int rejectLogs;
     private int otpLogs;
     private String lastOtpCode;
@@ -65,6 +66,16 @@ final class HeadsUpTakeover {
         this.sources = sources;
         this.placement = placement;
         this.refreshNow = refreshNow;
+    }
+
+    /** How the system rates each notification of the list (by key); a key it did not rate counts as not silent. */
+    void setImportance(Map<String, Integer> importance) {
+        this.importance = importance == null ? java.util.Collections.emptyMap() : new HashMap<>(importance);
+    }
+
+    /** No sound, no banner: the system does not pop it up, so the island does not either. */
+    static boolean silent(Integer importance) {
+        return importance != null && importance < android.app.NotificationManager.IMPORTANCE_DEFAULT;
     }
 
     void setSnapshot(List<StatusBarNotification> notifications) {
@@ -164,7 +175,7 @@ final class HeadsUpTakeover {
             if (age > ALL_FRESH_MS || age < -OTP_CLOCK_SKEW_MS || !allChecked.add(sbn.getKey() + "@" + sbn.getPostTime())) {
                 continue;
             }
-            if (alreadyHadCard(sbn) || recentlyShown(sbn) || quietUpdate(sbn) || !PeekSource.eligible(sbn) || !ModuleSettings.appAllowed(sbn.getPackageName())
+            if (alreadyHadCard(sbn) || recentlyShown(sbn) || quietUpdate(sbn) || silent(importance.get(sbn.getKey())) || !PeekSource.eligible(sbn) || !ModuleSettings.appAllowed(sbn.getPackageName())
                     || (!ModuleSettings.experimentalRecovery()
                     && (foregroundBlocked(sbn) || !PeekSource.preferred(sbn, snapshot)))) {
                 continue;

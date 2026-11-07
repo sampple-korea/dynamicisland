@@ -42,7 +42,7 @@
     <string name="setting_progress_any_desc">İlerleme çubuğu olan sıradan bildirimleri de gösterir.</string>
     <string name="setting_heads_up">Adada bildirimler</string>
     <string name="setting_all_notifications">Tüm bildirimler adada</string>
-    <string name="setting_all_notifications_desc">Bant olarak açılmayan sessiz bildirimler dahil her yeni bildirim için adada bir kart gösterir. Devam eden bildirimler, aramalar, alarmlar ve o anda kullandığınız uygulamanın bildirimleri hariç tutulur. Deneysel bir özelliktir; her telefonda veya uygulamada çalışmayabilir.</string>
+    <string name="setting_all_notifications_desc">Ses çıkaran her yeni bildirim için, sistem bant olarak göstermese bile adada bir kart gösterir. Sessiz bildirimler, devam eden bildirimler, aramalar, alarmlar ve o anda kullandığınız uygulamanın bildirimleri hariç tutulur. Deneysel bir özelliktir; her telefonda veya uygulamada çalışmayabilir.</string>
     <string name="setting_heads_up_desc">Mesajları ve diğer açılır bildirimleri üstteki bildirim bandı yerine ada kartı olarak gösterir. Aramalar ve alarmlar varsayılan bildirim bandını kullanmaya devam eder.</string>
     <string name="setting_otp">Doğrulama kodu kartları</string>
     <string name="setting_otp_desc">Doğrulama kodu içeren bir mesaj geldiğinde kodun ve Kopyala düğmesinin bulunduğu bir kart açar.</string>

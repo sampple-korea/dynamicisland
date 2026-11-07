@@ -44,7 +44,7 @@
     <string name="setting_progress_any_desc">带进度条的普通通知也显示为进度卡片。</string>
     <string name="setting_heads_up">岛内通知</string>
     <string name="setting_all_notifications">在岛内显示所有通知</string>
-    <string name="setting_all_notifications_desc">将所有新通知（包括不弹横幅的静默通知）显示为卡片。不包括持续通知、通话、闹钟和正在使用的应用。实验功能，部分设备或应用可能不适用。</string>
+    <string name="setting_all_notifications_desc">将所有会发出声音的新通知显示为卡片，即使系统不会弹出横幅。不包括静默通知、持续通知、通话、闹钟和正在使用的应用。实验功能，部分设备或应用可能不适用。</string>
     <string name="setting_heads_up_desc">将消息等横幅通知改为岛内卡片。通话和闹钟保留系统横幅。</string>
     <string name="setting_otp">验证码卡片</string>
     <string name="setting_otp_desc">收到包含验证码的文本时，展开显示验证码和复制按钮的卡片。</string>

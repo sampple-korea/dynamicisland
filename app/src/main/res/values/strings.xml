@@ -50,7 +50,7 @@
     <string name="setting_progress_any_desc">Also for ordinary notifications that have a progress bar.</string>
     <string name="setting_heads_up">Notifications in the island</string>
     <string name="setting_all_notifications">All notifications in the island</string>
-    <string name="setting_all_notifications_desc">Every new notification gets an island card, also the quiet ones that would not pop up as a banner. Ongoing, call and alarm notifications and the app you are in are left out. Experimental: it may not work on every phone or for every app.</string>
+    <string name="setting_all_notifications_desc">Every new notification that makes a sound gets an island card, also when the system would not show it as a banner. Silent, ongoing, call and alarm notifications and the app you are in are left out. Experimental: it may not work on every phone or for every app.</string>
     <string name="setting_heads_up_desc">Messages and other banner notifications appear as an island card instead of the heads-up banner. Calls and alarms keep the stock banner.</string>
     <string name="setting_otp">Verification code cards</string>
     <string name="setting_otp_desc">A text with a verification code opens a card with the code and a Copy button.</string>

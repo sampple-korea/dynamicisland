@@ -44,7 +44,7 @@
     <string name="setting_progress_any_desc">進捗バーのある通常の通知もカードで表示します。</string>
     <string name="setting_heads_up">アイランド内の通知</string>
     <string name="setting_all_notifications">すべての通知をアイランドに表示</string>
-    <string name="setting_all_notifications_desc">ポップアップしないサイレント通知も含め、新しい通知をカードで表示します。継続通知・通話・アラームと使用中アプリの通知は除きます。実験機能のため、端末やアプリによっては動作しない場合があります。</string>
+    <string name="setting_all_notifications_desc">音の鳴る新しい通知を、システムがバナーで表示しない場合でもカードで表示します。サイレント通知・継続通知・通話・アラームと使用中アプリの通知は除きます。実験機能のため、端末やアプリによっては動作しない場合があります。</string>
     <string name="setting_heads_up_desc">メッセージなどのバナー通知を、標準ポップアップの代わりにアイランドで表示します。通話とアラームは標準表示を保ちます。</string>
     <string name="setting_otp">認証コードカード</string>
     <string name="setting_otp_desc">認証コードを含む通知が届くと、コードとコピーボタンのあるカードを開きます。</string>

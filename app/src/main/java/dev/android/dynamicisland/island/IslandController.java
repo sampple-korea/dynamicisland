@@ -274,6 +274,12 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
 
     /** Fed by the notification list hook: progress notifications become cards. */
     public void onNotificationsSnapshot(List<StatusBarNotification> all) {
+        onNotificationsSnapshot(all, java.util.Collections.emptyMap());
+    }
+
+    /** As above, with each notification's importance (by key) where the system said what it is. */
+    public void onNotificationsSnapshot(List<StatusBarNotification> all, java.util.Map<String, Integer> importance) {
+        headsUp.setImportance(importance);
         lastNotifications = new ArrayList<>(all);
         List<StatusBarNotification> snapshot = lastNotifications;
         List<StatusBarNotification> allowed = new ArrayList<>(all.size());
