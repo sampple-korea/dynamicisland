@@ -87,8 +87,9 @@ public final class IncomingCallSource {
             else if (ActionWords.isDestructive(action.title) && !ActionWords.isMute(action.title)) decline = action.actionIntent;
         }
         boolean nativeCall = nativeCall(sbn.getPackageName());
-        if (type != 1 && (type != -1 || !nativeCall || !ringing()
-                || notification.extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER, false))) return null;
+        boolean explicitActions = answer != null && decline != null;
+        if (type != 1 && (type != -1 || !(explicitActions || nativeCall && ringing()
+                && !notification.extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER, false)))) return null;
         // Do not replace an unanswerable third-party alert merely because its text says "incoming".
         boolean telecomAllowed = nativeCall && android.os.Process.myUserHandle().equals(sbn.getUser());
         if (!telecomAllowed && (answer == null || decline == null)) return null;

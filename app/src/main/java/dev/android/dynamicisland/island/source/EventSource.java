@@ -662,7 +662,7 @@ public final class EventSource {
         it.eventLayout = IslandItem.EventLayout.DEVICE;
         it.batteryPercent = battery;
         it.accent = BLUE;
-        it.icon = GlyphIcon.of(GlyphIcon.Kind.HEADPHONES);
+        it.icon = GlyphIcon.of(BluetoothIcon.of(device));
         if (battery >= 0) {
             it.progress = battery / 100f;
             it.trailing = IslandItem.Trailing.TEXT;

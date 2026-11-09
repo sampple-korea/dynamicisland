@@ -738,4 +738,6 @@
     <string name="recommend16_privacy">지금 쓰는 앱의 카메라·마이크 사용도 표시할 수 있어요. 개인정보 사용 표시를 먼저 켜 주세요.</string>
     <string name="island_reply_failed">답장을 보내지 못했습니다. 작성한 내용은 유지됩니다.</string>
     <string name="rules_limit_reached">사용자 규칙은 최대 40개까지 추가할 수 있어요. 기존 규칙을 수정하거나 삭제해 주세요.</string>
+    <string name="ui_notification_system_style">시스템 팝업에 아일랜드 스타일 적용</string>
+    <string name="ui_notification_system_style_desc">시스템의 표시 시간, 스와이프, 답장, 전체화면 동작을 유지합니다. 사용 중인 앱의 알림도 시스템 판단에 따라 표시합니다. 삼성 간략 팝업은 상세 배너로 바뀝니다. 아일랜드의 전면 앱·전체화면 설정은 적용하지 않습니다. 전화는 전용 조작 기능을 유지합니다.</string>
 </resources>

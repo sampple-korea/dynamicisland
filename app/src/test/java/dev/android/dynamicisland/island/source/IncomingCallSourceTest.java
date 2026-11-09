@@ -54,4 +54,18 @@ public class IncomingCallSourceTest {
         app.getSystemService(AudioManager.class).setMode(AudioManager.MODE_RINGTONE);assertNotNull(source.build(plain));
         plain.getNotification().extras.putBoolean(Notification.EXTRA_SHOW_CHRONOMETER,true);assertNull(source.build(plain));
     }
+
+    @Test public void explicitIncomingActionsDoNotWaitForALatePhoneRingingCallback() {
+        var source=new IncomingCallSource(app);
+        app.getSystemService(AudioManager.class).setMode(AudioManager.MODE_NORMAL);
+        for(String pkg:List.of("com.samsung.android.incallui","example.voip")) {
+            var sbn=notification(pkg,3,null);
+            sbn.getNotification().actions=new Notification.Action[]{
+                    new Notification.Action.Builder(null,"Answer",intent("answer")).build(),
+                    new Notification.Action.Builder(null,"Decline",intent("decline")).build()};
+            assertNotNull(source.build(sbn));
+            sbn.getNotification().extras.putInt("android.callType",2);
+            assertNull("explicit ongoing type wins over stale actions",source.build(sbn));
+        }
+    }
 }

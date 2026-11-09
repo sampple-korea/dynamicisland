@@ -96,7 +96,7 @@ final class SettingsSearchCatalog {
         add(Route.APPEARANCE,R.string.ui_event_icon_size,0,R.string.search_terms_shape,0,R.string.ui_size_large,R.string.ui_size_small);
         add(Route.APPEARANCE,R.string.ui_show_battery_icon,R.string.ui_show_battery_icon_summary,R.string.search_terms_battery,0);
         add(Route.BEHAVIOR,R.string.setting_shade_media,R.string.setting_shade_media_desc,R.string.search_terms_music,0);
-        add(Route.NOTIFICATIONS,R.string.ui_notification_mode,R.string.ui_notification_scope,R.string.search_terms_notifications,0,R.string.ui_notification_off,R.string.ui_notification_banners,R.string.ui_notification_all);
+        add(Route.NOTIFICATIONS,R.string.ui_notification_mode,R.string.ui_notification_scope,R.string.search_terms_notifications,0,R.string.ui_notification_off,R.string.ui_notification_banners,R.string.ui_notification_all,R.string.ui_notification_system_style,R.string.ui_notification_system_style_desc);
         add(Route.NOTIFICATIONS,R.string.foreground_notifications,R.string.foreground_notifications_desc,R.string.search_terms_notifications,0);
         add(Route.NOTIFICATIONS,R.string.setting_progress,R.string.setting_progress_desc,R.string.search_terms_download,0);
         add(Route.NOTIFICATIONS,R.string.setting_progress_foreground,R.string.setting_progress_foreground_desc,R.string.search_terms_download,R.string.setting_progress);

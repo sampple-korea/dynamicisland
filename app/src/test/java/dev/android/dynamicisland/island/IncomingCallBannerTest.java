@@ -64,4 +64,10 @@ public class IncomingCallBannerTest {
         var items=new java.util.ArrayList<>(List.of(duplicate,oa,noEntry,fallback,incoming,other));ItemDedupe.apply(items,key->Set.of());
         assertEquals(List.of(incoming,other),items);
     }
+
+    @Test public void aDedicatedIncomingCardWinsOverARingingLegacyCardForTheSameNotification() {
+        var incoming=call();var legacy=new IslandItem("call:call");legacy.sourceKey="call";legacy.incomingCall=true;
+        var items=new java.util.ArrayList<>(List.of(legacy,incoming));ItemDedupe.apply(items,key->Set.of());
+        assertEquals(List.of(incoming),items);
+    }
 }

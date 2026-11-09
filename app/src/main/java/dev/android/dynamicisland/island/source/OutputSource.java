@@ -159,7 +159,7 @@ public final class OutputSource {
     // Bluetooth lookup runs in SystemUI and handles denied or unavailable access.
     @android.annotation.SuppressLint("MissingPermission")
     private Output bluetooth(String routeName, String routeAddress) {
-        GlyphIcon.Kind icon = GlyphIcon.Kind.HEADPHONES;
+        GlyphIcon.Kind icon = GlyphIcon.Kind.BLUETOOTH;
         int battery = -1;
         try {
             BluetoothAdapter adapter = ctx.getSystemService(BluetoothManager.class).getAdapter();
@@ -168,9 +168,7 @@ public final class OutputSource {
             if (device != null) {
                 Object level = Refl.call(device, "getBatteryLevel");
                 if (level instanceof Integer && (Integer) level >= 0 && (Integer) level <= 100) battery = (Integer) level;
-                BluetoothClass cls = device.getBluetoothClass();
-                if (cls != null && cls.getDeviceClass() == BluetoothClass.Device.AUDIO_VIDEO_LOUDSPEAKER)
-                    icon = GlyphIcon.Kind.SPEAKER;
+                icon = BluetoothIcon.of(device);
             }
         } catch (Throwable t) {
             XLog.once("OutputSource.bluetooth", t);
