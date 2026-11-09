@@ -62,6 +62,13 @@ public class OaChipTeamsTest {
         assertNull(OaViews.chipOf(Arrays.<Object>asList(logo)));
     }
 
+    @Test public void anEmptyImageWithoutEvenATeamLetterStillKeepsBothScoreSlots() {
+        OaViews.Chip right = OaViews.chipOf(Arrays.<Object>asList(logo,"1","0"));
+        assertSame(logo,right.left);assertTrue(right.right instanceof TeamBadge);assertEquals("1-0",right.text);
+        OaViews.Chip left = OaViews.chipOf(Arrays.<Object>asList("0","2",logo));
+        assertTrue(left.left instanceof TeamBadge);assertSame(logo,left.right);assertEquals("0-2",left.text);
+    }
+
     @Test
     public void theBadgeDrawsItsLetter() {
         TeamBadge badge = new TeamBadge("F");

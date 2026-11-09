@@ -63,6 +63,9 @@ public class CallCardBuilderTest {
 
         assertEquals(1, out.size());
         IslandItem card = out.get(0);
+        assertTrue("legacy ringing calls also need a persistent banner", card.incomingCall);
+        assertTrue(card.transientPopup);
+        assertEquals(controller.callNotificationInfo.key, card.sourceKey);
         assertEquals(IslandItem.Trailing.TEXT, card.trailing);
         assertEquals("Incoming call", String.valueOf(card.trailingText));
         assertEquals(2, card.actions.size());

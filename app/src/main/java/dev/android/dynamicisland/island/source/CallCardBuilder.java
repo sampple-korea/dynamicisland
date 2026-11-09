@@ -152,6 +152,7 @@ final class CallCardBuilder {
     private IslandItem card(Object info, String key, String pkg) {
         IslandItem it = new IslandItem("call:" + key);
         it.kind = IslandItem.Kind.CALL;
+        it.sourceKey = key;
         it.packageName = pkg;
         it.accent = Colors.CALL_GREEN;
 
@@ -181,6 +182,10 @@ final class CallCardBuilder {
             }
         }
         boolean ringing = isRinging(info, pkg);
+        // The legacy Samsung call feed can precede (or omit) a CallStyle notification.
+        // It still needs the same persistent caller/answer banner as the notification feed.
+        it.incomingCall = ringing;
+        it.transientPopup = ringing;
         addButtons(it, nowBar, pkg, ringing);
         if (ringing) {
             // nobody has answered: say so instead of a clock, and offer answer / decline instead of speaker / end

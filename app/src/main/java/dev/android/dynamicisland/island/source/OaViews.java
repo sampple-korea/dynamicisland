@@ -104,6 +104,15 @@ final class OaViews {
     }
 
     private static Chip oneLogoMissing(List<Object> parts, List<Drawable> images, List<String> texts) {
+        // Some providers leave the image empty instead of supplying the team's initial.
+        if (images.size() == 1 && texts.size() == 2 && parts.size() == 3
+                && texts.get(0).matches("\\d{1,3}") && texts.get(1).matches("\\d{1,3}")) {
+            int imageAt = parts.indexOf(images.get(0));
+            Drawable missing = new dev.android.dynamicisland.island.graphics.TeamBadge("?");
+            String score = texts.get(0) + "-" + texts.get(1);
+            if (imageAt == 0) return new Chip(images.get(0), missing, score);
+            if (imageAt == 2) return new Chip(missing, images.get(0), score);
+        }
         if (images.size() != 1 || texts.size() != 3) {
             return null;
         }

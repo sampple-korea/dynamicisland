@@ -33,7 +33,10 @@ final class ItemDedupe {
      */
     static void apply(List<IslandItem> items, Function<String, Set<String>> copyKeysOf) {
         Set<String> ringing = new HashSet<>();
+        Set<String> dedicated = new HashSet<>();
         for (IslandItem item : items) if (item.incomingCall && item.sourceKey != null) ringing.add(item.sourceKey);
+        for (IslandItem item : items) if (item.incomingCall && item.key.startsWith("incoming:")) dedicated.add(item.sourceKey);
+        items.removeIf(item -> item.incomingCall && !item.key.startsWith("incoming:") && dedicated.contains(item.sourceKey));
         items.removeIf(item -> !item.incomingCall && (ringing.contains(item.sourceKey)
                 || (item.key.startsWith("call:") || item.key.startsWith("callx:") || item.key.startsWith("oa:"))
                 && ringing.contains(item.key.substring(item.key.indexOf(':') + 1))));

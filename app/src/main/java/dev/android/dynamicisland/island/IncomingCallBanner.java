@@ -11,6 +11,11 @@ final class IncomingCallBanner {
     private final Set<String> announced = new HashSet<>();
     private IslandItem current;
 
+    IslandItem owner(String notificationKey, IslandView view) {
+        return current != null && notificationKey.equals(current.sourceKey) && view != null
+                && !view.isSuppressedNow() && view.isShowingCard(current) ? current : null;
+    }
+
     void beforeUpdate(IslandView view, Set<String> ringing, List<IslandItem> shown) {
         announced.retainAll(ringing);
         if (current == null) return;

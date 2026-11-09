@@ -153,6 +153,8 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
     public Object headsUpOwner(String key) {
         IslandItem call = sources.incoming.item(key);
         IslandView view = placement.view();
+        IslandItem fallback = incomingBanner.owner(key, view);
+        if (fallback != null) return fallback;
         return call != null && view != null && !view.isSuppressedNow() && view.isShowingCard(call)
                 ? call : headsUp.owner(key);
     }
@@ -172,6 +174,7 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
             HideDuplicated.rebuild();
             ShadeMediaPlayer.refreshVisiblePlayers();
             dev.android.dynamicisland.xposed.hooks.ShadeLiveCards.refreshVisibleCards(true);
+            dev.android.dynamicisland.xposed.hooks.StockPopupStyle.refresh();
         }));
         ModuleSettings.setOnPlacementChanged(() -> main.post(() -> {
             placement.updateGeometry();
@@ -245,6 +248,7 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
      * @return true when the island took it (the stock banner must stay away)
      */
     public boolean peekHeadsUp(StatusBarNotification sbn) {
+        if (ModuleSettings.systemPopupStyle()) return false;
         boolean wasIncoming = sbn != null && sources.incoming.item(sbn.getKey()) != null;
         if (sources.incoming.posted(sbn)) {
             refreshNow();
@@ -262,8 +266,17 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
     /** Whether the island takes this call over from Samsung's own window right now (else that window must stay). */
     private boolean islandTakesCall(StatusBarNotification sbn) {
         IslandView view = placement.view();
-        return SamsungCallPopupTakeover.replaceable(sbn.getNotification(), sources.incoming.item(sbn.getKey()) != null,
+        if (ModuleSettings.systemPopupStyle()) return dev.android.dynamicisland.xposed.hooks.StockPopupStyle.isShowing(sbn.getKey())
+                || incomingBanner.owner(sbn.getKey(), view) != null;
+        return SamsungCallPopupTakeover.replaceable(sbn.getNotification(), headsUpOwner(sbn.getKey()) != null,
                 view != null && !view.isSuppressedNow());
+    }
+
+    /** Native popup pin/unpin can happen after the notification snapshot. */
+    public void onSystemPopupChanged() {
+        callPopup.setNotifications(lastNotifications, this::islandTakesCall);
+        dev.android.dynamicisland.xposed.hooks.ShadeLiveCards.refreshVisibleCards();
+        requestRefresh();
     }
 
     /** True when the island shows a card for this notification and the setting asks to drop the shade row. */
@@ -601,15 +614,26 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
                 return;
             }
             IslandSources.Gathered gathered = sources.gather();
+            if (ModuleSettings.systemPopupStyle()) {
+                // Native popup rows take precedence. Samsung's app-owned call mini-window has no heads-up row
+                // on some builds; only that case needs the dedicated incoming-call fallback.
+                gathered.items.removeIf(item -> item.incomingCall && item.sourceKey != null
+                        && dev.android.dynamicisland.xposed.hooks.HeadsUpHooks.nativePopupPending(item.sourceKey));
+                sources.peeks.dismiss(sources.peeks.showing());
+                gathered.items.removeIf(item -> item.key.startsWith("peek:"));
+            }
             long now = SystemClock.uptimeMillis();
             ItemLedger.Arrangement shape = ledger.arrange(gathered.items, gathered.hiddenByForeground, now);
             view.setGlowSession(gathered.glowSession);
-            incomingBanner.beforeUpdate(view, sources.incoming.activeKeys(), shape.shown);
+            java.util.Set<String> ringing = new java.util.HashSet<>(sources.incoming.activeKeys());
+            for (IslandItem item : gathered.items) if (item.incomingCall) ringing.add(item.key);
+            incomingBanner.beforeUpdate(view, ringing, shape.shown);
             view.setItems(shape.shown, shape.hint, shape.bubbled);
             if (incomingBanner.show(view, shape.shown)) {
                 for (IslandItem item : shape.shown) if (item.incomingCall && view.isShowingCard(item))
                     dev.android.dynamicisland.xposed.hooks.HeadsUpHooks.dismissStock(item.sourceKey);
             }
+            callPopup.setNotifications(lastNotifications, this::islandTakesCall);
             if (sourcePeekRequests != null) {
                 IslandItem requested = sourcePeekRequests.next(shape.shown, ModuleSettings.autoOpenCards(), now);
                 if (requested != null && !view.isExpanded() && view.canPeek()) {

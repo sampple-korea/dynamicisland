@@ -747,4 +747,6 @@
     <string name="recommend16_privacy">Optionally show camera and microphone activity even for the app you are using. Turn on privacy indicators first.</string>
     <string name="island_reply_failed">Reply could not be sent. Your text is kept.</string>
     <string name="rules_limit_reached">You can add up to 40 custom rules. Edit or remove an existing rule first.</string>
+    <string name="ui_notification_system_style">System pop-ups with island styling</string>
+    <string name="ui_notification_system_style_desc">Keep system pop-up timing, swipes, replies and full-screen behavior. Pop-ups can appear from the app you are using. Samsung brief pop-ups use the detailed banner instead. Island foreground and full-screen settings do not apply. Calls keep their dedicated controls.</string>
 </resources>

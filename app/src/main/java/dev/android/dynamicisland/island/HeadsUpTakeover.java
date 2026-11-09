@@ -93,6 +93,7 @@ final class HeadsUpTakeover {
     Object owner(String key) { return owns(key) ? sources.peeks.showing() : null; }
 
     boolean owns(String key) {
+        if (ModuleSettings.systemPopupStyle()) return false;
         IslandItem item = sources.peeks.showing();
         if (item == null || !item.key.equals("peek:" + key) || !placement.view().isShowingCard(item)) return false;
         if (item.otpCode == null && !ModuleSettings.appAllowed(item.packageName)) return false;
@@ -112,6 +113,7 @@ final class HeadsUpTakeover {
 
     /** @return true when the island took the banner (the stock one must stay away) */
     boolean take(StatusBarNotification sbn) {
+        if (ModuleSettings.systemPopupStyle()) return false;
         try {
             IslandView view = placement.view();
             if (sbn == null || !placement.ready()) {
@@ -166,6 +168,7 @@ final class HeadsUpTakeover {
      * here: Samsung's other popups (Edge Lighting) ask, because they stay away only while a stock banner is up.
      */
     boolean claims(StatusBarNotification sbn) {
+        if (ModuleSettings.systemPopupStyle()) return false;
         try {
             if (sbn == null || !placement.ready()) return false;
             if (isOnIslandNow(sbn) || recentlyShown(sbn)) return true;
@@ -187,6 +190,7 @@ final class HeadsUpTakeover {
      * did not ask) still gets a card. Looks at each posting once and shows only the newest of a burst.
      */
     void scanAll(List<StatusBarNotification> snapshot) {
+        if (ModuleSettings.systemPopupStyle()) return;
         if (!ModuleSettings.allNotifications() || !placement.ready()) {
             return;
         }
@@ -242,6 +246,7 @@ final class HeadsUpTakeover {
      * other way. Every notification new to the list is checked once; a fresh one with a code opens the card.
      */
     void scanForCodes(List<StatusBarNotification> snapshot) {
+        if (ModuleSettings.systemPopupStyle()) return;
         if (!ModuleSettings.otpCard() || !placement.ready()) {
             return;
         }

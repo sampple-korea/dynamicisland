@@ -46,6 +46,12 @@ public final class HeadsUpHooks {
         if (p.hasThrowable() || Boolean.TRUE.equals(p.getResult()) || p.args.length < 1 || !(p.args[0] instanceof String)) {
             return;
         }
+        // A native heads-up may already be accepted while its asynchronously inflated row is not pinned yet.
+        // Never predict ownership from an island eligibility rule in the independent popup mode.
+        if (ModuleSettings.systemPopupStyle()) {
+            if (nativePopupPending((String) p.args[0])) p.setResult(true);
+            return;
+        }
         IslandController controller = IslandController.get();
         Object service = Refl.get(p.thisObject, "this$0");
         Object entries = service == null ? null : Refl.get(service, "mEntries");
@@ -70,12 +76,18 @@ public final class HeadsUpHooks {
         return controller != null && controller.ownsHeadsUp(key);
     }
 
+    /** Accepted by the real manager, including the short bind-before-pin interval. */
+    public static boolean nativePopupPending(String key) {
+        return manager != null && key != null && Boolean.TRUE.equals(status(manager, key));
+    }
+
     private static Object owner(String key) {
         IslandController controller = IslandController.get();
         return controller == null ? null : controller.headsUpOwner(key);
     }
 
     public static String dismissStock(String key) {
+        if (ModuleSettings.systemPopupStyle()) return "system popup retains its native lifetime";
         if (ModuleSettings.experimentalRecovery()) return dismissStockCompat(key);
         Object heads = manager;
         if (heads == null || key == null || !owned(key)) return "not currently owned by the island";
@@ -86,7 +98,7 @@ public final class HeadsUpHooks {
             if (Boolean.FALSE.equals(up)) return "stock banner removed";
             for (long delay : new long[]{150, 500}) {
                 new dev.android.dynamicisland.xposed.GuardedHandler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                    if (manager != heads || posting == null || owner(key) != posting || Boolean.FALSE.equals(status(heads, key))) return;
+                    if (ModuleSettings.systemPopupStyle() || manager != heads || posting == null || owner(key) != posting || Boolean.FALSE.equals(status(heads, key))) return;
                     try { remove(heads, key); }
                     catch (Throwable t) { XLog.once("heads-up retry", t); }
                 }, delay);
@@ -139,7 +151,7 @@ public final class HeadsUpHooks {
     private static void retryCompatLater(Object heads, Method removal, String key, Object posting, long delayMs) {
         try {
             new dev.android.dynamicisland.xposed.GuardedHandler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                if (!ModuleSettings.experimentalRecovery() || manager != heads || posting == null || owner(key) != posting) return;
+                if (ModuleSettings.systemPopupStyle() || !ModuleSettings.experimentalRecovery() || manager != heads || posting == null || owner(key) != posting) return;
                 try {
                     if (stillUpCompat(heads, key)) {
                         remove(heads, removal, key);
@@ -260,6 +272,7 @@ public final class HeadsUpHooks {
     /** Before {@code setEntryPinned(entry, status, reason)}: a system pin the island takes over becomes "not pinned". */
     private static void beforeSetPinned(XC_MethodHook.MethodHookParam p) {
         manager = p.thisObject;
+        if (ModuleSettings.systemPopupStyle()) return;
         if (p.args.length < 2 || p.args[0] == null || p.args[1] == null || !"PinnedBySystem".equals(String.valueOf(p.args[1]))) {
             return;
         }
@@ -276,6 +289,7 @@ public final class HeadsUpHooks {
 
     private static void afterPinDecision(XC_MethodHook.MethodHookParam p) {
         manager = p.thisObject;
+        if (ModuleSettings.systemPopupStyle()) return;
         Object entry = p.args.length > 0 ? p.args[0] : null;
         Object sbn = entry == null ? null : Refl.get(entry, "mSbn");
         String app = sbn instanceof StatusBarNotification ? ((StatusBarNotification) sbn).getPackageName() : "?";
