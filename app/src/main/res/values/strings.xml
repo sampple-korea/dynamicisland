@@ -749,4 +749,10 @@
     <string name="rules_limit_reached">You can add up to 40 custom rules. Edit or remove an existing rule first.</string>
     <string name="ui_notification_system_style">System pop-ups with island styling</string>
     <string name="ui_notification_system_style_desc">Keep system pop-up timing, swipes, replies and full-screen behavior. Pop-ups can appear from the app you are using. Samsung brief pop-ups use the detailed banner instead. Island foreground and full-screen settings do not apply. Calls keep their dedicated controls.</string>
+    <string name="setting_incoming_calls">Incoming call cards</string>
+    <string name="setting_incoming_calls_desc">Show a ringing call as an island card with the caller and answer and decline buttons. Turn off to leave every incoming call to the system\'s own call screen; the call card appears once the call is answered.</string>
+    <string name="search_terms_incoming_calls">incoming call ringing ring caller answer decline phone card off disable</string>
+    <string name="setting_screen_recording">Screen recording</string>
+    <string name="setting_screen_recording_desc">Show screen recording on the island with the timer and a stop button. Turn off to leave it to the system\'s own indicator and notification.</string>
+    <string name="search_terms_screen_recording">screen recording record recorder capture timer stop chip off disable</string>
 </resources>

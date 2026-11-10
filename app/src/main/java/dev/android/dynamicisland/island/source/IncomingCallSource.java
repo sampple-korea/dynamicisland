@@ -61,7 +61,9 @@ public final class IncomingCallSource {
         return keys;
     }
     private static boolean nativeCall(String pkg) { return CallDetector.NATIVE_PACKAGES.contains(pkg); }
-    private static boolean enabled(IslandItem item) { return nativeCall(item.packageName) || ModuleSettings.thirdPartyCalls(); }
+    private static boolean enabled(IslandItem item) {
+        return ModuleSettings.incomingCallCards() && (nativeCall(item.packageName) || ModuleSettings.thirdPartyCalls());
+    }
 
     public void collect(List<IslandItem> out, String foreground) {
         for (IslandItem item : items.values()) {
@@ -74,6 +76,7 @@ public final class IncomingCallSource {
 
     IslandItem build(StatusBarNotification sbn) {
         if (sbn == null || sbn.getNotification() == null) return null;
+        if (!ModuleSettings.incomingCallCards()) return null; // every ringing call stays with the system's own call UI
         Notification notification = sbn.getNotification();
         if (notification.extras == null || (notification.flags & Notification.FLAG_GROUP_SUMMARY) != 0) return null;
         boolean callStyle = Notification.CallStyle.class.getName().equals(notification.extras.getString(Notification.EXTRA_TEMPLATE));

@@ -17,6 +17,7 @@ import dev.android.dynamicisland.island.IslandText;
 import dev.android.dynamicisland.island.graphics.Colors;
 import dev.android.dynamicisland.island.graphics.Glyphs;
 import dev.android.dynamicisland.island.model.IslandItem;
+import dev.android.dynamicisland.settings.ModuleSettings;
 import dev.android.dynamicisland.xposed.Refl;
 import dev.android.dynamicisland.xposed.XLog;
 import java.util.Arrays;
@@ -90,6 +91,8 @@ final class CallCardBuilder {
                 hiddenByForeground.add("call:" + key);
                 return;
             default:
+                // Incoming-call cards off: while the phone rings, the call is the system's; the card comes once it is answered.
+                if (!ModuleSettings.incomingCallCards() && isRinging(info, pkg)) return;
                 out.add(card(info, key, pkg));
         }
     }

@@ -740,4 +740,10 @@
     <string name="rules_limit_reached">最多可添加40条自定义规则。请先编辑或删除现有规则。</string>
     <string name="ui_notification_system_style">系统弹窗使用灵动岛样式</string>
     <string name="ui_notification_system_style_desc">保留系统的显示时长、滑动、回复和全屏行为。当前应用的通知也由系统决定是否显示。三星简洁弹窗改用详细横幅。灵动岛的前台应用和全屏设置不适用。通话保留专用操作。</string>
+    <string name="setting_incoming_calls">来电卡片</string>
+    <string name="setting_incoming_calls_desc">将来电显示为带有来电者以及接听和拒接按钮的灵动岛卡片。关闭后，所有来电都交给系统的通话界面，通话卡片在接听后才会出现。</string>
+    <string name="search_terms_incoming_calls">来电 电话 响铃 来电者 接听 拒接 通话 卡片 关闭 禁用</string>
+    <string name="setting_screen_recording">屏幕录制</string>
+    <string name="setting_screen_recording_desc">在灵动岛上显示屏幕录制的计时和停止按钮。关闭后，交给系统自带的指示和通知。</string>
+    <string name="search_terms_screen_recording">屏幕录制 录屏 录制 截取 计时 停止 胶囊 关闭 禁用</string>
 </resources>

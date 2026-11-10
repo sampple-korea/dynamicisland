@@ -740,4 +740,10 @@
     <string name="rules_limit_reached">カスタムルールは40件まで追加できます。既存のルールを編集または削除してください。</string>
     <string name="ui_notification_system_style">システムポップアップにアイランドのスタイルを適用</string>
     <string name="ui_notification_system_style_desc">システムの表示時間、スワイプ、返信、全画面での動作を維持します。使用中のアプリの通知もシステムの判断で表示します。Samsungの簡易ポップアップは詳細バナーになります。アイランドの前面アプリ・全画面設定は適用されません。通話専用の操作は維持します。</string>
+    <string name="setting_incoming_calls">着信カード</string>
+    <string name="setting_incoming_calls_desc">着信を、発信者と応答・拒否ボタン付きのアイランドのカードで表示します。オフにすると、すべての着信をシステムの通話画面に任せ、通話カードは応答した後に表示されます。</string>
+    <string name="search_terms_incoming_calls">着信 電話 呼び出し 発信者 応答 拒否 通話 カード オフ 無効</string>
+    <string name="setting_screen_recording">画面録画</string>
+    <string name="setting_screen_recording_desc">画面録画をタイマーと停止ボタン付きでアイランドに表示します。オフにすると、システムの表示と通知に任せます。</string>
+    <string name="search_terms_screen_recording">画面録画 録画 レコーダー キャプチャ タイマー 停止 チップ オフ 無効</string>
 </resources>

@@ -175,6 +175,10 @@ public final class RecorderNotificationSource {
 
     /** Adds the card unless a recording card is already there. */
     public synchronized void collect(List<IslandItem> out) {
+        if (!ModuleSettings.screenRecordingCard()) {
+            publish(Collections.emptySet()); // no card: the recorder's own notification stays in the panel
+            return;
+        }
         IslandItem card = item;
         boolean covered = false;
         boolean represented = false;

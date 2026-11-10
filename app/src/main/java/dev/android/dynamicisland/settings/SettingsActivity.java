@@ -544,7 +544,9 @@ public final class SettingsActivity extends Activity {
         Switch progressAny = toggle(activity, R.string.setting_progress_any, R.string.setting_progress_any_desc, ModuleSettings.KEY_PROGRESS_ANY, false);
         dependent(progress, OneUi.rowOf(progressForeground), OneUi.rowOf(progressAny));
         toggle(activity, R.string.setting_hide_progress, R.string.setting_hide_progress_desc, ModuleSettings.KEY_HIDE_PROGRESS_ORIGINALS, true);
+        toggle(activity, R.string.setting_incoming_calls, R.string.setting_incoming_calls_desc, ModuleSettings.KEY_INCOMING_CALL_CARDS, true);
         toggle(activity, R.string.setting_calls, R.string.setting_calls_desc, ModuleSettings.KEY_THIRD_PARTY_CALLS, true);
+        toggle(activity, R.string.setting_screen_recording, R.string.setting_screen_recording_desc, ModuleSettings.KEY_SCREEN_RECORDING_CARD, true);
         ui.category(page, getString(R.string.group_codes), getString(R.string.desc_codes));
         LinearLayout codes = ui.card(page);
         Switch otp = toggle(codes, R.string.setting_otp, R.string.setting_otp_desc, ModuleSettings.KEY_OTP_CARD, true);

@@ -56,6 +56,25 @@ public class CallCardBuilderTest {
     }
 
     @Test
+    public void incomingCallCardsOffSkipsTheRingingCallAndKeepsTheAnsweredOne() {
+        dev.android.dynamicisland.settings.ModuleSettings.ensureStarted();
+        org.robolectric.util.ReflectionHelpers.setStaticField(dev.android.dynamicisland.settings.ModuleSettings.class, "incomingCallCards", false);
+        try {
+            controller.chipShown = true;
+            builder.setPhoneRinging(() -> true);
+            collect(null, false);
+            assertTrue("a ringing call is left to the system's call screen", out.isEmpty());
+
+            builder.setPhoneRinging(() -> false);
+            collect(null, false);
+            assertEquals("the answered call still gets its card", 1, out.size());
+            assertFalse(out.get(0).incomingCall);
+        } finally {
+            org.robolectric.util.ReflectionHelpers.setStaticField(dev.android.dynamicisland.settings.ModuleSettings.class, "incomingCallCards", true);
+        }
+    }
+
+    @Test
     public void aRingingCallOffersAnswerAndDeclineAndNoSpeaker() {
         controller.chipShown = true;
         builder.setPhoneRinging(() -> true);

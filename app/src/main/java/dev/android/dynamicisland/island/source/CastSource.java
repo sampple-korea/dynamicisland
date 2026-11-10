@@ -5,6 +5,7 @@ import android.os.SystemClock;
 import android.view.View;
 import dev.android.dynamicisland.island.IslandText;
 import dev.android.dynamicisland.island.model.IslandItem;
+import dev.android.dynamicisland.settings.ModuleSettings;
 import dev.android.dynamicisland.xposed.Refl;
 import java.time.Duration;
 import java.time.Instant;
@@ -106,16 +107,20 @@ public final class CastSource {
         Object record = Refl.get(bundle, "screenRecord");
         Object share = Refl.get(bundle, "shareToApp");
         Object cast = Refl.get(bundle, "castToOtherDevice");
+        // Screen recording off: the recording is left to the system; sharing to an app and casting keep their cards.
+        boolean recording = ModuleSettings.screenRecordingCard();
         if (isActive(record)) {
-            IslandItem card = item("cast:record", record, IslandItem.Kind.RECORDING, RED, IslandText.get(ctx, "island_screen_recording"));
-            out.add(card);
+            if (recording) {
+                out.add(item("cast:record", record, IslandItem.Kind.RECORDING, RED, IslandText.get(ctx, "island_screen_recording")));
+            }
         } else if (isActive(share)) {
             String manager = (String) Refl.get(share, "managingPackageName");
             // Samsung's own recorder reports itself as a share
             boolean ownRecorder = "com.samsung.android.app.smartcapture".equals(manager);
-            String title = ownRecorder ? IslandText.get(ctx, "island_screen_recording") : IslandText.get(ctx, "island_sharing_screen");
-            IslandItem card = item("cast:share", share, IslandItem.Kind.RECORDING, RED, title);
-            out.add(card);
+            if (!ownRecorder || recording) {
+                String title = ownRecorder ? IslandText.get(ctx, "island_screen_recording") : IslandText.get(ctx, "island_sharing_screen");
+                out.add(item("cast:share", share, IslandItem.Kind.RECORDING, RED, title));
+            }
         }
         if (isActive(cast)) {
             out.add(item("cast:device", cast, IslandItem.Kind.LIVE, BLUE, IslandText.get(ctx, "island_casting_screen")));

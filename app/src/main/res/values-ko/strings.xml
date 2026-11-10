@@ -740,4 +740,10 @@
     <string name="rules_limit_reached">사용자 규칙은 최대 40개까지 추가할 수 있어요. 기존 규칙을 수정하거나 삭제해 주세요.</string>
     <string name="ui_notification_system_style">시스템 팝업에 아일랜드 스타일 적용</string>
     <string name="ui_notification_system_style_desc">시스템의 표시 시간, 스와이프, 답장, 전체화면 동작을 유지합니다. 사용 중인 앱의 알림도 시스템 판단에 따라 표시합니다. 삼성 간략 팝업은 상세 배너로 바뀝니다. 아일랜드의 전면 앱·전체화면 설정은 적용하지 않습니다. 전화는 전용 조작 기능을 유지합니다.</string>
+    <string name="setting_incoming_calls">수신 전화 카드</string>
+    <string name="setting_incoming_calls_desc">걸려 오는 전화를 발신자와 받기·거절 버튼이 있는 아일랜드 카드로 보여 줍니다. 끄면 모든 수신 전화를 시스템의 통화 화면에 맡기고, 통화 카드는 전화를 받은 뒤에 나타납니다.</string>
+    <string name="search_terms_incoming_calls">수신 전화 걸려오는 벨 발신자 받기 거절 통화 카드 끄기 해제</string>
+    <string name="setting_screen_recording">화면 녹화</string>
+    <string name="setting_screen_recording_desc">화면 녹화를 타이머와 중지 버튼과 함께 아일랜드에 보여 줍니다. 끄면 시스템의 표시와 알림에 맡깁니다.</string>
+    <string name="search_terms_screen_recording">화면 녹화 녹화기 캡처 타이머 중지 칩 끄기 해제</string>
 </resources>

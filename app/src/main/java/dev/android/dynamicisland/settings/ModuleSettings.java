@@ -166,6 +166,8 @@ public final class ModuleSettings {
     public static final String KEY_OTP_CARD = "otp_card";
     public static final String KEY_OTP_AUTO_COPY = "otp_auto_copy";
     public static final String KEY_THIRD_PARTY_CALLS = "third_party_calls";
+    public static final String KEY_INCOMING_CALL_CARDS = "incoming_call_cards";
+    public static final String KEY_SCREEN_RECORDING_CARD = "screen_recording_card";
     /** true = only the listed apps are shown, false (default) = every app except the listed ones. */
     public static final String KEY_APPS_ONLY_LISTED = "apps_only_listed";
     /** Package names of the listed apps. */
@@ -282,6 +284,8 @@ public final class ModuleSettings {
     private static volatile boolean otpCard = true;
     private static volatile boolean otpAutoCopy = false;
     private static volatile boolean thirdPartyCalls = true;
+    private static volatile boolean incomingCallCards = true;
+    private static volatile boolean screenRecordingCard = true;
     private static volatile AppFilter appFilter = AppFilter.OFF;
 
     private static volatile boolean started;
@@ -723,6 +727,8 @@ public final class ModuleSettings {
             otpCard = source.getBoolean(KEY_OTP_CARD, true);
             otpAutoCopy = source.getBoolean(KEY_OTP_AUTO_COPY, false);
             thirdPartyCalls = source.getBoolean(KEY_THIRD_PARTY_CALLS, true);
+            incomingCallCards = source.getBoolean(KEY_INCOMING_CALL_CARDS, true);
+            screenRecordingCard = source.getBoolean(KEY_SCREEN_RECORDING_CARD, true);
             Set<String> listed = source.getStringSet(KEY_APPS_LISTED, null);
             AppFilter previousFilter = appFilter;
             appFilter = new AppFilter(source.getBoolean(KEY_APPS_ONLY_LISTED, false),
@@ -904,7 +910,7 @@ public final class ModuleSettings {
 
     private static String switchSignature() {
         return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/" + glowColour + lowPerformance + "/light=" + stillMusic + staticWaveform + limitFrameRate + stillIcons + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + "/system=" + accentSystem + systemAccent + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + systemPopupStyle + progressNotifications + hideProgressOriginals
-                + smartRules + privacyIndicator + privacyLocation + privacyInApp + otpCard + otpAutoCopy + thirdPartyCalls + visualizer + colorIcons + shadeMedia + cardHeader
+                + smartRules + privacyIndicator + privacyLocation + privacyInApp + otpCard + otpAutoCopy + thirdPartyCalls + "/incomingCalls=" + incomingCallCards + "/screenRecording=" + screenRecordingCard + visualizer + colorIcons + shadeMedia + cardHeader
                 + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/" + headsetStay + "/hotspot=" + hotspotCard + "/unlock=" + unlockNotice + "/peekProgress=" + peekProgress + "/progressForeground=" + progressForeground + "/progressAny=" + progressAny + "/stockCharging=" + stockChargingAnimation + "/recordingInput=" + concurrentRecordingInput
                 + "/alwaysVisible=" + alwaysVisible + "/notch=" + notchStyle + "/popup=" + popupSeconds + "/chargingText=" + chargingText + "/swipeUpHides=" + swipeUpHides + "/swipeDownOpens=" + swipeDownOpens + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/blur=" + transitionBlurMode + "/" + appFilter.onlyListed() + appFilter.size();
     }
@@ -913,7 +919,7 @@ public final class ModuleSettings {
     private static void logChanges(SharedPreferences source) {
         String now = "glow=" + ambientGlow + "/" + glowAlbum + "/" + glowFollowTheme + "/" + glowStrength + "/" + glowColour + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + " lowPerformance=" + lowPerformance + " haptics=" + haptics + " legacyAnimation=" + legacyAnimation + " visualizer=" + visualizer + " cardHeader=" + cardHeader
                 + " recovery=" + experimentalRecovery + " foregroundNotifications=" + foregroundNotifications + " autoOpen=" + autoOpenCards + " customAccent=" + accentCustom + " hideBattery=" + hideBatteryIcon + " systemPopupStyle=" + systemPopupStyle + " headsUpIsland=" + headsUpIsland + " progress=" + progressNotifications + " hideOriginals=" + hideProgressOriginals
-                + " smartRules=" + smartRules + " otp=" + otpCard + "/" + otpAutoCopy + " calls3p=" + thirdPartyCalls
+                + " smartRules=" + smartRules + " otp=" + otpCard + "/" + otpAutoCopy + " calls3p=" + thirdPartyCalls + " incomingCalls=" + incomingCallCards + " screenRecording=" + screenRecordingCard
                 + " privacy=" + privacyIndicator + "/" + privacyLocation + " events=" + eventCharging + "/" + eventRinger + "/" + eventBluetooth
                 + " pill=" + pillAnchor + "/" + pillXDp + "/" + pillYDp + " size=" + pillHPct + "/" + pillMinWDp + "/" + pillMaxWDp + "/" + keepPillWidth + " hole=" + holeMode + "/" + holeDDp + "/" + holeXDp + "/" + holeYDp + " pausedS=" + pausedTimeoutS + " collapseS=" + autoCollapseS + " rules=" + rulesConfig.revision
                 + " pillOutline=" + pillOutlineMode + " showInFullscreen=" + showInFullscreen + " appFilter=" + (appFilter.onlyListed() ? "only " : "except ") + appFilter.size();
@@ -1050,6 +1056,18 @@ public final class ModuleSettings {
     public static boolean thirdPartyCalls() {
         ensureStarted();
         return thirdPartyCalls;
+    }
+
+    /** A ringing call gets the island's caller card; off leaves every incoming call to the system's own call UI. */
+    public static boolean incomingCallCards() {
+        ensureStarted();
+        return incomingCallCards;
+    }
+
+    /** Screen recording is shown on the island; off leaves it to the system's own chip and notification. */
+    public static boolean screenRecordingCard() {
+        ensureStarted();
+        return screenRecordingCard;
     }
 
     /** Do Not Disturb / airplane / power saving / flashlight / hotspot / auto-rotate feedback. */

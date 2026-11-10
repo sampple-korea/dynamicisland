@@ -67,6 +67,27 @@ public class RecorderNotificationSourceTest {
     }
 
     @Test
+    public void screenRecordingOffGivesNoCardAndKeepsTheRecordersNotification() {
+        dev.android.dynamicisland.settings.ModuleSettings.ensureStarted();
+        RecorderNotificationSource source = source();
+        StatusBarNotification recorder = note("com.android.systemui", "screen_record", true);
+        source.update(List.of(recorder));
+        assertTrue(card(source).key.startsWith("rec:"));
+        assertTrue(source.isShownOnIsland(recorder.getKey()));
+        org.robolectric.util.ReflectionHelpers.setStaticField(dev.android.dynamicisland.settings.ModuleSettings.class, "screenRecordingCard", false);
+        try {
+            List<IslandItem> out = new ArrayList<>();
+            source.collect(out);
+            assertTrue(out.isEmpty());
+            assertFalse("the original notification is not hidden without a card", source.isShownOnIsland(recorder.getKey()));
+        } finally {
+            org.robolectric.util.ReflectionHelpers.setStaticField(dev.android.dynamicisland.settings.ModuleSettings.class, "screenRecordingCard", true);
+        }
+        card(source);
+        assertTrue(source.isShownOnIsland(recorder.getKey()));
+    }
+
+    @Test
     public void cardCarriesTheChronometer() {
         RecorderNotificationSource source = source();
         source.update(Collections.singletonList(note("com.android.systemui", "screen_record", true)));

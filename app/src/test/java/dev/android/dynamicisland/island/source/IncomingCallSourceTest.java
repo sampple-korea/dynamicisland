@@ -68,4 +68,24 @@ public class IncomingCallSourceTest {
             assertNull("explicit ongoing type wins over stale actions",source.build(sbn));
         }
     }
+
+    @Test public void incomingCallCardsOffLeavesEveryRingingCallToTheSystem() {
+        dev.android.dynamicisland.settings.ModuleSettings.ensureStarted();
+        var source=new IncomingCallSource(app);var person=new Person.Builder().setName("Alice").build();
+        var phone=notification("com.samsung.android.incallui",1,Notification.CallStyle.forIncomingCall(person,intent("decline"),intent("answer")));
+        var voip=notification("example.voip",2,Notification.CallStyle.forIncomingCall(person,intent("decline"),intent("answer")));
+        source.update(List.of(phone,voip));assertEquals(2,source.activeKeys().size());
+        org.robolectric.util.ReflectionHelpers.setStaticField(dev.android.dynamicisland.settings.ModuleSettings.class,"incomingCallCards",false);
+        try {
+            // cards built before the switch was turned off go at once, and no new one is built
+            assertTrue(source.activeKeys().isEmpty());
+            var out=new ArrayList<IslandItem>();source.collect(out,"example.other");assertTrue(out.isEmpty());
+            assertNull(source.build(phone));assertNull(source.build(voip));
+            assertFalse("the heads-up decision stays with the system",source.posted(phone));
+            assertNull(source.item(phone.getKey()));
+        } finally {
+            org.robolectric.util.ReflectionHelpers.setStaticField(dev.android.dynamicisland.settings.ModuleSettings.class,"incomingCallCards",true);
+        }
+        assertNotNull(source.build(phone));
+    }
 }
