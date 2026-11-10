@@ -234,7 +234,6 @@ final class CallCardBuilder {
     /** Speaker toggle, at most one extra app button and the end-call button. */
     private void addButtons(IslandItem it, Object nowBar, String pkg, boolean ringing) {
         PendingIntent hangUp = null;
-        Drawable hangUpIcon = null;
         PendingIntent speaker = null;
         PendingIntent answer = null;
         Notification.Action extra = null;
@@ -250,7 +249,6 @@ final class CallCardBuilder {
                 }
                 if (ActionWords.isDestructive(action.title) && !ActionWords.isMute(action.title) && !ActionWords.isSpeaker(action.title)) {
                     hangUp = action.actionIntent;
-                    hangUpIcon = icons.load(action.getIcon(), pkg);
                 } else if (ActionWords.isAnswer(action.title)) {
                     answer = action.actionIntent;
                 } else if (ActionWords.isSpeaker(action.title)) {
@@ -279,10 +277,8 @@ final class CallCardBuilder {
         }
         if (telecom || hangUp != null) {
             PendingIntent viaAction = hangUp;
-            IslandItem.Action end = new IslandItem.Action(IslandText.get(ctx, "island_end_call"), hangUpIcon, null, () -> endCall(telecom, viaAction), true);
-            if (hangUpIcon == null) {
-                end.glyph = GLYPH_END_CALL;
-            }
+            IslandItem.Action end = new IslandItem.Action(IslandText.get(ctx, "island_end_call"), null, null, () -> endCall(telecom, viaAction), true);
+            end.glyph = GLYPH_END_CALL;
             it.actions.add(end);
         }
     }
