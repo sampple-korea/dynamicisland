@@ -85,11 +85,11 @@ git diff --check
 | `assembleRelease` | Passed; produces an unsigned Release APK |
 | `assembleDebug` | Passed |
 | `git diff --check` | Passed |
-| `python scripts/translations.py check` | Failed: 20 outstanding visual-feature translation entries |
+| `python scripts/translations.py check` | Passed after completing the 20 visual-feature translation entries; all registered locales have 617/617 strings |
 
 The suite includes existing iMotion tests for music restoration, original actions and interrupted transitions. These automated checks do not replace the physical System UI checklist above.
 
-The translation failures are `glow_by_app`, `glow_by_app_summary`, `notification_morph` and `notification_morph_summary` in ko, ja, zh, ru and tr. They were already pending before the heads-up correction; the correction adds no product strings.
+The initial translation failure was caused by missing `glow_by_app`, `glow_by_app_summary`, `notification_morph` and `notification_morph_summary` entries in ko, ja, zh, ru and tr. These 20 entries are now translated. The checker still requires complete registered locales and validates draft keys and formats. The incomplete `values-pt` and `values-pt-rBR` counts are informational because these drafts are not registered in locales_config.xml.
 
 ## Build artifacts
 

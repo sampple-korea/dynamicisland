@@ -65,7 +65,7 @@ This branch combines safer heads-up notification replacement with optional notif
 
 Device diagnostics confirmed the module loaded in System UI and three heads-up hooks installed. Only `addListener` execution was observed; execution of the preventive hooks, confirmed notification presentation and visual absence of duplicate banners still require on-device testing. Compatibility is determined by these observations, not by the Android or One UI version alone.
 
-The translation checker currently reports **20 missing entries**: `glow_by_app`, `glow_by_app_summary`, `notification_morph` and `notification_morph_summary` in Korean, Japanese, Simplified Chinese, Russian and Turkish. These visual-feature strings were already pending before the heads-up correction. Brazilian Portuguese remains a partial, unregistered draft.
+The glow and notification-morph options are translated into Korean, Japanese, Simplified Chinese, Russian and Turkish. All six registered locales contain **617/617 translatable strings**. Portuguese and Brazilian Portuguese remain partial, unregistered drafts; their incomplete counts are informational and do not fail validation.
 
 See the [implementation and device-validation guide](docs/HEADS_UP_VALIDATION.md) for changed methods, build commands, APK locations and the ADB checklist. The Release APK produced locally is unsigned; the Debug APK is intended for testing. These unreleased changes are not included in the stable download linked above.
 

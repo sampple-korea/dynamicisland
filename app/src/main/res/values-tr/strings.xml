@@ -619,4 +619,8 @@
     <string name="recommend_glass_title">Yeni malzemeyi deneyin · Deneysel</string>
     <string name="always_visible_island">Adayı Her Zaman Göster</string>
     <string name="always_visible_island_desc">Etkinlik olmadığında adayı kameranın çevresinde görünür tutun.</string>
+    <string name="notification_morph">Bildirim dönüşümü</string>
+    <string name="notification_morph_summary">Kapsülü, Dynamic Island ile bütünleşen akıcı animasyonlarla genişletilmiş bir bildirime dönüştürür. iMotion gerektirir.</string>
+    <string name="glow_by_app">Uygulamaya göre parlama</string>
+    <string name="glow_by_app_summary">Dynamic Island kenarlarını bildirimi gönderen uygulamanın rengiyle aydınlatır.</string>
 </resources>

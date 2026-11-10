@@ -619,4 +619,8 @@
     <string name="recommend_glass_title">尝试全新材质 · 实验性</string>
     <string name="always_visible_island">始终显示灵动岛</string>
     <string name="always_visible_island_desc">没有活动时，在摄像头周围保持显示灵动岛。</string>
+    <string name="notification_morph">通知变形</string>
+    <string name="notification_morph_summary">通过与灵动岛融为一体的流畅动画，将胶囊变形为展开的通知。需要启用iMotion。</string>
+    <string name="glow_by_app">按应用设置光效</string>
+    <string name="glow_by_app_summary">使用发送通知的应用的颜色点亮灵动岛边缘。</string>
 </resources>

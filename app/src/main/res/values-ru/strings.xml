@@ -619,4 +619,8 @@
     <string name="recommend_glass_title">Новый материал · Экспериментальный</string>
     <string name="always_visible_island">Островок всегда виден</string>
     <string name="always_visible_island_desc">Показывать островок вокруг камеры, когда нет активных задач.</string>
+    <string name="notification_morph">Трансформация уведомлений</string>
+    <string name="notification_morph_summary">Преобразует капсулу в развёрнутое уведомление с плавной анимацией, встроенной в Dynamic Island. Требуется iMotion.</string>
+    <string name="glow_by_app">Подсветка по приложению</string>
+    <string name="glow_by_app_summary">Подсвечивает края Dynamic Island цветом приложения, отправившего уведомление.</string>
 </resources>

@@ -619,4 +619,8 @@
     <string name="recommend_glass_title">新しい素材を試す · 実験的</string>
     <string name="always_visible_island">常に表示するアイランド</string>
     <string name="always_visible_island_desc">アクティビティがないときもカメラの周囲にアイランドを表示します。</string>
+    <string name="notification_morph">通知モーフ</string>
+    <string name="notification_morph_summary">カプセルを拡大した通知に変形し、Dynamic Islandと一体化した滑らかなアニメーションで表示します。iMotionが必要です。</string>
+    <string name="glow_by_app">アプリごとの発光</string>
+    <string name="glow_by_app_summary">通知を送信したアプリの色でDynamic Islandの縁を照らします。</string>
 </resources>
