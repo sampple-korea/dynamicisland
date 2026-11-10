@@ -210,6 +210,7 @@ final class IMode {
             if(view.sliderBody==card.body && body instanceof dev.android.dynamicisland.island.view.card.SliderBody)
                 view.sliderBody=(dev.android.dynamicisland.island.view.card.SliderBody)body;
             card.item=node.item; card.body=body;
+            if(card.notificationMorph) card.body=new dev.android.dynamicisland.island.view.card.NotificationMorphBody(view,node.item,morphWidth());
             targetExpanded(card);
         }
     }
@@ -354,7 +355,20 @@ final class IMode {
         changed();
     }
 
+    boolean isPresenting(IslandItem item) {
+        Node node = nodes.get(item.key);
+        return item.key.equals(selected) && node != null && !node.removed
+                && node.item == item && !gestureHidden && !scene.sleeping && !scene.suppressed;
+    }
+
     void peek(IslandItem item) {
+        Card existingMorph=scene.findCard(item.key);
+        boolean morph=ModuleSettings.notificationMorph()
+                && (scene.mode!=Mode.EXPANDED || item.key.equals(selected))
+                && item.kind==IslandItem.Kind.PEEK && item.otpCode==null && item.remoteView==null
+                && !item.bigNumber && !scene.sleeping && !scene.suppressed;
+        mainBounds(source);
+        float startX=source.centerX(),startY=source.centerY(),startW=source.width(),startH=source.height();
         Node previous=selected==null ? null : nodes.get(selected);
         if (scene.mode==Mode.EXPANDED && previous!=null && !previous.removed
                 && previous.item.kind!=IslandItem.Kind.PEEK && !selected.equals(item.key)) {
@@ -371,6 +385,16 @@ final class IMode {
         node.removed=false;
         if(!initialized) layout();
         open(item.key,false);
+        Card opened=scene.findCard(item.key);
+        if(morph && opened!=null && !opened.notificationMorph) {
+            opened.notificationMorph=true;
+            opened.body=new dev.android.dynamicisland.island.view.card.NotificationMorphBody(view,item,morphWidth());
+            if(existingMorph==null) {
+                opened.cx.snapTo(startX);opened.cy.snapTo(startY);
+                opened.w.snapTo(startW);opened.h.snapTo(startH);
+            }
+            targetExpanded(opened);resizeWindow();changed();
+        }
     }
 
     void next(int direction) {
@@ -505,18 +529,30 @@ final class IMode {
         card.launched=true;
     }
     private void targetExpanded(Card c) {
-        float width=m.cardWidth();
+        float width=c.body.w;
         c.targetW=width; c.targetH=c.body.h; c.targetCy=m.stackTop()+c.body.h/2;
+        if(c.notificationMorph) c.targetCy=m.cy-m.pillH/2+c.body.h/2;
         c.cx.animateTo(m.centredLeft(width)+width/2,.36f,.90f);
         c.cy.animateTo(c.targetCy,.42f,.88f);
         c.w.animateTo(width,.42f,.90f);
         // The reference's height settles with a small rebound while its width barely overshoots.
         c.h.animateTo(c.targetH,.39f,.76f);
+        if(c.notificationMorph) {
+            c.cy.animateTo(c.targetCy,.38f,.90f);
+            c.h.animateTo(c.targetH,.38f,.90f);
+        }
     }
+    private float morphWidth() { return Math.min(m.cardWidth(),m.dp(340)); }
     private void targetCompact(Card c) {
         Node n=nodes.get(c.item.key);
         if(n==null) return;
         RectF end=n.target;
+        if(c.notificationMorph) {
+            float width=Math.max(m.minPillW,m.holeD+m.dp(16));
+            source.set(m.cx-width/2,m.cy-m.pillH/2,m.cx+width/2,m.cy+m.pillH/2);
+            for(Node candidate:nodes.values()) if(!candidate.removed && candidate.slot==0) { source.set(candidate.target);break; }
+            end=source;
+        }
         c.targetW=end.width(); c.targetH=end.height(); c.targetCy=end.centerY();
         c.cx.animateTo(end.centerX(),.36f,.90f); c.cy.animateTo(end.centerY(),.36f,.90f);
         c.w.animateTo(end.width(),.36f,.90f); c.h.animateTo(end.height(),.34f,.86f);
@@ -648,6 +684,9 @@ final class IMode {
     }
 
     boolean step(float dt,long time) {
+        if(!ModuleSettings.notificationMorph()) {
+            for(Card card:scene.cards) if(card.notificationMorph && !card.leaving) { collapse();break; }
+        }
         syncOutlineTarget();
         boolean active=outline.step(dt);
         if(compactPage!=null) {
@@ -697,7 +736,8 @@ final class IMode {
         for(Node n:nodes.values()) n.refresh(view,n.item);
         layout();
         for(Card c:scene.cards) if(!c.leaving) {
-            c.body=bodies.create(c.item,m.cardWidth(),false); targetExpanded(c);
+            c.body=c.notificationMorph ? new dev.android.dynamicisland.island.view.card.NotificationMorphBody(view,c.item,morphWidth())
+                    : bodies.create(c.item,m.cardWidth(),false); targetExpanded(c);
         }
         resizeWindow(); changed();
     }
@@ -784,7 +824,12 @@ final class IMode {
     }
 
     void draw(Canvas canvas,long time) {
-        if (scene.mode==Mode.IDLE && !gestureHidden) {
+        boolean morphSurface=false;
+        for(int i=scene.cards.size()-1;i>=0;i--) {
+            Card card=scene.cards.get(i);
+            if(card.notificationMorph) { morphSurface=true;view.drawCard(canvas,card,time); }
+        }
+        if (scene.mode==Mode.IDLE && !gestureHidden && !morphSurface) {
             float width=Math.max(m.minPillW,m.holeD+m.dp(16));
             rect.set(m.cx-width/2,m.cy-m.pillH/2,m.cx+width/2,m.cy+m.pillH/2);
             shadeBounds(rect,rect);
@@ -817,10 +862,11 @@ final class IMode {
         float contentAlpha=IslandView.clamp01((gate-.45f)/.4f);
         for(Node n:nodes.values()) {
             float alpha=IslandView.clamp01(n.alpha.value());
+            if(morphSurface) continue;
             if(alpha<.003f || ownsSurface(n.item.key)) continue;
             n.bounds(rect);
             shadeBounds(rect,rect);
-            view.drawCompactGlow(canvas,rect,alpha*contentAlpha);
+            view.drawCompactGlow(canvas,rect,alpha*contentAlpha,n.item);
             int save=canvas.saveLayerAlpha(rect.left-m.dp(2),rect.top-m.dp(2),rect.right+m.dp(2),rect.bottom+m.dp(2),Math.round(alpha*255));
             float radius=rect.height()/2;
             paint.setStyle(Paint.Style.FILL); paint.setColor(Colors.BLACK);
@@ -865,7 +911,9 @@ final class IMode {
         float gate=IslandView.clamp01(scene.springs.shadeGate.value());
         float contentAlpha=IslandView.clamp01((gate-.45f)/.4f);
         RectF bounds=new RectF();shadeBounds(frame,bounds);
-        view.drawCompactGlow(canvas,bounds,contentAlpha);
+        float glowProgress=IslandView.clamp01(page.progress.value());
+        view.drawCompactGlow(canvas,bounds,contentAlpha,
+                (glowProgress < .5f ? page.from : page.to).get(slot).item);
         float radius=bounds.height()/2;
         paint.setStyle(Paint.Style.FILL);paint.setColor(Colors.BLACK);canvas.drawRoundRect(bounds,radius,radius,paint);
         if(scene.pillOutlineOpacity()>.01f) {
@@ -917,7 +965,7 @@ final class IMode {
             float alpha=(1-progress)*density*density*IslandView.clamp01(card.iModeOpacity.value())*scene.shadeAlpha();
             // Carry the existing compact halo from the first unfolding frame to the last returning frame.
             // Its energy declines continuously as the surface grows into a full card.
-            view.drawCompactGlow(canvas,glowBounds,alpha);
+            view.drawCompactGlow(canvas,glowBounds,alpha,card.item);
         }
         canvas.restoreToCount(save);
     }

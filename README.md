@@ -47,6 +47,28 @@ Dynamic Island replaces Samsung's Now Bar capsule in the status bar with a pill 
 
 These pictures are drawn by the app's own drawing code on a mock phone in the test environment (see `scripts/readme_images.py`); they are not photos of a device, and the app icons are made of plain shapes.
 
+## Unreleased: notification takeover and visual updates
+
+This branch combines safer heads-up notification replacement with optional notification morphing, app-specific glow colours and adaptive material capture. It builds on the Always Visible island, smart multitasking and partial Brazilian Portuguese localization already included in the branch history.
+
+- **Safer heads-up replacement:** A notification stays native unless the island confirms an active card or accepts a reservation with a verified return path to System UI. Notifications left native are excluded from later island scans, preventing a native banner followed by a duplicate island card.
+- **Bounded alert reservations:** Up to four pending alerts can wait for up to 30 seconds. Updates replace the pending version of the same notification. Removal, expiry, settings changes and loss of availability invalidate reservations; returning an alert to System UI requires the same current entry and a favourable native pinning decision.
+- **Broader hook discovery:** Compatible declarations are discovered across available manager classes and their superclasses. Boolean and supported `PinnedStatus` pinning signatures are handled; unknown signatures and explicit user pin requests retain native behaviour. Calls outside the main thread immediately stay native.
+- **Confirmed ownership:** Stock-banner recovery requires the matching active card and is limited to three removal attempts per presentation, including experimental recovery. Departing cards, unavailable windows, locked screens, other profiles and filtered apps do not authorize takeover. Calls, alarms and full-screen intents keep their native handling.
+- **Optional notification morph:** Ordinary notification cards can unfold from the pill using the iMotion renderer, preserving original notification actions and returning to the previous activity. The option is off by default and disabled in low-performance mode. Verification-code cards retain their separate setting and presentation.
+- **App-specific glow:** An optional ambient-glow setting uses known application colours, with the item's accent or white as a fallback. Existing album, theme and custom-colour settings remain available.
+- **Adaptive material capture:** Expanded-card backdrop capture adjusts its target cadence to measured capture cost and reports target rate, effective rate and frame age. Compact prewarming retains its separate cadence.
+
+### Validation and remaining checks
+
+`testReleaseUnitTest` passed **200 tests across 75 suites**, including 18 heads-up tests and existing iMotion tests for music restoration, original actions and interrupted transitions. `assembleRelease`, `assembleDebug` and `git diff --check` also passed. The Debug APK was installed on a Samsung SM-S901E running Android 16, and the settings activity opened successfully.
+
+Device diagnostics confirmed the module loaded in System UI and three heads-up hooks installed. Only `addListener` execution was observed; execution of the preventive hooks, confirmed notification presentation and visual absence of duplicate banners still require on-device testing. Compatibility is determined by these observations, not by the Android or One UI version alone.
+
+The translation checker currently reports **20 missing entries**: `glow_by_app`, `glow_by_app_summary`, `notification_morph` and `notification_morph_summary` in Korean, Japanese, Simplified Chinese, Russian and Turkish. These visual-feature strings were already pending before the heads-up correction. Brazilian Portuguese remains a partial, unregistered draft.
+
+See the [implementation and device-validation guide](docs/HEADS_UP_VALIDATION.md) for changed methods, build commands, APK locations and the ADB checklist. The Release APK produced locally is unsigned; the Debug APK is intended for testing. These unreleased changes are not included in the stable download linked above.
+
 ## New in 0.1.14
 
 This stable release brings optional **iMotion**: one expanded activity, coordinated blur and motion, sideways activity switching, and swipe-up hiding with pull-down restoration near the camera hole. It also includes ranked settings search, one-at-a-time feature recommendations, optional expanding-beam flashlight controls, smoother sleep/AOD transitions and notification-card reuse fixes. Existing animations and Classic material remain the defaults; Frosted material is an opt-in experiment. All six languages are supported.

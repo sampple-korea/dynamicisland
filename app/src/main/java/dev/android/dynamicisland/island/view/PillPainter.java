@@ -172,6 +172,15 @@ final class PillPainter {
         canvas.restoreToCount(save);
     }
 
+    void drawCompactGlow(Canvas canvas, RectF bounds, float alpha, IslandItem item) {
+        if (ModuleSettings.ambientGlow() && ModuleSettings.glowByApp() && item != null
+                && !item.isMedia && item.sourceKey != null && item.packageName != null) {
+            glow.draw(canvas, bounds, AppGlowColors.getColor(item), alpha, ModuleSettings.glowStrength());
+            return;
+        }
+        drawCompactGlow(canvas, bounds, alpha);
+    }
+
     boolean stepGlow(float dt, AudioLevels audio) {
         long now = IslandView.now();
         if (!ModuleSettings.ambientGlow()) {
@@ -180,15 +189,18 @@ final class PillPainter {
         }
         if (scene.mode != Mode.COMPACT && sp.pillBlob.value() <= IslandView.MIN_VISIBLE_ALPHA) return false;
         IslandItem music = scene.musicForGlow();
-        boolean show = music != null || !ModuleSettings.glowMusicOnly();
+        IslandItem notification = ModuleSettings.glowByApp() && scene.iMode == null ? scene.notificationForGlow() : null;
+        boolean show = notification != null || music != null || !ModuleSettings.glowMusicOnly();
         glowPresence.set(show ? 1 : 0, now);
         glowAlpha = glowPresence.value(now);
         if (music != null) lastGlowSession = music;
         else if (!ModuleSettings.glowMusicOnly()) lastGlowSession = null;
         if (!show && glowAlpha <= 0) { lastGlowSession = null; return false; }
         // All compact bodies share this state, including pause and the last album colour on session end.
-        boolean moving = glowMotion.step(dt, lastGlowSession, ModuleSettings.glowAlbum(),
-                ModuleSettings.glowColour(), music == null ? null : audio);
+        boolean moving = glowMotion.step(dt, notification != null ? null : lastGlowSession,
+                notification == null && ModuleSettings.glowAlbum(),
+                notification != null ? AppGlowColors.getColor(notification) : ModuleSettings.glowColour(),
+                notification != null || music == null ? null : audio);
         return glowPresence.running(now) || (glowAlpha > 0 && moving);
     }
 

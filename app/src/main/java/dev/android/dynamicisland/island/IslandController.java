@@ -124,6 +124,11 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
     private final SourcePeekRequests sourcePeekRequests = ENABLE_SOURCE_PEEKS ? new SourcePeekRequests() : null;
     private List<StatusBarNotification> lastNotifications = java.util.Collections.emptyList();
 
+    public void updateHeadsUp(StatusBarNotification sbn,
+            dev.android.dynamicisland.xposed.hooks.HeadsUpHooks.NativeRestore restore) { headsUp.onUpdate(sbn, restore); }
+
+    public Object headsUpEvent(String key) { return headsUp.event(key); }
+
     public boolean ownsHeadsUp(String key) { return headsUp.owns(key); }
 
     public boolean isShownAsCard(IslandItem item) {
@@ -213,6 +218,11 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
      *
      * @return true when the island took it (the stock banner must stay away)
      */
+    public dev.android.dynamicisland.xposed.hooks.HeadsUpHooks.Decision decideHeadsUp(
+            StatusBarNotification sbn, dev.android.dynamicisland.xposed.hooks.HeadsUpHooks.NativeRestore restore) {
+        return headsUp.decide(sbn, restore);
+    }
+
     public boolean peekHeadsUp(StatusBarNotification sbn) {
         return headsUp.take(sbn);
     }
@@ -337,6 +347,7 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
 
     @Override
     public void onIslandFrame() {
+        headsUp.reconcile();
         placement.onFrame();
         IslandView view = placement.view();
         recordingInput.setTarget(view == null ? null : view.recordingInputTarget());
@@ -525,6 +536,7 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
             if (view == null) {
                 return;
             }
+            headsUp.reconcile();
             IslandSources.Gathered gathered = sources.gather();
             long now = SystemClock.uptimeMillis();
             ItemLedger.Arrangement shape = ledger.arrange(gathered.items, gathered.hiddenByForeground, now);

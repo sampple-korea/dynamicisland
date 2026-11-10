@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="notification_morph">Notification Morph</string>
+    <string name="notification_morph_summary">Transform the capsule into an expanded notification with smooth animations integrated into the Dynamic Island. Requires iMotion.</string>
     <!-- ENGLISH SOURCE OF TRUTH. Translate values, never resource keys or placeholders.
          %1$s = text; %1$d = integer; %% = literal percent. Reordering indexed arguments is safe.
          Use Android escapes (\n, \') and XML escapes (&amp;, &lt;).
@@ -498,6 +500,8 @@
     <string name="pill_outline_none">None</string>
     <string name="glow_title">Ambient glow</string>
     <string name="glow_summary">A shared glow around compact pills, following the music session by default.</string>
+    <string name="glow_by_app">Glow by app</string>
+    <string name="glow_by_app_summary">Light the edges of the Dynamic Island using the color of the app that sent the notification.</string>
     <string name="glow_strength">Glow intensity</string>
     <string name="glow_strength_format">Glow intensity · %d%%</string>
     <string name="glow_visibility">When to show glow</string>

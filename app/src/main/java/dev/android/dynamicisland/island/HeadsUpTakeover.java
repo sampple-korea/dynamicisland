@@ -5,7 +5,6 @@ import android.service.notification.StatusBarNotification;
 import dev.android.dynamicisland.island.detect.OtpDetector;
 import dev.android.dynamicisland.island.model.IslandItem;
 import dev.android.dynamicisland.island.source.PeekSource;
-import dev.android.dynamicisland.island.view.IslandView;
 import dev.android.dynamicisland.settings.ModuleSettings;
 import dev.android.dynamicisland.xposed.XLog;
 import dev.android.dynamicisland.xposed.hooks.HeadsUpHooks;
@@ -20,6 +19,84 @@ import java.util.Set;
  * island, and remembers what already got one so nothing is shown twice.
  */
 final class HeadsUpTakeover {
+    private final android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final java.util.LinkedHashMap<String, Reservation> reservations = new java.util.LinkedHashMap<>();
+    private final Map<String, StatusBarNotification> nativeEvents = java.util.Collections.synchronizedMap(new HashMap<>());
+    private StatusBarNotification activeEvent;
+    private IslandItem activeItem;
+    private boolean reconciling;
+    private long nextVersion;
+    private long activeVersion;
+    private static final class Reservation {
+        final StatusBarNotification event;
+        final IslandItem item;
+        final HeadsUpHooks.NativeRestore restore;
+        final long deadline, version;
+        Reservation(StatusBarNotification event, IslandItem item, HeadsUpHooks.NativeRestore restore,
+                long version, long deadline) {
+            this.event = event; this.item = item; this.restore = restore;
+            this.version = version; this.deadline = deadline;
+        }
+    }
+    private static boolean mainThread() {
+        return android.os.Looper.myLooper() == android.os.Looper.getMainLooper();
+    }
+    private static boolean sameEvent(StatusBarNotification a, StatusBarNotification b) {
+        return a != null && b != null && a.getUserId() == b.getUserId()
+                && a.getKey().equals(b.getKey()) && a.getPostTime() == b.getPostTime()
+                && a.getNotification() == b.getNotification();
+    }
+    private boolean allowed(StatusBarNotification sbn) {
+        return sbn != null && sbn.getUser().equals(android.os.Process.myUserHandle())
+                && PeekSource.eligible(sbn) && ModuleSettings.appAllowed(sbn.getPackageName())
+                && !foregroundBlocked(sbn) && PeekSource.preferred(sbn, snapshot);
+    }
+    private boolean enabled(IslandItem item) {
+        return item.otpCode != null ? ModuleSettings.otpCard()
+                : ModuleSettings.headsUpIsland() || ModuleSettings.allNotifications();
+    }
+    private boolean leftNative(StatusBarNotification sbn) {
+        return sameEvent(nativeEvents.get(sbn.getKey()), sbn);
+    }
+    private HeadsUpHooks.Decision fallback(StatusBarNotification sbn, String reason) {
+        if (sbn != null) {
+            if (nativeEvents.size() > 128) nativeEvents.clear();
+            nativeEvents.put(sbn.getKey(), sbn);
+            reservations.remove(sbn.getKey());
+        }
+        dev.android.dynamicisland.xposed.Diagnostics.fact("heads-up fallback", reason);
+        reject(reason);
+        return HeadsUpHooks.Decision.NATIVE;
+    }
+    /** Runs before collection and on visibility changes; never replays removed or superseded events. */
+    void reconcile() {
+        if (!mainThread() || reconciling) return;
+        reconciling = true;
+        try {
+            for (Reservation r : new java.util.ArrayList<>(reservations.values())) {
+                String key = r.event.getKey();
+                if (reservations.get(key) != r) continue;
+                boolean valid = r.restore.valid();
+                boolean nativeAlready = leftNative(r.event);
+                if (nativeAlready || !valid || !allowed(r.event) || !enabled(r.item) || !placement.canPresent()
+                        || SystemClock.uptimeMillis() >= r.deadline) {
+                    reservations.remove(key);
+                    fallback(r.event, valid ? "reservation invalidated" : "reservation no longer current");
+                    if (valid && !nativeAlready) {
+                        boolean restored = r.restore.restore();
+                        note(restored ? "reservation returned to system" : "reservation return failed");
+                    }
+                } else if (sources.peeks.showing() == null) {
+                    reservations.remove(key);
+                    if (!show(r.event, r.item, r.version)) {
+                        fallback(r.event, "reserved presentation rejected");
+                        note(r.restore.restore() ? "reservation returned to system" : "reservation return failed");
+                    }
+                }
+            }
+        } finally { reconciling = false; }
+    }
+
     /** How long a heads-up card stays open unless the item asks for something else. */
     private static final long DEFAULT_PEEK_MS = 5000;
     /** Wait before the stock heads-up entry of a notification the island took is removed (it is added right after the decision). */
@@ -44,7 +121,7 @@ final class HeadsUpTakeover {
     private final Runnable refreshNow;
 
     /** Notification key to post time of the posting that already got a card. */
-    private final Map<String, Long> peeked = new HashMap<>();
+    private final Map<String, StatusBarNotification> peeked = new HashMap<>();
     private final Set<String> otpChecked = new HashSet<>();
     /** Postings the "all notifications" pass already looked at. */
     private final Set<String> allChecked = new HashSet<>();
@@ -66,15 +143,47 @@ final class HeadsUpTakeover {
         for (StatusBarNotification next : notifications) if (next != null) removed.remove(next.getKey());
         sources.peeks.removeNotifications(removed);
         snapshot = new java.util.ArrayList<>(notifications);
+        for (String key : removed) {
+            reservations.remove(key); nativeEvents.remove(key);
+        }
+        if (activeEvent != null && sources.peeks.showing() == activeItem) {
+            for (StatusBarNotification next : notifications) {
+                if (next.getKey().equals(activeEvent.getKey()) && !sameEvent(next, activeEvent)) {
+                    if (allowed(next) && placement.canPresent() && !leftNative(next)) {
+                        IslandItem updated = sources.peeks.build(next);
+                        if (updated != null && enabled(updated)) show(next, updated);
+                    }
+                    break;
+                }
+            }
+        }
+        // An update must release the previous version before it can be claimed again.
+        reservations.entrySet().removeIf(e -> notifications.stream().anyMatch(n ->
+                n.getKey().equals(e.getKey()) && !sameEvent(n, e.getValue().event)));
+        reconcile();
     }
 
+    void onUpdate(StatusBarNotification sbn, HeadsUpHooks.NativeRestore restore) {
+        if (!mainThread() || sbn == null) return;
+        if (reservations.containsKey(sbn.getKey())) {
+            HeadsUpHooks.Decision result = decide(sbn, restore);
+            if (result == HeadsUpHooks.Decision.NATIVE && restore != null && restore.valid()) restore.restore();
+        }
+        if (activeEvent != null && activeEvent.getKey().equals(sbn.getKey())
+                && sources.peeks.showing() == activeItem && !sameEvent(activeEvent, sbn)) {
+            decide(sbn, null);
+        }
+        reconcile();
+    }
+
+    Object event(String key) { return owns(key) ? activeItem : null; }
+
     boolean owns(String key) {
-        IslandItem item = sources.peeks.showing();
-        if (item == null || !item.key.equals("peek:" + key) || !placement.view().isShowingCard(item)) return false;
-        if (!ModuleSettings.appAllowed(item.packageName)) return false;
-        if (item.otpCode != null ? !ModuleSettings.otpCard() : !(ModuleSettings.headsUpIsland() || ModuleSettings.allNotifications())) return false;
+        if (!mainThread() || key == null || activeEvent == null || activeItem == null || !placement.canPresent()
+                || !key.equals(activeEvent.getKey()) || !allowed(activeEvent) || !enabled(activeItem)
+                || sources.peeks.showing() != activeItem || !placement.view().isShowingCard(activeItem)) return false;
         for (StatusBarNotification notification : snapshot) {
-            if (notification.getKey().equals(key) && notification.getPostTime() != item.postTime) return false;
+            if (notification.getKey().equals(key) && !sameEvent(notification, activeEvent)) return false;
         }
         return true;
     }
@@ -85,48 +194,52 @@ final class HeadsUpTakeover {
 
     /** @return true when the island took the banner (the stock one must stay away) */
     boolean take(StatusBarNotification sbn) {
+        return decide(sbn, null) != HeadsUpHooks.Decision.NATIVE;
+    }
+
+    HeadsUpHooks.Decision decide(StatusBarNotification sbn, HeadsUpHooks.NativeRestore restore) {
+        if (!mainThread()) {
+            if (sbn != null) nativeEvents.put(sbn.getKey(), sbn);
+            return HeadsUpHooks.Decision.NATIVE;
+        }
         try {
-            IslandView view = placement.view();
-            if (sbn == null || !placement.ready()) {
-                return false;
+            if (!allowed(sbn) || !placement.canPresent()) return fallback(sbn, "ineligible or unavailable");
+            if (sameEvent(activeEvent, sbn) && owns(sbn.getKey())) return HeadsUpHooks.Decision.PRESENTED;
+            Reservation existing = reservations.get(sbn.getKey());
+            if (existing != null && sameEvent(existing.event, sbn)) {
+                if (existing.restore.valid() && SystemClock.uptimeMillis() < existing.deadline) return HeadsUpHooks.Decision.RESERVED;
+                reservations.remove(sbn.getKey());
+                return fallback(sbn, "reservation no longer valid");
             }
-            if (!ModuleSettings.appAllowed(sbn.getPackageName())) {
-                reject("banner of " + sbn.getPackageName() + ": the app is kept out of the island");
-                return false; // the user keeps this app out of the island: its banner stays stock
+            if (leftNative(sbn)) return HeadsUpHooks.Decision.NATIVE;
+            IslandItem item = sources.peeks.buildOtp(sbn);
+            boolean updatingActive = activeEvent != null && activeEvent.getKey().equals(sbn.getKey())
+                    && sources.peeks.showing() == activeItem && placement.view().isShowingCard(activeItem);
+            if (item != null && isRepeat(item.otpCode) && !updatingActive) return fallback(sbn, "repeated code");
+            if (item == null && (ModuleSettings.headsUpIsland() || ModuleSettings.allNotifications())) {
+                item = sources.peeks.buildMessage(sbn);
             }
-            if (isOnIslandNow(sbn)) {
-                return true; // already on the island: the banner is asked about again on updates
+            if (item == null || !enabled(item)) return fallback(sbn, "disabled or no presentable content");
+            IslandItem showing = sources.peeks.showing();
+            if (showing != null && !showing.key.equals(item.key)) {
+                if (restore == null || !restore.valid()) return fallback(sbn, "no verified return path");
+                if (existing == null && reservations.size() >= 4) return fallback(sbn, "reservation queue full");
+                reservations.put(sbn.getKey(), new Reservation(sbn, item, restore, ++nextVersion,
+                        existing == null ? SystemClock.uptimeMillis() + 30000 : existing.deadline));
+                dev.android.dynamicisland.xposed.Diagnostics.fact("heads-up reservations", Integer.toString(reservations.size()));
+                main.postDelayed(this::reconcile, 30001);
+                note("RESERVED (verified return path)");
+                return HeadsUpHooks.Decision.RESERVED;
             }
-            if (sources.peeks.hasPending(sbn.getKey(), sbn.getPostTime())) return false;
-            if (view.isSuppressedNow() || !PeekSource.eligible(sbn)
-                    || (!ModuleSettings.experimentalRecovery()
-                    && (foregroundBlocked(sbn) || !PeekSource.preferred(sbn, snapshot)))) {
-                reject("banner of " + sbn.getPackageName() + ": " + (view.isSuppressedNow() ? "island hidden" : !PeekSource.eligible(sbn) ? "not an ordinary notification" : "its app is open"));
-                return false;
+            reservations.remove(sbn.getKey());
+            if (show(sbn, item)) {
+                note("PRESENTED (active card confirmed)");
+                return HeadsUpHooks.Decision.PRESENTED;
             }
-            // a code card is shown whatever the "notifications in the island" setting and even over an open card
-            IslandItem code = sources.peeks.buildOtp(sbn);
-            if (code != null) {
-                if (isRepeat(code.otpCode)) {
-                    // the same code again (re-posted, or mirrored by another app): one card is enough
-                    IslandItem showing = sources.peeks.showing();
-                    return showing != null && code.otpCode.equals(showing.otpCode);
-                }
-                boolean shown = show(sbn, code);
-                log(shown ? "shown with its heads-up" : "not shown: the island could not open");
-                return shown;
-            }
-            if (!(ModuleSettings.headsUpIsland() || ModuleSettings.allNotifications())) {
-                reject("banner of " + sbn.getPackageName() + ": " + (view.isExpanded() ? "a card is open" : "the notification settings are off"));
-                return false;
-            }
-            IslandItem message = sources.peeks.buildMessage(sbn);
-            boolean taken = message != null && show(sbn, message);
-            note("banner of " + sbn.getPackageName() + (taken ? " taken by the island" : " left to the stock banner: no card could be built or opened"));
-            return taken;
+            return fallback(sbn, "presentation rejected");
         } catch (Throwable t) {
             XLog.once("IslandController.peekHeadsUp", t);
-            return false;
+            return fallback(sbn, "decision failed");
         }
     }
 
@@ -135,7 +248,7 @@ final class HeadsUpTakeover {
      * did not ask) still gets a card. Each fresh posting is considered once, oldest first.
      */
     void scanAll(List<StatusBarNotification> snapshot) {
-        if (!ModuleSettings.allNotifications() || !placement.ready()) {
+        if (!mainThread() || !ModuleSettings.allNotifications() || !placement.canPresent()) {
             return;
         }
         if (allChecked.size() > MAX_OTP_CHECKED) {
@@ -148,19 +261,12 @@ final class HeadsUpTakeover {
             if (age > ALL_FRESH_MS || age < -OTP_CLOCK_SKEW_MS || !allChecked.add(sbn.getKey() + "@" + sbn.getPostTime())) {
                 continue;
             }
-            if (alreadyHadCard(sbn) || !PeekSource.eligible(sbn) || !ModuleSettings.appAllowed(sbn.getPackageName())
-                    || (!ModuleSettings.experimentalRecovery()
-                    && (foregroundBlocked(sbn) || !PeekSource.preferred(sbn, snapshot)))) {
+            if (alreadyHadCard(sbn) || leftNative(sbn) || reservations.containsKey(sbn.getKey()) || !allowed(sbn)) {
                 continue;
             }
             fresh.add(sbn);
         }
         if (fresh.isEmpty()) {
-            return;
-        }
-        IslandView view = placement.view();
-        if (ModuleSettings.experimentalRecovery() ? view.isSuppressedNow() : !view.canPeek()) {
-            reject("all notifications: the island is unavailable");
             return;
         }
         fresh.sort(java.util.Comparator.comparingLong(StatusBarNotification::getPostTime));
@@ -196,7 +302,7 @@ final class HeadsUpTakeover {
      * other way. Every notification new to the list is checked once; a fresh one with a code opens the card.
      */
     void scanForCodes(List<StatusBarNotification> snapshot) {
-        if (!ModuleSettings.otpCard() || !placement.ready()) {
+        if (!mainThread() || !ModuleSettings.otpCard() || !placement.canPresent()) {
             return;
         }
         long now = System.currentTimeMillis();
@@ -205,7 +311,7 @@ final class HeadsUpTakeover {
         }
         for (StatusBarNotification sbn : snapshot) {
             long age = now - sbn.getPostTime();
-            if (age > OTP_FRESH_MS || age < -OTP_CLOCK_SKEW_MS || alreadyHadCard(sbn)) {
+            if (age > OTP_FRESH_MS || age < -OTP_CLOCK_SKEW_MS || alreadyHadCard(sbn) || leftNative(sbn) || reservations.containsKey(sbn.getKey()) || !allowed(sbn)) {
                 continue;
             }
             if (!otpChecked.add(sbn.getKey() + "@" + sbn.getPostTime()) || !PeekSource.eligible(sbn) || !PeekSource.preferred(sbn, snapshot)) {
@@ -230,13 +336,7 @@ final class HeadsUpTakeover {
     }
 
     private boolean alreadyHadCard(StatusBarNotification sbn) {
-        Long seen = peeked.get(sbn.getKey());
-        return seen != null && seen == sbn.getPostTime();
-    }
-
-    /** This very posting is the card on the island right now. */
-    private boolean isOnIslandNow(StatusBarNotification sbn) {
-        return alreadyHadCard(sbn) && !foregroundBlocked(sbn) && owns(sbn.getKey());
+        return sameEvent(peeked.get(sbn.getKey()), sbn);
     }
 
     private boolean isRepeat(String code) {
@@ -255,16 +355,18 @@ final class HeadsUpTakeover {
 
     /** @return whether the island really shows the card; only then is it remembered (and a code copied). */
     private boolean show(StatusBarNotification sbn, IslandItem item) {
-        if (!placement.view().canPeek()) return false;
+        return show(sbn, item, 0);
+    }
+
+    private boolean show(StatusBarNotification sbn, IslandItem item, long version) {
+        if (!placement.canPresent() || !allowed(sbn) || !enabled(item) || leftNative(sbn)) return false;
         long millis = item.peekMillis > 0 ? item.peekMillis : DEFAULT_PEEK_MS;
         IslandItem showing = sources.peeks.showing();
-        if (showing != null && !showing.key.equals(item.key)) {
-            if (!sources.peeks.enqueue(item, millis)) return false;
-            if (peeked.size() > MAX_PEEKED) peeked.clear();
-            peeked.put(sbn.getKey(), sbn.getPostTime());
-            // The hook must not suppress a stock banner before the island actually displays it.
-            return false;
-        }
+        if (showing != null && !showing.key.equals(item.key)) return false;
+        if (version > 0) activeVersion = version;
+        else if (!sameEvent(activeEvent, sbn)) activeVersion = ++nextVersion;
+        activeEvent = sbn;
+        activeItem = item;
         sources.peeks.show(item, millis);
         refreshNow.run();
         if (!placement.view().peek(item, millis)) {
@@ -275,9 +377,12 @@ final class HeadsUpTakeover {
         if (peeked.size() > MAX_PEEKED) {
             peeked.clear();
         }
-        peeked.put(sbn.getKey(), sbn.getPostTime());
+        peeked.put(sbn.getKey(), sbn);
+        dev.android.dynamicisland.xposed.Diagnostics.fact("heads-up presentation", "confirmed; local version " + activeVersion);
         final String key = sbn.getKey();
-        placement.view().postDelayed(() -> HeadsUpHooks.dismissStock(key), STOCK_DISMISS_DELAY_MS);
+        placement.view().postDelayed(() -> {
+            if (activeItem == item && owns(key)) HeadsUpHooks.dismissStock(key);
+        }, STOCK_DISMISS_DELAY_MS);
         if (item.otpCode != null) {
             lastOtpCode = item.otpCode;
             lastOtpAt = SystemClock.uptimeMillis();

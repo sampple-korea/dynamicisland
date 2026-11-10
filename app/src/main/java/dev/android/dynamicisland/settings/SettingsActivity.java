@@ -489,6 +489,7 @@ public final class SettingsActivity extends Activity {
     private void notificationsPage() {
         subPage(getString(R.string.ui_notifications));
         LinearLayout banners = ui.card(page);
+        toggle(banners, R.string.notification_morph, R.string.notification_morph_summary, ModuleSettings.KEY_NOTIFICATION_MORPH, false);
         int mode = flag(ModuleSettings.KEY_ALL_NOTIFICATIONS, false) ? 2 : flag(ModuleSettings.KEY_HEADS_UP_ISLAND, true) ? 1 : 0;
         choice(banners, R.string.ui_notification_mode, new int[]{R.string.ui_notification_off, R.string.ui_notification_banners, R.string.ui_notification_all}, mode,
                 selected -> prefs.edit().putBoolean(ModuleSettings.KEY_HEADS_UP_ISLAND, selected > 0)

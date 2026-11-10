@@ -123,6 +123,14 @@ final class IslandPlacement {
         return window != null && view != null;
     }
 
+    boolean canPresent() {
+        android.app.KeyguardManager keyguard = ctx.getSystemService(android.app.KeyguardManager.class);
+        android.os.UserManager users = ctx.getSystemService(android.os.UserManager.class);
+        return ready() && window.isAdded() && view.isAttachedToWindow() && view.canPeek()
+                && (keyguard == null || !keyguard.isKeyguardLocked())
+                && (users == null || users.isUserUnlocked());
+    }
+
     // ---- status bar and window -----------------------------------------------------------------
 
     void scheduleFallbackWindow() {

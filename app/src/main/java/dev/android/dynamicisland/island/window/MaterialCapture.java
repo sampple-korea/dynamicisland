@@ -23,9 +23,13 @@ import java.util.function.Consumer;
 /** Cropped compositor backdrop excluding our entire window, processed off the SystemUI main thread. */
 final class MaterialCapture {
     private static final int SAMPLE_WIDTH=420;
-    private static final long PERIOD_MS=100;
     private static final long PREWARM_PERIOD_MS=1000;
-    private long periodMs=PERIOD_MS;
+    private final MaterialCaptureCadence cadence=new MaterialCaptureCadence();
+    private boolean prewarming;
+    private long reportAt,rateStarted;
+    private int published;
+    private double effectiveHz;
+    private long periodMs() { return prewarming?PREWARM_PERIOD_MS:cadence.periodMs(); }
     private final View host;
     private final Consumer<MaterialFrame> receiver;
     private final Handler main=new Handler(Looper.getMainLooper());
@@ -76,8 +80,9 @@ final class MaterialCapture {
         if(active&&(oldWidth!=displaySize.x||oldHeight!=displaySize.y)){epoch++;requested.setEmpty();receiver.accept(null);}
         Rect safe=new Rect(bounds);
         if(!safe.intersect(0,0,displaySize.x,displaySize.y)) { stop();return; }
-        long nextPeriod=prewarming?PREWARM_PERIOD_MS:PERIOD_MS;
-        boolean changedMode=periodMs!=nextPeriod;periodMs=nextPeriod;
+        boolean changedMode=this.prewarming!=prewarming;
+        this.prewarming=prewarming;
+        if(changedMode||!active) {cadence.reset();rateStarted=now;published=0;effectiveHz=0;}
         if(!active) {epoch++;requested.set(safe);}
         else if(changedMode) {
             // Replace the full-display warm crop with the actual stack crop,
@@ -93,11 +98,13 @@ final class MaterialCapture {
         if(!active) { active=true;main.post(tick); }
     }
     void refresh() {
+        // An in-flight completion owns scheduling; refresh never adds a second capture.
         if(active&&!busy){main.removeCallbacks(tick);main.post(tick);}
     }
     void stop() {
         if(!active)return;
         active=false;epoch++;main.removeCallbacks(tick);receiver.accept(null);lastPublishedAt=0;
+        cadence.reset();reportAt=0;published=0;effectiveHz=0;
         // Drop caches on the worker after any in-flight readback. Never recycle a displayed bitmap.
         worker.execute(() -> {lastPixels=null;lastFrame=null;lastBounds=null;});
     }
@@ -110,11 +117,11 @@ final class MaterialCapture {
     }
     private void request() {
         if(!active||destroyed||failed)return;
-        if(busy){main.postDelayed(tick,periodMs);return;}
+        if(busy)return;
         try {
             if(!host.isAttachedToWindow()||!host.isShown()||host.getWindowVisibility()!=View.VISIBLE) {stop();return;}
             SurfaceControl root=surface();
-            if(root==null||!root.isValid()) {main.postDelayed(tick,periodMs);return;}
+            if(root==null||!root.isValid()) {main.postDelayed(tick,periodMs());return;}
             if(copy==null) copy=SurfaceControl.class.getConstructor(SurfaceControl.class,String.class);
             if(isSame==null) isSame=SurfaceControl.class.getMethod("isSameSurface",SurfaceControl.class);
             SurfaceControl owned=copy.newInstance(root,"Island material capture exclusion");
@@ -124,10 +131,11 @@ final class MaterialCapture {
             Rect crop=new Rect(requested);int displayWidth=displaySize.x;
             android.view.ViewGroup.LayoutParams params=host.getRootView().getLayoutParams();
             int windowType=params instanceof WindowManager.LayoutParams ? ((WindowManager.LayoutParams)params).type : 0;
-            worker.execute(() -> capture(owned,crop,displayWidth,generation,start,windowType));
+            boolean warm=prewarming;
+            worker.execute(() -> capture(owned,crop,displayWidth,generation,start,windowType,warm));
         } catch(Throwable t) { fail(t); }
     }
-    private void capture(SurfaceControl exclusion,Rect crop,int displayWidth,long generation,long start,int windowType) {
+    private void capture(SurfaceControl exclusion,Rect crop,int displayWidth,long generation,long start,int windowType,boolean warm) {
         MaterialFrame result=null;Throwable error=null;
         try {
             if(api==null)api=new DisplayCaptureApi(host.getContext());
@@ -155,14 +163,26 @@ final class MaterialCapture {
                 if(fault!=null){fail(fault);return;}
                 if(frame!=null) {
                     receiver.accept(frame);lastPublishedAt=SystemClock.uptimeMillis();
-                    Diagnostics.fact("card material backdrop",periodMs==PREWARM_PERIOD_MS ? "compositor prewarmed while compact; 1 Hz" : "compositor below island; cropped, 10 Hz maximum");
+                    published++;
                 }else missing();
+                long now=SystemClock.uptimeMillis();
+                if(!prewarming&&!warm)cadence.completed(now-start,now);
+                if(now-reportAt>=1000) {
+                    long window=now-rateStarted;
+                    if(window>0)effectiveHz=published*1000d/window;
+                    Diagnostics.fact("card material backdrop",String.format(java.util.Locale.US,
+                            "%s target=%.1f Hz effective=%.1f Hz cost=%.1f ms published-age=%d ms",
+                            prewarming?"prewarm":"adaptive",1000d/periodMs(),effectiveHz,cadence.averageCostMs(),
+                            lastPublishedAt==0?-1:now-lastPublishedAt));
+                    reportAt=now;rateStarted=now;published=0;
+                }
             }catch(Throwable t){fail(t);}
             finally {
                 exclusion.release();
                 if(active&&!destroyed&&!failed) {
                     main.removeCallbacks(tick);
-                    main.postDelayed(tick,Math.max(16,periodMs-(SystemClock.uptimeMillis()-start)));
+                    long elapsed=SystemClock.uptimeMillis()-start;
+                    main.postDelayed(tick,prewarming ? Math.max(1,PREWARM_PERIOD_MS-elapsed) : cadence.delayAfter(elapsed));
                 }
             }
         });

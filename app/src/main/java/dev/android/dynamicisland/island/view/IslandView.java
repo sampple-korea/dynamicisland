@@ -661,7 +661,7 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
             return false;
         }
         director.peek(item, ms);
-        return true;
+        return isShowingCard(item);
     }
 
     /** Incoming cards may replace a manual card, but never a reply or a pulled-down shade. */
@@ -671,9 +671,10 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
     }
 
     public boolean isShowingCard(IslandItem item) {
-        if (item == null || !isExpanded() || scene.shadePulled()) return false;
+        if (item == null || !canPeek() || !isExpanded()) return false;
+        if (scene.iMode != null && !scene.iMode.isPresenting(item)) return false;
         for (Card card : scene.cards) {
-            if (card.item != null && (card.item.key.equals(item.key)
+            if (!card.leaving && card.item != null && card.item.postTime == item.postTime && (card.item.key.equals(item.key)
                     || item.sourceKey != null && item.sourceKey.equals(card.item.sourceKey))) return true;
         }
         return false;
@@ -1042,6 +1043,10 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
 
     void drawCompactGlow(Canvas canvas,RectF bounds,float alpha) {
         pillPainter.drawCompactGlow(canvas,bounds,alpha);
+    }
+
+    void drawCompactGlow(Canvas canvas, RectF bounds, float alpha, IslandItem item) {
+        pillPainter.drawCompactGlow(canvas, bounds, alpha, item);
     }
 
     // ---- drawing -------------------------------------------------------------------------------------------------

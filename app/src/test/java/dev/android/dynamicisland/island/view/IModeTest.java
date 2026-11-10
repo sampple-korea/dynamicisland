@@ -27,6 +27,110 @@ import org.robolectric.util.ReflectionHelpers;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk=35,qualifiers="en-rUS-w440dp-h400dp-mdpi")
 public class IModeTest {
+    @Test public void morphReplyButtonDispatchesOriginalRemoteInputAction() {
+        try(Fixture f=new Fixture(1)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_NOTIFICATION_MORPH,true).commit();ModuleSettings.configurePreview(f.prefs);
+            IslandItem alert=item("reply-morph",2);alert.kind=IslandItem.Kind.PEEK;alert.isMedia=false;
+            IslandItem.Action reply=new IslandItem.Action("Responder",null,null,null,false);
+            reply.remoteInputs=new android.app.RemoteInput[]{new android.app.RemoteInput.Builder("reply").build()};
+            alert.actions.add(reply);
+            f.view.setItems(List.of(alert,f.items.get(0)));assertTrue(f.view.peek(alert,5000));f.step(16,100);
+            Card card=f.active();
+            java.util.List<dev.android.dynamicisland.island.view.card.Btn> buttons=ReflectionHelpers.getField(card.body,"buttons");
+            assertEquals(1,buttons.size());
+            RectF target=new RectF(buttons.get(0).r);RectF bounds=f.bounds(card);target.offset(bounds.left,bounds.top);
+            f.tap(target);
+            assertEquals(1,f.actions.size());assertSame(reply,f.actions.get(0));
+            assertNotNull(f.actions.get(0).remoteInputs);
+        }
+    }
+    @Test public void morphUsesExistingFrostedGpuMaterialAndRendersActions() throws Exception {
+        try(Fixture f=new Fixture(1)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_NOTIFICATION_MORPH,true)
+                    .putInt(ModuleSettings.KEY_MATERIAL_STYLE,ModuleSettings.MATERIAL_FROSTED).commit();ModuleSettings.configurePreview(f.prefs);
+            IslandItem alert=item("glass-morph",2);alert.kind=IslandItem.Kind.PEEK;alert.isMedia=false;
+            alert.appName="WhatsApp";alert.title="Maria";alert.subtitle="Vamos tomar um café depois?";
+            alert.actions.add(new IslandItem.Action("Responder",null,null,null,false));
+            alert.actions.add(new IslandItem.Action("Marcar como lida",null,null,null,false));
+            f.view.setItems(List.of(alert,f.items.get(0)));assertTrue(f.view.peek(alert,5000));f.step(16,100);
+            Bitmap bitmap=capture(f,"");
+            assertNotNull(ReflectionHelpers.getField(f.active().material,"shader"));
+            writeMorphFrame(bitmap,"frosted-actions");
+            f.view.setItems(f.items);f.step(16,100);assertTrue(f.scene.cards.isEmpty());
+        }
+    }
+    @Test public void morphIsPaintedByIslandOverlayWithoutNativeBlurSlots() {
+        try(Fixture f=new Fixture(1)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_NOTIFICATION_MORPH,true).commit();ModuleSettings.configurePreview(f.prefs);
+            IslandItem alert=item("overlay-peek",2);alert.kind=IslandItem.Kind.PEEK;alert.isMedia=false;
+            f.view.setItems(List.of(alert,f.items.get(0)));assertTrue(f.view.peek(alert,5000));f.step(16,100);
+            Bitmap image=Bitmap.createBitmap(440,400,Bitmap.Config.ARGB_8888);
+            f.view.draw(new Canvas(image));
+            RectF bounds=f.bounds(f.active());
+            assertEquals(255,Color.alpha(image.getPixel((int)bounds.centerX(),(int)bounds.centerY())));
+        }
+    }
+    @Test public void repeatedPeekCanConvertAnAlreadyOpenedOrdinaryCardWithoutJump() {
+        try(Fixture f=new Fixture(1)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_NOTIFICATION_MORPH,true).commit();ModuleSettings.configurePreview(f.prefs);
+            IslandItem alert=item("double-dispatch",2);alert.kind=IslandItem.Kind.PEEK;alert.isMedia=false;
+            f.view.setItems(List.of(alert,f.items.get(0)));
+            f.scene.iMode.open(alert.key,false);f.step(16,4);
+            Card card=f.active();RectF before=f.bounds(card);
+            assertFalse(card.notificationMorph);
+            assertTrue(f.view.peek(alert,5000));
+            assertSame(card,f.active());assertTrue(card.notificationMorph);
+            assertEquals(before,f.bounds(card));
+            f.step(16,100);
+            assertTrue(card.body instanceof dev.android.dynamicisland.island.view.card.NotificationMorphBody);
+            RectF settled=f.bounds(card);
+            assertTrue(f.view.peek(alert,5000));assertEquals(settled,f.bounds(card));
+            f.step(16,100);assertEquals(settled.top,f.bounds(card).top,.1f);
+        }
+    }
+    @Test public void morphProducesIntermediateFramesAndPreservesBodyOnRelayout() throws Exception {
+        try(Fixture f=new Fixture(1)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_NOTIFICATION_MORPH,true).commit();ModuleSettings.configurePreview(f.prefs);
+            IslandItem alert=item("morph-frames",2);alert.kind=IslandItem.Kind.PEEK;alert.isMedia=false;
+            alert.title="WhatsApp · Maria";alert.subtitle="Mensagem de teste para conferir a expansão e o recolhimento.";
+            f.view.setItems(List.of(alert,f.items.get(0)));assertTrue(f.view.peek(alert,5000));
+            Card card=f.active();float initial=f.bounds(card).height();
+            f.step(16,6);float intermediate=f.bounds(card).height();
+            assertTrue(intermediate>initial);assertTrue(intermediate<card.targetH);
+            Bitmap entering=capture(f,"");
+            f.step(16,24);Bitmap settled=capture(f,"");
+            assertFalse(entering.sameAs(settled));
+            writeMorphFrame(entering,"entering");
+            writeMorphFrame(settled,"settled");
+            f.scene.iMode.relayout();
+            assertTrue(card.body instanceof dev.android.dynamicisland.island.view.card.NotificationMorphBody);
+            f.view.setItems(f.items);f.step(16,6);
+            writeMorphFrame(capture(f,"Morph · returning"),"returning");
+            f.step(16,100);assertTrue(f.scene.cards.isEmpty());
+        }
+    }
+    private static void writeMorphFrame(Bitmap frame,String name) throws Exception {
+        File directory=new File("build/render/morph-review");directory.mkdirs();
+        try(java.io.FileOutputStream stream=new java.io.FileOutputStream(new File(directory,name+".png"))) {
+            assertTrue(frame.compress(Bitmap.CompressFormat.PNG,100,stream));
+        }
+    }
+    @Test public void notificationMorphUsesCameraRowAndReturnsToExistingActivity() {
+        try(Fixture f=new Fixture(1)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_NOTIFICATION_MORPH,true).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            IslandItem alert=item("morph",2);alert.kind=IslandItem.Kind.PEEK;alert.isMedia=false;
+            f.view.setItems(List.of(alert,f.items.get(0)));
+            assertTrue(f.view.peek(alert,5000));
+            Card card=f.active();assertTrue(card.notificationMorph);
+            f.step(16,100);
+            assertEquals(15,f.bounds(card).top,1);
+            assertTrue(card.body instanceof dev.android.dynamicisland.island.view.card.NotificationMorphBody);
+            f.view.setItems(f.items);f.step(16,100);
+            assertEquals(Mode.COMPACT,f.scene.mode);
+            assertTrue(f.scene.cards.isEmpty());
+        }
+    }
     private static final class Fixture implements AutoCloseable {
         final Context context=RuntimeEnvironment.getApplication();
         final SharedPreferences prefs=context.getSharedPreferences("imode-test",0);
@@ -36,6 +140,7 @@ public class IModeTest {
         final Scene scene;
         final List<IslandItem> items=new ArrayList<>();
         final List<String> closed=new ArrayList<>();
+        final List<IslandItem.Action> actions=new ArrayList<>();
         Fixture(int count) {
             ShadowChoreographer.setFrameDelay(Duration.ofMillis(16));
             ShadowChoreographer.setPaused(true);
@@ -45,6 +150,7 @@ public class IModeTest {
             IslandHost host=(IslandHost)java.lang.reflect.Proxy.newProxyInstance(getClass().getClassLoader(),
                     new Class<?>[]{IslandHost.class},(proxy,method,args)->switch(method.getName()) {
                         case "onPeekClosed" -> { closed.add((String)args[0]); yield null; }
+                        case "onItemAction" -> { actions.add((IslandItem.Action)args[1]);yield null; }
                         case "hasMinimized", "onShadeFade" -> false;
                         default -> null;
                     });
@@ -698,7 +804,7 @@ public class IModeTest {
         p.setColor(0xff242428);canvas.drawRoundRect(new RectF(16,185,424,227),21,21,p);
         p.setColor(0xff9c9ca4);p.setTextSize(15);canvas.drawText("Search settings",36,212,p);
         int cardFade=canvas.saveLayerAlpha(0,0,440,330,Math.round(255*IslandView.clamp01(f.scene.visibleAlpha())));
-        for(int i=f.scene.cards.size()-1;i>=0;i--) f.view.drawCard(canvas,f.scene.cards.get(i),IslandView.now());
+        for(int i=f.scene.cards.size()-1;i>=0;i--) if(!f.scene.cards.get(i).notificationMorph) f.view.drawCard(canvas,f.scene.cards.get(i),IslandView.now());
         canvas.restoreToCount(cardFade);
         f.view.draw(canvas);
         p.setColor(0xffc4c4ce);p.setTextSize(13);

@@ -68,9 +68,13 @@ public final class FrostedSurface {
                 if(missingSince<0)missingSince=now;
                 if(now-missingSince<MISSING_FRAME_GRACE_MS)next=current.frame;
             }
-            // Finish each blend before adopting the latest delivered frame.
-            // An early next capture stays in Scene; it cannot reset a blend halfway.
-            if(!blending&&next!=current.frame) {
+            // Continuous valid captures are live inputs, not 90 ms transitions.
+            // Keep blending only for entering/leaving the captured material.
+            if(next!=null&&current.frame!=null&&next!=current.frame) {
+                if(blending&&previous.frame==null) current=new Input(next);
+                else { previous=current=new Input(next);blending=false; }
+                bind=true;
+            } else if(!blending&&next!=current.frame) {
                 previous=current;current=new Input(next);blendStartedAt=now;blending=true;bind=true;
             }
             boolean beforeChanged=previous.update(bounds,screenBounds);
@@ -107,7 +111,7 @@ public final class FrostedSurface {
             shader.setFloatUniform("materialAmount",Math.max(0,Math.min(1,amount)));
             int save=canvas.save();canvas.translate(bounds.left,bounds.top);
             canvas.drawRect(0,0,bounds.width(),bounds.height(),paint);canvas.restoreToCount(save);
-            Diagnostics.fact("card material",current.frame==null ? "frosted GPU; stable local backdrop" : "frosted GPU; interpolated captured backdrop; G2 curved lighting");
+            Diagnostics.fact("card material",current.frame==null ? "frosted GPU; stable local backdrop" : "frosted GPU; live captured backdrop; G2 curved lighting");
             return true;
         }catch(Throwable t) {
             unavailable=true;clear();XLog.once("frosted material unavailable",t);

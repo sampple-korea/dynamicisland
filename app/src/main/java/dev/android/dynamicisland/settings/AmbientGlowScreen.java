@@ -46,6 +46,7 @@ final class AmbientGlowScreen {
         Preview preview=new Preview(colour(),strength());
         example.addView(preview,new LinearLayout.LayoutParams(-1,ui.dp(132)));
         LinearLayout settings=ui.card(activity.page());
+        activity.toggle(settings,R.string.glow_by_app,R.string.glow_by_app_summary,ModuleSettings.KEY_GLOW_BY_APP,false);
         activity.choice(settings,R.string.glow_visibility,new int[]{R.string.glow_music_only,R.string.glow_all_activities},
                 prefs.getBoolean(ModuleSettings.KEY_GLOW_MUSIC_ONLY,true)?0:1,
                 selected->prefs.edit().putBoolean(ModuleSettings.KEY_GLOW_MUSIC_ONLY,selected==0).apply());

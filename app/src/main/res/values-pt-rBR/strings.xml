@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="notification_morph">Notification Morph</string>
+    <string name="notification_morph_summary">Transforma a cápsula em uma notificação expandida, com animações suaves e integradas à Ilha Dinâmica. Requer iMotion.</string>
+    <string name="glow_by_app">Brilho por aplicativo</string>
+    <string name="glow_by_app_summary">Iluminar as bordas da Ilha Dinâmica com a cor do aplicativo que enviou a notificação.</string>
     <!-- Partial translation: untranslated resources fall back to values/strings.xml. -->
     <string name="settings_hint">Ative o módulo para a interface do sistema no LSPosed. As alterações são aplicadas em alguns segundos.</string>
     <string name="setting_card_header">Cabeçalho do cartão</string>

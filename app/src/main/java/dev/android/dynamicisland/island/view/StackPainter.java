@@ -191,6 +191,11 @@ final class StackPainter {
             boolean legacy = ModuleSettings.legacyAnimation();
             for (int n = 0; n < scene.cards.size(); n++) {
                 Card c = scene.cards.get(legacy ? n : scene.cards.size() - 1 - n);
+                if(c.notificationMorph) {
+                    // The opaque morph belongs to the capsule overlay, independently of native blur slots.
+                    blur.release(c);
+                    continue;
+                }
                 shapes.card(c, slot);
                 if (slot.width() >= 1.0f && slot.height() >= 1.0f) {
                     float opening = visualOpening(c, shapes.expansion(c));
@@ -268,7 +273,7 @@ final class StackPainter {
         if(frosted&&c.material.animating(t)&&materialFrameRequester!=null)materialFrameRequester.run();
         if(canFrost&&!frosted&&materialFrameRequester!=null)materialFrameRequester.run();
         if (!frosted) {
-            paints.card.setColor(fillColor(opening, blurFraction(c, opening)));
+            paints.card.setColor(c.notificationMorph ? Colors.BLACK : fillColor(opening, blurFraction(c, opening)));
             canvas.drawRoundRect(r, corner, corner, paints.card);
         }
         // iMotion carries its pill contrast rim in the overlay, outside native slot clipping.
@@ -296,6 +301,7 @@ final class StackPainter {
         if (frosted) MaterialShape.path(clip, r, corner,cornerPower);
         else clip.addRoundRect(r, corner, corner, Path.Direction.CW);
         canvas.clipPath(clip);
+        if(c.notificationMorph) canvas.clipRect(r.left,Math.max(r.top,m.cy+m.holeD/2+m.holeGap),r.right,r.bottom);
         float backgroundAlpha=c.iMode && c.item.isMedia ? Easing.easeOutCubic(opening) : alpha;
         if (!frosted || !c.item.isMedia) drawBackground(c.body, canvas, r, backgroundAlpha);
         Canvas target = canvas;

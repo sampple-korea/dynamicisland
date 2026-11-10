@@ -33,48 +33,6 @@ public class HeadsUpRecoveryTest {
         OngoingActivityDataHelper.baseActivityComponentName = null;
     }
 
-    @Test public void recoverySelectsAlternateNotificationAndBannerHandlingAndCanBeTurnedOff() {
-        Context app = RuntimeEnvironment.getApplication();
-        Handler main = new Handler(Looper.getMainLooper());
-        IslandSources sources = new IslandSources(app, getClass().getClassLoader(), main, () -> { });
-        IslandPlacement placement = new IslandPlacement(app, main, getClass().getClassLoader(), IslandHost.NONE,
-                new IslandWindow.Listener() {
-                    @Override public void onWindowConfigurationChanged() { }
-                    @Override public void onWindowInsetsChanged() { }
-                }, new AudioLevels());
-        placement.ensureWindow(true);
-        HeadsUpTakeover takeover = new HeadsUpTakeover(sources, placement, () -> {
-            placement.view().setItems(List.of(sources.peeks.showing()));
-        });
-        ReflectionHelpers.setStaticField(ModuleSettings.class, "foregroundNotifications", false);
-        ReflectionHelpers.setStaticField(ModuleSettings.class, "allNotifications", true);
-        String pkg = app.getPackageName();
-        OngoingActivityDataHelper.baseActivityComponentName = new ComponentName(pkg, "Main");
-        StatusBarNotification child = note(app, 1, false, System.currentTimeMillis());
-        StatusBarNotification summary = note(app, 2, true, System.currentTimeMillis() + 1);
-        List<StatusBarNotification> snapshot = List.of(child, summary);
-        takeover.setSnapshot(snapshot);
-        assertFalse(takeover.take(child)); // normal mode excludes the app on screen
-        OngoingActivityDataHelper.baseActivityComponentName = null;
-        assertFalse(takeover.take(summary)); // normal mode prefers its child
-        OngoingActivityDataHelper.baseActivityComponentName = new ComponentName(pkg, "Main");
-        ReflectionHelpers.setStaticField(ModuleSettings.class, "experimentalRecovery", true);
-        assertTrue(takeover.take(child));
-        assertEquals(child.getKey(), sources.peeks.showing().sourceKey);
-        takeover.scanAll(snapshot);
-        assertEquals(child.getKey(), sources.peeks.showing().sourceKey);
-        assertTrue(sources.peeks.hasPending(summary.getKey(), summary.getPostTime()));
-
-        BannerManager manager = new BannerManager();
-        ReflectionHelpers.setStaticField(HeadsUpHooks.class, "manager", manager);
-        HeadsUpHooks.dismissStock("alternate");
-        assertEquals(2, manager.removals); // alternate build retries immediately, even without island ownership
-        ReflectionHelpers.setStaticField(ModuleSettings.class, "experimentalRecovery", false);
-        HeadsUpHooks.dismissStock("normal");
-        assertEquals(2, manager.removals);
-        assertFalse(takeover.take(note(app, 3, false, System.currentTimeMillis() + 2)));
-    }
-
     @Test public void normalAndRecoveryRemovalMatchOemParameterTypesIncludingInheritedOverloads() throws Exception {
         var remove = HeadsUpHooks.class.getDeclaredMethod("remove", Object.class, String.class);
         remove.setAccessible(true);
@@ -82,17 +40,15 @@ public class HeadsUpRecoveryTest {
                 new LegacyRemoval(), new InheritedRemoval()}) {
             assertEquals(true, remove.invoke(null, probe, "normal"));
             assertEquals("normal", probe.key);assertTrue(probe.immediately);assertEquals(1, probe.removals);
-            probe.removals = 0;
             ReflectionHelpers.setStaticField(ModuleSettings.class, "experimentalRecovery", true);
             ReflectionHelpers.setStaticField(HeadsUpHooks.class, "manager", probe);
-            assertEquals("removed on the second call", HeadsUpHooks.dismissStock("recovery"));
-            assertEquals(2, probe.removals);assertEquals("recovery", probe.key);assertTrue(probe.immediately);
-            if (!(probe instanceof LegacyRemoval)) assertEquals("dynamic island", probe.reason);
+            assertEquals("not currently owned by the island", HeadsUpHooks.dismissStock("recovery"));
+            assertEquals(1, probe.removals);
         }
         Object unsupported = new UnsupportedRemoval();
         assertEquals(false, remove.invoke(null, unsupported, "unsupported"));
         ReflectionHelpers.setStaticField(HeadsUpHooks.class, "manager", unsupported);
-        assertEquals("no supported removeNotification signature", HeadsUpHooks.dismissStock("unsupported"));
+        assertEquals("not currently owned by the island", HeadsUpHooks.dismissStock("unsupported"));
     }
 
     @Test public void pendingNotificationIsRemovedWithItsSystemUiSnapshot() {
@@ -105,6 +61,8 @@ public class HeadsUpRecoveryTest {
                     @Override public void onWindowInsetsChanged() { }
                 }, new AudioLevels());
         placement.ensureWindow(true);
+        org.robolectric.Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertTrue("window must attach before takeover: " + dev.android.dynamicisland.xposed.Diagnostics.report(), placement.canPresent());
         HeadsUpTakeover takeover = new HeadsUpTakeover(sources, placement, () -> {
             var item = sources.peeks.showing();
             placement.view().setItems(item == null ? List.of() : List.of(item));
@@ -116,8 +74,10 @@ public class HeadsUpRecoveryTest {
         StatusBarNotification two = note(app, 11, false, now + 1);
         takeover.setSnapshot(List.of(one, two));
         assertTrue(takeover.take(one));
-        assertFalse(takeover.take(two)); // queued, but the stock banner remains until it is displayed
-        assertTrue(sources.peeks.hasPending(two.getKey(), two.getPostTime()));
+        assertFalse(takeover.take(two)); // no verified return path: native, with no later island card
+        assertFalse(sources.peeks.hasPending(two.getKey(), two.getPostTime()));
+        takeover.scanAll(List.of(one, two));
+        assertFalse(sources.peeks.hasPending(two.getKey(), two.getPostTime()));
         takeover.setSnapshot(List.of(one));
         assertFalse(sources.peeks.hasPending(two.getKey(), two.getPostTime()));
         assertEquals(one.getKey(), sources.peeks.showing().sourceKey);

@@ -52,11 +52,14 @@ public class FrostedSurfaceTest {
         MaterialFrame blueFrame=new MaterialFrame(Bitmap.createBitmap(blueData.argb(),116,160,Bitmap.Config.ARGB_8888),
                 blueData,new Rect(0,0,1164,1600),1164);
         assertTrue(surface.draw(canvas,blueFrame,bounds,100,1,null,1200));
-        assertTrue("later captures blend from current pixels, never black",ready.sameAs(paintedShell(surface,1072,247)));
+        assertFalse("a live capture is visible immediately",ready.sameAs(paintedShell(surface,1072,247)));
+        assertFalse("live updates do not keep a 90ms animation running",surface.animating(1200));
+        assertTrue(surface.draw(canvas,frame,bounds,100,1,null,1216));
+        assertTrue("the newest frame wins even within the old blend interval",ready.sameAs(paintedShell(surface,1072,247)));
         assertTrue(surface.draw(canvas,blueFrame,bounds,100,1,null,1245));
         Bitmap updating=paintedShell(surface,1072,247);assertFalse(ready.sameAs(updating));
         assertTrue(surface.draw(canvas,blueFrame,bounds,100,1,null,1290));
-        Bitmap blueReady=paintedShell(surface,1072,247);assertFalse(updating.sameAs(blueReady));
+        Bitmap blueReady=paintedShell(surface,1072,247);assertTrue(updating.sameAs(blueReady));
         assertTrue(surface.draw(canvas,null,bounds,100,1,null,1300));
         assertTrue(surface.draw(canvas,null,bounds,100,1,null,1501));
         assertTrue("sustained loss begins at the last valid pixels",blueReady.sameAs(paintedShell(surface,1072,247)));

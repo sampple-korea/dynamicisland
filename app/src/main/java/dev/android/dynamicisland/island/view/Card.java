@@ -14,6 +14,7 @@ public final class Card {
     final ContentBlur contentBlur = new ContentBlur();
     final FrostedSurface material = new FrostedSurface();
     boolean iMode;
+    boolean notificationMorph;
     boolean iModePreview, iModePaging;
     final Spring iModeRole = new Spring(0, .28f, 1).setValueThreshold(.002f);
     final ContentBlur iModeCompactBlur = new ContentBlur();

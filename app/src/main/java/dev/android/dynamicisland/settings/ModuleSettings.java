@@ -100,6 +100,7 @@ public final class ModuleSettings {
     public static final int PILL_Y_MIN_DP = -16;
     public static final int PILL_Y_MAX_DP = 64;
     public static final String KEY_HEADS_UP_ISLAND = "heads_up_island";
+    public static final String KEY_NOTIFICATION_MORPH = "notification_morph";
     public static final String KEY_FOREGROUND_NOTIFICATIONS = "foreground_notifications";
     public static final String KEY_AUTO_OPEN_CARDS = "auto_open_cards";
     public static final String KEY_EXPERIMENTAL_RECOVERY = "experimental_notification_recovery";
@@ -112,6 +113,7 @@ public final class ModuleSettings {
     public static final String KEY_GLOW_STRENGTH = "ambient_glow_strength";
     public static final String KEY_GLOW_MOTION = "ambient_glow_motion";
     public static final String KEY_GLOW_MUSIC_ONLY = "ambient_glow_music_only";
+    public static final String KEY_GLOW_BY_APP = "ambient_glow_by_app";
     public static final String KEY_GLOW_COLOUR = "ambient_glow_colour";
     public static final String KEY_GLOW_ALBUM = "ambient_glow_album";
     public static final String KEY_GLOW_FOLLOW_THEME = "ambient_glow_follow_theme";
@@ -174,6 +176,7 @@ public final class ModuleSettings {
     private static volatile boolean iMode;
     private static volatile boolean alwaysVisible;
     private static volatile boolean headsUpIsland = true;
+    private static volatile boolean notificationMorph;
     private static volatile boolean allNotifications;
     private static volatile boolean foregroundNotifications;
     private static volatile boolean autoOpenCards;
@@ -185,6 +188,7 @@ public final class ModuleSettings {
     private static volatile int accentColor = DEFAULT_ACCENT;
     private static volatile boolean ambientGlow = true;
     private static volatile boolean glowMusicOnly = true;
+    private static volatile boolean glowByApp;
     private static volatile boolean glowAlbum = true;
     private static volatile boolean glowFollowTheme;
     private static volatile int glowStrength = DEFAULT_GLOW_STRENGTH;
@@ -493,6 +497,7 @@ public final class ModuleSettings {
             alwaysVisible = source.getBoolean(KEY_ALWAYS_VISIBLE, false);
             pillOutlineMode = readPillOutlineMode(source);
             headsUpIsland = source.getBoolean(KEY_HEADS_UP_ISLAND, true);
+            notificationMorph = source.getBoolean(KEY_NOTIFICATION_MORPH, false);
             progressNotifications = source.getBoolean(KEY_PROGRESS_NOTIFICATIONS, true);
             allNotifications = source.getBoolean(KEY_ALL_NOTIFICATIONS, false);
             hideProgressOriginals = source.getBoolean(KEY_HIDE_PROGRESS_ORIGINALS, true);
@@ -603,8 +608,10 @@ public final class ModuleSettings {
     }
 
     private static void readGlow(SharedPreferences source) {
+        notificationMorph = source.getBoolean(KEY_NOTIFICATION_MORPH, false);
         ambientGlow = source.getBoolean(KEY_AMBIENT_GLOW, true);
         glowMusicOnly = source.getBoolean(KEY_GLOW_MUSIC_ONLY, true);
+        glowByApp = source.getBoolean(KEY_GLOW_BY_APP, false);
         glowAlbum = source.getBoolean(KEY_GLOW_ALBUM, true);
         glowFollowTheme = source.getBoolean(KEY_GLOW_FOLLOW_THEME, false);
         glowStrength = Math.max(0, Math.min(100, source.getInt(KEY_GLOW_STRENGTH, DEFAULT_GLOW_STRENGTH)));
@@ -615,6 +622,7 @@ public final class ModuleSettings {
     public static boolean ambientGlow() { ensureStarted(); return ambientGlow && glowStrength > 0 && !lowPerformance; }
     public static boolean glowAlbum() { return glowAlbum; }
     public static boolean glowMusicOnly() { return glowMusicOnly; }
+    public static boolean glowByApp() { return glowByApp; }
     public static int glowStrength() { return glowStrength; }
     public static int glowMotion() { return glowMotion; }
     public static int glowColour() {
@@ -660,10 +668,10 @@ public final class ModuleSettings {
     private static String lastSwitches;
 
     private static String switchSignature() {
-        return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/" + glowColour + lowPerformance + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + progressNotifications + hideProgressOriginals
+        return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/byApp=" + glowByApp + "/" + glowColour + lowPerformance + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + progressNotifications + hideProgressOriginals
                 + smartRules + privacyIndicator + privacyLocation + otpCard + otpAutoCopy + thirdPartyCalls + visualizer + colorIcons + shadeMedia + cardHeader
                 + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/stockCharging=" + stockChargingAnimation + "/recordingInput=" + concurrentRecordingInput
-                + "/alwaysVisible=" + alwaysVisible + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/" + appFilter.onlyListed() + appFilter.size();
+                + "/morph=" + notificationMorph + "/alwaysVisible=" + alwaysVisible + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/" + appFilter.onlyListed() + appFilter.size();
     }
 
     /** One line in the event log whenever the values the module runs on differ from the last read. */
@@ -765,6 +773,8 @@ public final class ModuleSettings {
         ensureStarted();
         return headsUpIsland;
     }
+
+    public static boolean notificationMorph() { return notificationMorph && !lowPerformance; }
 
     /** Drop the shade row of a progress notification while the island shows its card. */
     public static boolean hideProgressOriginals() {

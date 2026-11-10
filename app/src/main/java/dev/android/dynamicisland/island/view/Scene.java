@@ -63,6 +63,18 @@ final class Scene {
         return paused;
     }
 
+    /** Use the active notification only; outgoing layers and dismissed cards must not retain its glow. */
+    IslandItem notificationForGlow() {
+        if (peekOpen) {
+            for (Card card : cards) {
+                if (!card.leaving && card.item != null && card.item.sourceKey != null
+                        && !card.item.isMedia && card.item.packageName != null) return card.item;
+            }
+        }
+        IslandItem item = primary;
+        return item != null && item.sourceKey != null && !item.isMedia && item.packageName != null ? item : null;
+    }
+
     int pillBodyColor(Layer layer) {
         if (layer == null || mode != Mode.COMPACT) return 0xFF000000;
         IslandItem item = layer.content.item;
