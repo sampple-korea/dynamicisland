@@ -59,7 +59,7 @@ public final class HideDuplicated {
     /** Original key to the uptime at which it was last hidden, for the grace period. */
     private static final Map<String, Long> LAST_HIDDEN = new HashMap<>();
     private static final Map<String, String> APP_LABELS = new HashMap<>();
-    private static final Handler MAIN = new Handler(Looper.getMainLooper());
+    private static final Handler MAIN = new dev.android.dynamicisland.xposed.GuardedHandler(Looper.getMainLooper());
 
     private static Class<?> entryClass;
     /** One of the list builder's pre-group filters, kept to ask the builder for a rebuild. */
@@ -109,16 +109,21 @@ public final class HideDuplicated {
 
     private static void takeSnapshot(Collection<?> entries) {
         List<StatusBarNotification> snapshot = new ArrayList<>();
+        Map<String, Integer> importance = new HashMap<>();
         for (Object entry : entries) {
             StatusBarNotification sbn = entryClass.isInstance(entry) ? sbn(entry) : null;
             if (sbn != null) {
                 snapshot.add(sbn);
+                Object ranking = Refl.get(entry, "mRanking");
+                if (ranking instanceof android.service.notification.NotificationListenerService.Ranking) {
+                    importance.put(sbn.getKey(), ((android.service.notification.NotificationListenerService.Ranking) ranking).getImportance());
+                }
             }
         }
         refresh(snapshot);
         IslandController island = IslandController.get();
         if (island != null) {
-            island.onNotificationsSnapshot(snapshot);
+            island.onNotificationsSnapshot(snapshot, importance);
         }
     }
 

@@ -13,6 +13,7 @@ import dev.android.dynamicisland.island.graphics.Motion;
 import dev.android.dynamicisland.island.view.card.Btn;
 import dev.android.dynamicisland.island.view.card.MediaBody;
 import dev.android.dynamicisland.island.view.card.SliderBody;
+import dev.android.dynamicisland.settings.ModuleSettings;
 
 /**
  * Turns touches on the island into actions: pressing and tapping the pill, swiping it away or back, handing a
@@ -25,8 +26,15 @@ final class TouchController {
     static final float MIN_TOUCHABLE_ALPHA = 0.4f;
     private static final float SWIPE_MIN_DP = 26.0f;
     private static final float SWIPE_DOMINANCE = 1.2f;
-    private static final float SWIPE_UP_DISMISS_DP = 48.0f;
+    private static final float SWIPE_UP_DISMISS_DP = 40.0f;
+    /** How much more a move must go down than sideways to count as a pull down on a pill that began to page. */
+    private static final float PULL_DOWN_DOMINANCE = 1.5f;
     private static final float SWIPE_UP_CLOSE_DP = 30.0f;
+    /** A flick this fast (dp per second) closes after a short move: speed counts for distance. */
+    private static final float FLICK_UP_DP_PER_S = 900.0f;
+    private static final float FLICK_UP_MIN_DP = 10.0f;
+    /** On release the finger is taken as travelling this much longer: where the swipe was heading counts. */
+    private static final float RELEASE_LOOKAHEAD_S = 0.12f;
     private static final int HAPTIC_SEEK_DONE = HapticFeedbackConstants.CLOCK_TICK;
     private static final int HAPTIC_CONFIRM = HapticFeedbackConstants.CONTEXT_CLICK;
 
@@ -61,6 +69,13 @@ final class TouchController {
     private int pointerId;
     /** A downward drag on the pill is being forwarded to the notification shade. */
     private boolean forwardingShade;
+    /** A downward drag on the pill opens its cards under the finger (see {@link Director#beginPullOpen}). */
+    private boolean pullingOpen;
+    /** Holding the small pill still hides the island (iMotion), for when a swipe up is awkward to make. */
+    private final Runnable hideByHolding = this::hideByHolding;
+    private boolean holdPending;
+    private long traceStart;
+    private int traceMoves;
     private Axis axis = Axis.UNDECIDED;
     private boolean stackDragging;
     private VelocityTracker velocity;
@@ -88,13 +103,37 @@ final class TouchController {
         return e.getY(index < 0 ? 0 : index);
     }
 
+    private void cancelHold() {
+        if (!holdPending) return;
+        holdPending = false;
+        view.removeCallbacks(hideByHolding);
+    }
+
+    /** The finger stayed on the small pill without moving: hide the island, like a swipe up would. */
+    private void hideByHolding() {
+        holdPending = false;
+        if (scene.iMode == null || dragging || ignoreGesture || forwardingShade || downActivity == null
+                || scene.mode != Mode.COMPACT || scene.iMode.hiddenByGesture()) {
+            return;
+        }
+        scene.iMode.releasePress();
+        sp.press.animateTo(1.0f, Motion.PRESS_UP);
+        scene.iMode.hideByGesture(0);
+        if (scene.iMode.hiddenByGesture()) ignoreGesture = true; // lifting the finger afterwards is not a tap
+        view.scheduleFrame();
+    }
+
     boolean handle(MotionEvent e) {
         int action = e.getActionMasked();
+        if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+            cancelHold();
+        }
         if(action==MotionEvent.ACTION_DOWN) {
             recycleVelocity();
-            if(scene.iMode!=null) velocity=VelocityTracker.obtain();
+            velocity=VelocityTracker.obtain();
         }
         if(velocity!=null) velocity.addMovement(e);
+        traceTouch(e, action);
         if (action != MotionEvent.ACTION_DOWN && ignoreGesture) {
             if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
                 ignoreGesture = false;
@@ -132,7 +171,35 @@ final class TouchController {
         if(action==MotionEvent.ACTION_UP || action==MotionEvent.ACTION_CANCEL) recycleVelocity();
         return true;
     }
+    /** Writes how a drag that began on the pill ended (how many moves came, which action ended it, how far it went). */
+    private void traceTouch(MotionEvent e, int action) {
+        if (action == MotionEvent.ACTION_DOWN) {
+            traceStart = e.getEventTime();
+            traceMoves = 0;
+        } else if (action == MotionEvent.ACTION_MOVE) {
+            traceMoves++;
+        } else if ((action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) && traceMoves > 0
+                && (downOnPill || downOnBubble)) {
+            dev.android.dynamicisland.xposed.Diagnostics.event("pill touch ended by " + (action == MotionEvent.ACTION_UP ? "UP" : "CANCEL")
+                    + " after " + (e.getEventTime() - traceStart) + " ms, " + traceMoves + " moves, dy "
+                    + Math.round(y(e) - downY) + " px, dx " + Math.round(x(e) - downX) + " px, "
+                    + (pullingOpen ? "pulling" : "not pulling") + ", " + (scene.iMode != null ? "iMotion" : "stack"));
+        }
+    }
+
     private void recycleVelocity() { if(velocity!=null) velocity.recycle();velocity=null; }
+
+    /** How fast the finger is moving up right now, in px per second (0 when it is not, or nothing is tracked). */
+    private float upwardSpeed() {
+        if(velocity==null) return 0;
+        velocity.computeCurrentVelocity(1000,m.dp(8000));
+        return Math.max(0,-velocity.getYVelocity(pointerId));
+    }
+
+    /** A swipe up has gone far enough to act on: far enough, or a quick flick that only needs a short move. */
+    private boolean swipedUp(float dy) {
+        return dy < -m.dp(SWIPE_UP_CLOSE_DP) || (dy < -m.dp(FLICK_UP_MIN_DP) && upwardSpeed() > m.dp(FLICK_UP_DP_PER_S));
+    }
 
     // ---- down -------------------------------------------------------------------------------------------------------
 
@@ -149,7 +216,7 @@ final class TouchController {
         downCard = null;
         downActivity = null;
         downOnHole = false;
-        if (scene.mode == Mode.HIDDEN || scene.mode == Mode.IDLE) {
+        if (scene.mode == Mode.HIDDEN) {
             downOnHole = host.hasMinimized() || scene.iMode!=null && scene.iMode.hiddenByGesture();
             return;
         }
@@ -159,7 +226,14 @@ final class TouchController {
         float margin = m.dp(TOUCH_MARGIN_DP);
         if(scene.iMode!=null) {
             downActivity=scene.iMode.hit(downX,downY,margin);
-            if(downActivity!=null) { downOnPill=true; scene.iMode.press(downActivity); director.cancelAutoCollapse(); return; }
+            if(downActivity!=null) {
+                downOnPill=true; scene.iMode.press(downActivity); director.cancelAutoCollapse();
+                if (scene.mode == Mode.COMPACT) {
+                    holdPending = true;
+                    view.postDelayed(hideByHolding, ViewConfiguration.getLongPressTimeout());
+                }
+                return;
+            }
         }
         if (scene.mode == Mode.EXPANDED) {
             downOnCards(margin);
@@ -245,6 +319,10 @@ final class TouchController {
             host.onShadeDragEvent(e);
             return;
         }
+        if (pullingOpen) {
+            director.pullOpen(pullProgress(y(e) - downY));
+            return;
+        }
         if (view.sliderBody != null && downCard != null) {
             view.sliderFraction = view.sliderBody.valueAfterDrag(sliderStart, x(e) - downX);
             view.sliderBody.onSliderMove(y(e) - downY);
@@ -267,6 +345,7 @@ final class TouchController {
         }
         if (!dragging && (Math.abs(dx) > touchSlop || Math.abs(dy) > touchSlop)) {
             dragging = true;
+            cancelHold();
             if(scene.iMode!=null) scene.iMode.releasePress();
             buttons.release();
             sp.press.animateTo(1.0f, Motion.PRESS_UP);
@@ -277,21 +356,78 @@ final class TouchController {
         boolean onIsland = downOnPill || downOnBubble;
         if(scene.iMode!=null && downActivity!=null) {
             // Status-row paging owns horizontal drags; downward drags still open the system shade.
-            if(scene.iMode.hasCompactDrag()) scene.iMode.dragCompact(dx);
-            else if(dy < -m.dp(SWIPE_UP_CLOSE_DP) && -dy>Math.abs(dx)*SWIPE_DOMINANCE) {
-                scene.iMode.hideByGesture();ignoreGesture=true;return;
+            if(scene.iMode.hasCompactDrag() && dy>touchSlop*2 && dy>Math.abs(dx)*PULL_DOWN_DOMINANCE) {
+                // a sideways wobble at the start must not keep a clear pull down from reaching the shade
+                scene.iMode.cancelCompactPage();
+                pullDown(e);
             }
-            else if(dy>touchSlop && Math.abs(dy)>Math.abs(dx)) handOverToShade(e);
+            else if(scene.iMode.hasCompactDrag()) scene.iMode.dragCompact(dx);
+            else if(ModuleSettings.swipeUpHides() && swipedUp(dy) && -dy>Math.abs(dx)*SWIPE_DOMINANCE) {
+                scene.iMode.hideByGesture(upwardSpeed());ignoreGesture=true;return;
+            }
+            else if(dy>touchSlop && Math.abs(dy)>Math.abs(dx)) pullDown(e);
             else if(Math.abs(dx)>touchSlop && Math.abs(dx)>Math.abs(dy)) scene.iMode.dragCompact(dx);
         } else if (scene.mode == Mode.EXPANDED && downCardAlive()) {
             dragStack(dx, dy);
         } else if (scene.mode == Mode.COMPACT && onIsland && dy > touchSlop && Math.abs(dy) > Math.abs(dx)) {
-            handOverToShade(e);
+            pullDown(e);
         } else if (scene.mode == Mode.COMPACT && onIsland) {
             sp.offsetX.snapTo(Math.signum(dx) * Math.min(m.dp(16.0f), Math.abs(dx) * 0.18f));
             view.invalidate();
             view.notifyHost();
         }
+    }
+
+    /**
+     * A clear pull down on the small pill. Normally it goes to the notification panel; with "swipe down opens the
+     * island" it opens the pill's cards as a tap would, which is easier to reach than the pill itself.
+     */
+    private void pullDown(MotionEvent e) {
+        if (!ModuleSettings.swipeDownOpens()) {
+            handOverToShade(e);
+            return;
+        }
+        sp.press.animateTo(1.0f, Motion.PRESS_UP);
+        sp.offsetX.animateTo(0.0f, Motion.RUBBER_RELEASE);
+        if (scene.iMode == null && director.beginPullOpen()) {
+            // the cards follow the finger; letting go decides whether they open or fold back
+            pullingOpen = true;
+            director.pullOpen(pullProgress(y(e) - downY));
+            view.scheduleFrame();
+            return;
+        }
+        ignoreGesture = true; // the rest of this gesture, including lifting the finger, is not a tap
+        Haptics.perform(view, HAPTIC_CONFIRM);
+        if (scene.iMode != null && downActivity != null) {
+            scene.iMode.open(downActivity, true);
+        } else {
+            director.expandFromPill();
+        }
+        view.scheduleFrame();
+    }
+
+    /** How far the cards are open for a pull of {@code dy} px: 0 at the touch slop, 1 after the full distance. */
+    private float pullProgress(float dy) {
+        return Math.max(0.0f, dy - touchSlop) / Math.max(1.0f, m.dp(Director.PULL_OPEN_DISTANCE_DP));
+    }
+
+    /** How fast the finger is moving down right now, in px per second (0 when it is not, or nothing is tracked). */
+    private float downwardSpeed() {
+        if (velocity == null) return 0;
+        velocity.computeCurrentVelocity(1000, m.dp(8000));
+        return Math.max(0, velocity.getYVelocity(pointerId));
+    }
+
+    /** The finger let go while it was opening the cards: open them for good, or let them fold back. */
+    private void finishPullOpen(MotionEvent e) {
+        pullingOpen = false;
+        float dy = y(e) - downY;
+        float speed = downwardSpeed();
+        float distance = Math.max(1.0f, m.dp(Director.PULL_OPEN_DISTANCE_DP));
+        // where the finger was heading counts, as it does for the swipe up
+        float heading = pullProgress(dy) + (speed * RELEASE_LOOKAHEAD_S) / distance;
+        boolean flick = dy > m.dp(Director.PULL_OPEN_FLICK_MIN_DP) && speed > m.dp(Director.PULL_OPEN_FLICK_DP_PER_S);
+        director.endPullOpen(heading >= Director.PULL_OPEN_COMMIT || flick, speed);
     }
 
     private void handOverToShade(MotionEvent e) {
@@ -310,7 +446,7 @@ final class TouchController {
         }
         stackDragging = true;
         if (axis == Axis.HORIZONTAL) {
-            if(scene.iMode!=null) { scene.iMode.dragPage(dx);return; }
+            if(scene.iMode!=null && !incomingPopup()) { scene.iMode.dragPage(dx);return; }
             float pull = rubber(dx, downCard.body.w * 0.55f);
             downCard.dx.snapTo(pull);
             for (Card other : scene.cards) {
@@ -318,11 +454,10 @@ final class TouchController {
                     other.dx.animateTo((0.12f * pull) / (Math.abs(other.order - downCard.order) + 1), 0.25f, 0.8f);
                 }
             }
-        } else if (dy < -m.dp(SWIPE_UP_CLOSE_DP)) {
-            // a swipe up closes the cards right away, without waiting for the finger to lift
-            releaseStack();
+        } else if (dy < -m.dp(FLICK_UP_MIN_DP) && upwardSpeed() > m.dp(FLICK_UP_DP_PER_S)) {
+            // a quick flick up folds the cards back at once, with the speed it was thrown at
+            foldCards(upwardSpeed());
             ignoreGesture = true;
-            if(scene.iMode!=null) scene.iMode.hideByGesture();else director.collapse();
             return;
         } else {
             sp.stackDy.snapTo(rubber(dy, m.dp(dy > 0.0f ? 90.0f : 60.0f)));
@@ -337,6 +472,10 @@ final class TouchController {
 
     private void up(MotionEvent e) {
         if(scene.iMode!=null) scene.iMode.releasePress();
+        if (pullingOpen) {
+            finishPullOpen(e);
+            return;
+        }
         if (forwardingShade) {
             forwardingShade = false;
             host.onShadeDragEvent(e);
@@ -420,6 +559,11 @@ final class TouchController {
     }
 
     private void dragReleased(boolean horizontal, float dx, float dy) {
+        if (incomingPopup() && scene.mode == Mode.EXPANDED && axis == Axis.HORIZONTAL) {
+            releaseStack();
+            if (horizontal) director.collapse();
+            return;
+        }
         if(scene.iMode!=null && scene.iMode.hasCompactDrag()) {
             float speed=0;
             if(velocity!=null) { velocity.computeCurrentVelocity(1000,m.dp(5000));speed=velocity.getXVelocity(pointerId); }
@@ -448,16 +592,46 @@ final class TouchController {
             } else {
                 host.onCycle(-1);
             }
-        } else if (scene.mode == Mode.EXPANDED && axis == Axis.VERTICAL && dy < -m.dp(SWIPE_UP_DISMISS_DP)) {
-            releaseStack();
-            director.collapse();
+        } else if (scene.mode == Mode.EXPANDED && axis == Axis.VERTICAL && dy < -m.dp(6)
+                && dy - (upwardSpeed() * RELEASE_LOOKAHEAD_S) < -m.dp(SWIPE_UP_DISMISS_DP)) {
+            // let go: far enough, counting where the finger was heading, folds the cards; otherwise they spring back
+            foldCards(upwardSpeed());
         } else if (scene.mode == Mode.EXPANDED) {
             releaseStack();
             director.postAutoCollapse();
         }
     }
 
+    /** Folds the open cards back into the pill (the island stays); a fast swipe carries its speed into the fold. */
+    private void foldCards(float upwardSpeed) {
+        releaseStack();
+        if(scene.iMode!=null) scene.iMode.collapse(upwardSpeed);else director.collapse();
+    }
+
+    /** A ringing banner can be put away without rejecting the call or paging to another activity. */
+    private boolean incomingPopup() {
+        return downCardAlive() && downCard.item.incomingCall;
+    }
+
     private void cancel(MotionEvent e) {
+        if (pullingOpen) {
+            pullingOpen = false;
+            // System UI takes a pull down from the top of an app for its own gestures and cancels ours; a pull that
+            // had clearly started is what the finger meant, so the cards open instead of folding back
+            boolean meant = y(e) - downY > touchSlop;
+            dev.android.dynamicisland.xposed.Diagnostics.event("pull down cancelled by the system, cards " + (meant ? "opened" : "folded"));
+            director.endPullOpen(meant, meant ? downwardSpeed() : 0.0f, Director.PULL_CUT_MAX_SPEED_PER_S);
+        } else if (cutShortPullDown(e)) {
+            dev.android.dynamicisland.xposed.Diagnostics.event("pull down cancelled by the system before it began, cards opened");
+            ignoreGesture = true;
+            if (director.beginPullOpen()) {
+                director.pullOpen(pullProgress(y(e) - downY));
+                director.endPullOpen(true, downwardSpeed(), Director.PULL_CUT_MAX_SPEED_PER_S);
+            } else {
+                Haptics.perform(view, HAPTIC_CONFIRM);
+                director.expandFromPill();
+            }
+        }
         if(scene.iMode!=null) scene.iMode.releasePress();
         if(scene.iMode!=null) scene.iMode.cancelPage();
         if(scene.iMode!=null) scene.iMode.cancelCompactPage();
@@ -476,6 +650,17 @@ final class TouchController {
             director.postAutoCollapse();
         }
         view.scheduleFrame();
+    }
+
+    /** A clear start of a pull down on the small pill that the system cancelled before it was a pull of ours. */
+    private boolean cutShortPullDown(MotionEvent e) {
+        if (scene.iMode != null || scene.mode != Mode.COMPACT || !(downOnPill || downOnBubble) || forwardingShade
+                || !ModuleSettings.swipeDownOpens() || ignoreGesture) {
+            return false;
+        }
+        float dy = y(e) - downY;
+        float dx = x(e) - downX;
+        return dy > touchSlop * 0.5f && dy > Math.abs(dx) * SWIPE_DOMINANCE;
     }
 
     /** Lets the dragged cards spring back to their places. */

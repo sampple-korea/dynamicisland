@@ -81,6 +81,11 @@ final class Scene {
         return !item.hasTeams() || item.pillColor == 0 ? 0xFF000000 : item.pillColor;
     }
 
+    /** Nothing to show, yet the user asked for an empty pill around the camera (not while they hid the island by hand). */
+    boolean restingShown() {
+        return mode == Mode.HIDDEN && ModuleSettings.alwaysVisible() && !(iMode != null && iMode.hiddenByGesture());
+    }
+
     float pillOutlineOpacity() {
         return iMode!=null ? iMode.outlineOpacity() : pillOutlineTarget();
     }
@@ -114,7 +119,8 @@ final class Scene {
     }
 
     Card findCard(String key) {
-        for (Card c : cards) {
+        for (int i = 0, n = cards.size(); i < n; i++) {
+            Card c = cards.get(i);
             if (c.item.key.equals(key)) {
                 return c;
             }
@@ -140,6 +146,9 @@ final class Scene {
      */
     float pillWidthFor(Content content) {
         float width = content.desiredWidth();
+        if (content.item != null && content.item.fullWidth) {
+            return width; // a full-width popup is not the width other pills are kept at afterwards
+        }
         if (!ModuleSettings.keepPillWidth()) {
             keptWidth = 0.0f;
             return width;

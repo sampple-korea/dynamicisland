@@ -6,11 +6,14 @@ import android.os.SystemClock;
 import dev.android.dynamicisland.island.graphics.GlyphIcon;
 import dev.android.dynamicisland.island.model.IslandItem;
 import dev.android.dynamicisland.island.source.CallSource;
+import dev.android.dynamicisland.island.source.IncomingCallSource;
 import dev.android.dynamicisland.island.source.WhatsAppCallClock;
 import dev.android.dynamicisland.island.source.CastSource;
 import dev.android.dynamicisland.island.source.EventSource;
 import dev.android.dynamicisland.island.source.ChargingSource;
 import dev.android.dynamicisland.island.source.HeadsetSource;
+import dev.android.dynamicisland.island.source.HotspotSource;
+import dev.android.dynamicisland.island.source.UnlockSource;
 import dev.android.dynamicisland.island.source.MediaSource;
 import dev.android.dynamicisland.island.source.OaSource;
 import dev.android.dynamicisland.island.source.PeekSource;
@@ -55,12 +58,15 @@ final class IslandSources {
     final EventSource events;
     final ChargingSource charging;
     final HeadsetSource headset;
+    final HotspotSource hotspot;
+    final UnlockSource unlock;
     final TorchSource torch;
     final PrivacySource privacy;
     final ProgressSource progress;
     final PromotedSource promoted;
     final RecorderNotificationSource recorder;
     final RuleSource rules;
+    final IncomingCallSource incoming;
     final CallSource calls;
     final PeekSource peeks;
 
@@ -77,6 +83,8 @@ final class IslandSources {
         events = new EventSource(ctx, main, onChange);
         charging = new ChargingSource(ctx, main, onChange);
         headset = new HeadsetSource(ctx, main, onChange);
+        hotspot = new HotspotSource(ctx, main, onChange);
+        unlock = new UnlockSource(ctx, main, onChange);
         torch = new TorchSource(ctx, main, onChange);
         privacy = new PrivacySource(ctx, main, onChange);
         progress = new ProgressSource(ctx, main, onChange);
@@ -88,8 +96,8 @@ final class IslandSources {
         rules = new RuleSource(ctx, main, onChange);
         progress.setOnShownChanged(() -> main.post(HideDuplicated::rebuild));
         rules.setOnShownChanged(() -> main.post(HideDuplicated::rebuild));
-        cast.onRecordersChanged = () -> main.post(HideDuplicated::rebuild);
         torch.onShownChanged = () -> main.post(HideDuplicated::rebuild);
+        incoming = new IncomingCallSource(ctx);
         calls = new CallSource(ctx, main, onChange, callClock);
         peeks = new PeekSource(ctx, main, onChange);
     }
@@ -111,6 +119,7 @@ final class IslandSources {
     void syncOptionalSources() {
         guarded("charging settings", charging::syncSettings);
         guarded("headset settings", headset::syncSettings);
+        guarded("hotspot settings", hotspot::syncSettings);
     }
 
     /** Cheap vendor-cache query for ordinary banner scans; gather resolves the actual task once per pass. */
@@ -124,7 +133,7 @@ final class IslandSources {
         ForegroundApp.State state = foregroundApp.read();
         final String foreground = state.packageName;
         try {
-            oa.collect(items, out.hiddenByForeground, out.packages, foreground);
+            oa.collect(items, out.hiddenByForeground, out.packages, foreground, state.confirmed);
         } catch (Throwable t) {
             XLog.once("collect live notifications", t);
         }
@@ -138,7 +147,13 @@ final class IslandSources {
         guarded("events", () -> events.collect(items));
         guarded("charging info", () -> charging.collect(items));
         guarded("headset", () -> headset.collect(items));
-        if (charging.isOffering()) items.removeIf(item -> "event:charging".equals(item.key));
+        guarded("hotspot", () -> hotspot.collect(items));
+        guarded("unlock notice", () -> unlock.collect(items));
+        // the wide charging popup comes first even with the details card on, and the card follows it; with Samsung's
+        // own effect shown the card replaces the popup, as before
+        if (charging.isOffering() && ModuleSettings.stockChargingAnimation()) {
+            items.removeIf(item -> "event:charging".equals(item.key));
+        }
         guarded("torch", () -> torch.collect(items));
         if (ModuleSettings.placementPreviewActive()) {
             items.add(placementSample());
@@ -150,14 +165,17 @@ final class IslandSources {
         guarded("progress", () -> progress.collect(items, foreground));
         guarded("rules", () -> rules.collect(items, foreground));
         guarded("calls", () -> calls.collect(items, foreground));
+        guarded("incoming calls", () -> incoming.collect(items, foreground));
         guarded("peeks", () -> peeks.collect(items));
         if (torch.replacesStockNotification()) {
             // System UI's own "flashlight in use" notification would show next to the brightness card
             items.removeIf(TorchSource::isStockItem);
         }
+        if (ModuleSettings.accentSystem()) ModuleSettings.refreshSystemAccent(ctx);
+        int accent = ModuleSettings.accentOverride();
         for (IslandItem item : items) {
-            item.customAccent = ModuleSettings.accentCustom() && !item.isMedia
-                    ? dev.android.dynamicisland.island.graphics.Colors.readableOnBlack(ModuleSettings.accentColor()) : 0;
+            item.customAccent = accent != 0 && !item.isMedia
+                    ? dev.android.dynamicisland.island.graphics.Colors.readableOnBlack(accent) : 0;
         }
         SwitchGate.apply(items);
         ItemDedupe.apply(items, HideDuplicated::copyKeysOf);

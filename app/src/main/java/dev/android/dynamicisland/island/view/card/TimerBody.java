@@ -4,6 +4,8 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.text.TextUtils;
 import dev.android.dynamicisland.island.graphics.Colors;
+import dev.android.dynamicisland.island.graphics.Glyphs;
+import dev.android.dynamicisland.island.graphics.GlyphIcon;
 import dev.android.dynamicisland.island.model.IslandItem;
 import dev.android.dynamicisland.island.view.IslandView;
 
@@ -26,6 +28,8 @@ public final class TimerBody extends CardBody {
     private static final int MAX_BUTTONS = 3;
     /** Glyph id of the "stop" square (Glyphs.STOP, not public) used for actions that only have a callback. */
     private static final int GLYPH_STOP = 6;
+    /** Corner radius of an app's icon on a call card, as a share of its size (the same as an icon in the pill). */
+    private static final float APP_ICON_CORNER = 0.26f;
 
     final boolean call;
     final float iconSize;
@@ -63,6 +67,8 @@ public final class TimerBody extends CardBody {
             }
             if (action.destructive) {
                 b.bg = Colors.DESTRUCTIVE_RED;
+            } else if (action.affirmative) {
+                b.bg = Colors.CALL_GREEN;
             } else if (action.glyph != 0) {
                 b.bg = action.active ? Colors.WHITE : Colors.BUTTON_GRAY;
             } else if (!usedAccent && i == 0) {
@@ -83,6 +89,11 @@ public final class TimerBody extends CardBody {
             }
             b.r.set(right - buttonWidth, (h - circleSize) / 2.0f, right, (h + circleSize) / 2.0f);
             right -= buttonWidth + gap;
+            // Keep the action id, colour and touch bounds; only replace the button's drawing.
+            if (b.glyph == Glyphs.ANSWER || b.glyph == Glyphs.HANGUP) {
+                b.icon = GlyphIcon.of(b.glyph == Glyphs.ANSWER ? GlyphIcon.Kind.CALL_ANSWER : GlyphIcon.Kind.CALL_END);
+                b.glyph = 0;
+            }
             buttons.add(b);
         }
         float headerHeight = Math.max(owner.dp(68), textBlock + owner.dp(16));
@@ -115,7 +126,9 @@ public final class TimerBody extends CardBody {
         float midY = y + (stacked ? stackedMiddle : h / 2.0f) + dy;
         float iconX = x + pad;
         if (call && item.cardImage != null) {
-            owner.drawDrawable(c, item.cardImage, true, 0, iconX, midY - (iconSize / 2.0f), iconSize, a, iconSize / 2.0f);
+            // a caller's photo is round; an app's own icon keeps the shape its icon pack gave it
+            owner.drawDrawable(c, item.cardImage, true, 0, iconX, midY - (iconSize / 2.0f), iconSize, a,
+                    item.cardImageRound ? iconSize / 2.0f : iconSize * APP_ICON_CORNER);
         } else {
             owner.drawLeading(c, item, iconX, midY, iconSize, a);
         }

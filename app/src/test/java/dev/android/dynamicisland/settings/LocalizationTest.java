@@ -29,8 +29,10 @@ public class LocalizationTest {
                 IslandText.get(Locale.forLanguageTag("pt-BR"), "island_reply_to", "Ana"));
         configuration.setLocales(new LocaleList(Locale.forLanguageTag("pt-PT")));
         Context otherPortuguese = app.createConfigurationContext(configuration);
-        assertEquals(app.getString(R.string.always_visible_island),
-                otherPortuguese.getString(R.string.always_visible_island));
+        // The generic Portuguese draft keeps its own label; the Brazilian label must not leak into it.
+        assertEquals("Always Visible Island", otherPortuguese.getString(R.string.always_visible_island));
+        assertEquals(IslandText.get(Locale.ENGLISH, "island_reply_to", "Ana"),
+                otherPortuguese.getString(R.string.island_reply_to, "Ana"));
     }
     @Test public void resourcesAndSystemUiShareTranslationsAndFormatArgumentsAcrossAllLocales() throws Exception {
         Context app = RuntimeEnvironment.getApplication();

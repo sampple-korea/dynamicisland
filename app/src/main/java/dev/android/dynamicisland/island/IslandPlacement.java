@@ -15,6 +15,7 @@ import dev.android.dynamicisland.island.window.StatusBarIconFader;
 import dev.android.dynamicisland.settings.ModuleSettings;
 import dev.android.dynamicisland.xposed.Diagnostics;
 import dev.android.dynamicisland.xposed.XLog;
+import dev.android.dynamicisland.xposed.hooks.HideDuplicated;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -74,6 +75,7 @@ final class IslandPlacement {
     private boolean dozing;
     private boolean sleeping, sleepExitVisible, sleepFinished, wakefulnessKnown;
     private boolean lastSuppressed;
+    private boolean lastOriginalHiding;
     private int statusBarWindowState;
     private boolean landscapeSuppressed;
     private boolean portrait;
@@ -198,6 +200,13 @@ final class IslandPlacement {
     // ---- system state --------------------------------------------------------------------------
 
     /** @param state SystemUI StatusBarState: 0 shade, 1 keyguard, 2 locked shade */
+    /** Told when the keyguard goes away (set by the controller; used for the unlock notice). */
+    private Runnable onUnlocked;
+
+    void setOnUnlocked(Runnable listener) {
+        onUnlocked = listener;
+    }
+
     void setBarState(int state) {
         if (barState == state) {
             return;
@@ -206,6 +215,7 @@ final class IslandPlacement {
         XLog.event("status bar state " + barState + " -> " + state);
         barState = state;
         if (wasLocked && state == BAR_STATE_SHADE) {
+            if (onUnlocked != null) onUnlocked.run();
             revealPending = true;
             main.removeCallbacks(revealTimer);
             main.postDelayed(revealTimer, UNLOCK_REVEAL_DELAY_MS);
@@ -253,6 +263,7 @@ final class IslandPlacement {
             if (view != null) view.setSleeping(false);
             if (revealPending && !dozing && barState == BAR_STATE_SHADE) main.postDelayed(revealTimer, UNLOCK_REVEAL_DELAY_MS);
         }
+        updateOriginalVisibility();
     }
 
     void finishSleeping() {
@@ -293,7 +304,16 @@ final class IslandPlacement {
                     + " landscape=" + landscapeSuppressed + " unlockReveal=" + revealPending + ")");
         }
         view.setSuppressed(suppressed);
+        updateOriginalVisibility();
         onFrame();
+    }
+
+    private void updateOriginalVisibility() {
+        boolean hiding = view != null && !view.isSuppressedNow();
+        if (hiding != lastOriginalHiding) {
+            lastOriginalHiding = hiding;
+            main.post(HideDuplicated::rebuild);
+        }
     }
 
     // ---- geometry ------------------------------------------------------------------------------
@@ -477,7 +497,7 @@ final class IslandPlacement {
         window.setShown(true);
         if (!view.shadePulled()) {
             view.getCoverageBounds(scratch);
-            fader.update(scratch, !hidden && view.visibleAlpha() > 0.3f);
+            fader.update(scratch, !hidden && view.visibleAlpha() > 0.3f, view.takesWholeStatusBar());
         }
         audio.setActive(view.needsAudio());
     }

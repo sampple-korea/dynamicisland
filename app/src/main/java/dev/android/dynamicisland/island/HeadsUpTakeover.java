@@ -1,5 +1,6 @@
 package dev.android.dynamicisland.island;
 
+import android.app.Notification;
 import android.os.SystemClock;
 import android.service.notification.StatusBarNotification;
 import dev.android.dynamicisland.island.detect.OtpDetector;
@@ -19,12 +20,16 @@ import java.util.Set;
  * island, and remembers what already got one so nothing is shown twice.
  */
 final class HeadsUpTakeover {
-    private final android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final android.os.Handler main = new dev.android.dynamicisland.xposed.GuardedHandler(android.os.Looper.getMainLooper());
     private final java.util.LinkedHashMap<String, Reservation> reservations = new java.util.LinkedHashMap<>();
     private final Map<String, StatusBarNotification> nativeEvents = java.util.Collections.synchronizedMap(new HashMap<>());
     private StatusBarNotification activeEvent;
     private IslandItem activeItem;
     private boolean reconciling;
+    private Map<String, Integer> importance = java.util.Collections.emptyMap();
+    private final Map<String, Shown> shown = new HashMap<>();
+    private static final long REPEAT_QUIET_MS = 180_000;
+    private static final long ALERT_ONCE_QUIET_MS = 600_000;
     private long nextVersion;
     private long activeVersion;
     private static final class Reservation {
@@ -48,12 +53,14 @@ final class HeadsUpTakeover {
     }
     private boolean allowed(StatusBarNotification sbn) {
         return sbn != null && sbn.getUser().equals(android.os.Process.myUserHandle())
-                && PeekSource.eligible(sbn) && ModuleSettings.appAllowed(sbn.getPackageName())
+                && !ModuleSettings.systemPopupStyle() && PeekSource.eligible(sbn)
+                && (ModuleSettings.appAllowed(sbn.getPackageName()) || ModuleSettings.otpCard()
+                    && OtpDetector.detect(PeekSource.otpText(sbn.getNotification())) != null)
                 && !foregroundBlocked(sbn) && PeekSource.preferred(sbn, snapshot);
     }
     private boolean enabled(IslandItem item) {
-        return item.otpCode != null ? ModuleSettings.otpCard()
-                : ModuleSettings.headsUpIsland() || ModuleSettings.allNotifications();
+        return !ModuleSettings.systemPopupStyle() && (item.otpCode != null ? ModuleSettings.otpCard()
+                : ModuleSettings.headsUpIsland() || ModuleSettings.allNotifications());
     }
     private boolean leftNative(StatusBarNotification sbn) {
         return sameEvent(nativeEvents.get(sbn.getKey()), sbn);
@@ -70,7 +77,7 @@ final class HeadsUpTakeover {
     }
     /** Runs before collection and on visibility changes; never replays removed or superseded events. */
     void reconcile() {
-        if (!mainThread() || reconciling) return;
+        if (!mainThread() || reconciling || reservations.isEmpty()) return;
         reconciling = true;
         try {
             for (Reservation r : new java.util.ArrayList<>(reservations.values())) {
@@ -137,6 +144,16 @@ final class HeadsUpTakeover {
         this.refreshNow = refreshNow;
     }
 
+    /** How the system rates each notification of the list (by key); a key it did not rate counts as not silent. */
+    void setImportance(Map<String, Integer> importance) {
+        this.importance = importance == null ? java.util.Collections.emptyMap() : new HashMap<>(importance);
+    }
+
+    /** No sound, no banner: the system does not pop it up, so the island does not either. */
+    static boolean silent(Integer importance) {
+        return importance != null && importance < android.app.NotificationManager.IMPORTANCE_DEFAULT;
+    }
+
     void setSnapshot(List<StatusBarNotification> notifications) {
         java.util.Set<String> removed = new java.util.HashSet<>();
         for (StatusBarNotification old : snapshot) if (old != null) removed.add(old.getKey());
@@ -144,18 +161,7 @@ final class HeadsUpTakeover {
         sources.peeks.removeNotifications(removed);
         snapshot = new java.util.ArrayList<>(notifications);
         for (String key : removed) {
-            reservations.remove(key); nativeEvents.remove(key);
-        }
-        if (activeEvent != null && sources.peeks.showing() == activeItem) {
-            for (StatusBarNotification next : notifications) {
-                if (next.getKey().equals(activeEvent.getKey()) && !sameEvent(next, activeEvent)) {
-                    if (allowed(next) && placement.canPresent() && !leftNative(next)) {
-                        IslandItem updated = sources.peeks.build(next);
-                        if (updated != null && enabled(updated)) show(next, updated);
-                    }
-                    break;
-                }
-            }
+            reservations.remove(key); nativeEvents.remove(key); shown.remove(key); peeked.remove(key);
         }
         // An update must release the previous version before it can be claimed again.
         reservations.entrySet().removeIf(e -> notifications.stream().anyMatch(n ->
@@ -175,6 +181,8 @@ final class HeadsUpTakeover {
         }
         reconcile();
     }
+
+    Object owner(String key) { return owns(key) ? activeItem : null; }
 
     Object event(String key) { return owns(key) ? activeItem : null; }
 
@@ -203,6 +211,12 @@ final class HeadsUpTakeover {
             return HeadsUpHooks.Decision.NATIVE;
         }
         try {
+            if (sbn != null) {
+                List<StatusBarNotification> observed = new java.util.ArrayList<>(snapshot);
+                observed.removeIf(previous -> previous.getKey().equals(sbn.getKey()));
+                observed.add(sbn);
+                snapshot = observed;
+            }
             if (!allowed(sbn) || !placement.canPresent()) return fallback(sbn, "ineligible or unavailable");
             if (sameEvent(activeEvent, sbn) && owns(sbn.getKey())) return HeadsUpHooks.Decision.PRESENTED;
             Reservation existing = reservations.get(sbn.getKey());
@@ -212,16 +226,17 @@ final class HeadsUpTakeover {
                 return fallback(sbn, "reservation no longer valid");
             }
             if (leftNative(sbn)) return HeadsUpHooks.Decision.NATIVE;
-            IslandItem item = sources.peeks.buildOtp(sbn);
             boolean updatingActive = activeEvent != null && activeEvent.getKey().equals(sbn.getKey())
                     && sources.peeks.showing() == activeItem && placement.view().isShowingCard(activeItem);
+            if (recentlyShown(sbn) && !updatingActive) return fallback(sbn, "message already presented");
+            IslandItem item = sources.peeks.buildOtp(sbn);
             if (item != null && isRepeat(item.otpCode) && !updatingActive) return fallback(sbn, "repeated code");
             if (item == null && (ModuleSettings.headsUpIsland() || ModuleSettings.allNotifications())) {
                 item = sources.peeks.buildMessage(sbn);
             }
             if (item == null || !enabled(item)) return fallback(sbn, "disabled or no presentable content");
             IslandItem showing = sources.peeks.showing();
-            if (showing != null && !showing.key.equals(item.key)) {
+            if (showing != null && !showing.key.equals(item.key) && item.otpCode == null) {
                 if (restore == null || !restore.valid()) return fallback(sbn, "no verified return path");
                 if (existing == null && reservations.size() >= 4) return fallback(sbn, "reservation queue full");
                 reservations.put(sbn.getKey(), new Reservation(sbn, item, restore, ++nextVersion,
@@ -243,12 +258,20 @@ final class HeadsUpTakeover {
         }
     }
 
+    boolean claims(StatusBarNotification sbn) {
+        if (!mainThread() || sbn == null || !allowed(sbn) || !placement.canPresent()) return false;
+        if (sameEvent(activeEvent, sbn) && owns(sbn.getKey())) return true;
+        Reservation pending = reservations.get(sbn.getKey());
+        return pending != null && sameEvent(pending.event, sbn) && enabled(pending.item)
+                && pending.deadline > SystemClock.uptimeMillis() && pending.restore.valid();
+    }
+
     /**
      * The "all notifications" setting: a fresh notification that never became a banner (silent, or the system
      * did not ask) still gets a card. Each fresh posting is considered once, oldest first.
      */
     void scanAll(List<StatusBarNotification> snapshot) {
-        if (!mainThread() || !ModuleSettings.allNotifications() || !placement.canPresent()) {
+        if (!mainThread() || ModuleSettings.systemPopupStyle() || !ModuleSettings.allNotifications() || !placement.canPresent()) {
             return;
         }
         if (allChecked.size() > MAX_OTP_CHECKED) {
@@ -261,7 +284,8 @@ final class HeadsUpTakeover {
             if (age > ALL_FRESH_MS || age < -OTP_CLOCK_SKEW_MS || !allChecked.add(sbn.getKey() + "@" + sbn.getPostTime())) {
                 continue;
             }
-            if (alreadyHadCard(sbn) || leftNative(sbn) || reservations.containsKey(sbn.getKey()) || !allowed(sbn)) {
+            if (alreadyHadCard(sbn) || recentlyShown(sbn) || quietUpdate(sbn) || silent(importance.get(sbn.getKey()))
+                    || leftNative(sbn) || reservations.containsKey(sbn.getKey()) || !allowed(sbn)) {
                 continue;
             }
             fresh.add(sbn);
@@ -302,7 +326,7 @@ final class HeadsUpTakeover {
      * other way. Every notification new to the list is checked once; a fresh one with a code opens the card.
      */
     void scanForCodes(List<StatusBarNotification> snapshot) {
-        if (!mainThread() || !ModuleSettings.otpCard() || !placement.canPresent()) {
+        if (!mainThread() || ModuleSettings.systemPopupStyle() || !ModuleSettings.otpCard() || !placement.canPresent()) {
             return;
         }
         long now = System.currentTimeMillis();
@@ -339,6 +363,68 @@ final class HeadsUpTakeover {
         return sameEvent(peeked.get(sbn.getKey()), sbn);
     }
 
+    /**
+     * The same notification key re-posted with the same text and no new message in it, shortly after its card: an app
+     * refreshing its own notification. A new message adds to the message list, so it still gets its card.
+     */
+    private boolean recentlyShown(StatusBarNotification sbn) {
+        Shown last = shown.get(sbn.getKey());
+        return last != null && (last.postTime == sbn.getPostTime() || last.messageIdentity)
+                && SystemClock.uptimeMillis() - last.at < REPEAT_QUIET_MS && last.content.equals(contentOf(sbn));
+    }
+
+    /**
+     * An update of a notification that got a card and asked to alert only once: the app changes a number in it (the
+     * battery level, a download) and does not mean to announce it again. New messages of a conversation are news.
+     */
+    private boolean quietUpdate(StatusBarNotification sbn) {
+        Shown last = shown.get(sbn.getKey());
+        return last != null && (sbn.getNotification().flags & Notification.FLAG_ONLY_ALERT_ONCE) != 0
+                && !hasMessageIdentity(sbn) && SystemClock.uptimeMillis() - last.at < ALERT_ONCE_QUIET_MS;
+    }
+
+    /** A real latest-message timestamp lets an app refresh its notification without announcing the same message again. */
+    private static boolean hasMessageIdentity(StatusBarNotification sbn) {
+        android.os.Bundle extras = sbn.getNotification().extras;
+        if (extras == null) return false;
+        android.os.Parcelable[] messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES, android.os.Parcelable.class);
+        if (messages == null || messages.length == 0 || !(messages[messages.length - 1] instanceof android.os.Bundle)) return false;
+        return ((android.os.Bundle) messages[messages.length - 1]).getLong("time") > 0;
+    }
+
+    /** What a card of this notification would say: its texts and how many messages it holds. */
+    static String contentOf(StatusBarNotification sbn) {
+        android.os.Bundle extras = sbn.getNotification().extras;
+        if (extras == null) return "";
+        StringBuilder out = new StringBuilder();
+        for (String key : new String[]{Notification.EXTRA_TITLE, Notification.EXTRA_TEXT, Notification.EXTRA_BIG_TEXT}) {
+            out.append(extras.getCharSequence(key)).append('\u0001');
+        }
+        android.os.Parcelable[] messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES, android.os.Parcelable.class);
+        out.append(messages == null ? 0 : messages.length);
+        if (messages != null) for (android.os.Parcelable message : messages) {
+            if (message instanceof android.os.Bundle) {
+                android.os.Bundle data = (android.os.Bundle) message;
+                out.append('\u0001').append(data.getLong("time")).append('\u0001').append(data.getCharSequence("text"));
+            }
+        }
+        return out.toString();
+    }
+
+    private static final class Shown {
+        final String content;
+        final long at;
+        final long postTime;
+        final boolean messageIdentity;
+
+        Shown(String content, long postTime, boolean messageIdentity, long at) {
+            this.content = content;
+            this.postTime = postTime;
+            this.messageIdentity = messageIdentity;
+            this.at = at;
+        }
+    }
+
     private boolean isRepeat(String code) {
         return code != null && code.equals(lastOtpCode) && SystemClock.uptimeMillis() - lastOtpAt < OTP_REPEAT_WINDOW_MS;
     }
@@ -362,7 +448,7 @@ final class HeadsUpTakeover {
         if (!placement.canPresent() || !allowed(sbn) || !enabled(item) || leftNative(sbn)) return false;
         long millis = item.peekMillis > 0 ? item.peekMillis : DEFAULT_PEEK_MS;
         IslandItem showing = sources.peeks.showing();
-        if (showing != null && !showing.key.equals(item.key)) return false;
+        if (showing != null && !showing.key.equals(item.key) && item.otpCode == null) return false;
         if (version > 0) activeVersion = version;
         else if (!sameEvent(activeEvent, sbn)) activeVersion = ++nextVersion;
         activeEvent = sbn;
@@ -378,11 +464,15 @@ final class HeadsUpTakeover {
             peeked.clear();
         }
         peeked.put(sbn.getKey(), sbn);
+        if (shown.size() > MAX_PEEKED) shown.clear();
+        shown.put(sbn.getKey(), new Shown(contentOf(sbn), sbn.getPostTime(), hasMessageIdentity(sbn), SystemClock.uptimeMillis()));
         dev.android.dynamicisland.xposed.Diagnostics.fact("heads-up presentation", "confirmed; local version " + activeVersion);
         final String key = sbn.getKey();
-        placement.view().postDelayed(() -> {
-            if (activeItem == item && owns(key)) HeadsUpHooks.dismissStock(key);
-        }, STOCK_DISMISS_DELAY_MS);
+        for (long delay : new long[]{STOCK_DISMISS_DELAY_MS, 350, 700, 1200, 2000}) {
+            placement.view().postDelayed(() -> {
+                if (activeItem == item && owns(key)) HeadsUpHooks.dismissStock(key);
+            }, delay);
+        }
         if (item.otpCode != null) {
             lastOtpCode = item.otpCode;
             lastOtpAt = SystemClock.uptimeMillis();

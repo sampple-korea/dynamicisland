@@ -133,6 +133,8 @@ public class HeadsUpDecisionTest {
         assertTrue(takeover.take(old));
         var first=sources.peeks.showing();
         takeover.setSnapshot(List.of(update));
+        assertFalse("snapshot changes invalidate the old claim until the update is accepted",takeover.owns(update.getKey()));
+        assertTrue(takeover.take(update));
         assertNotSame(first,sources.peeks.showing());
         assertTrue(takeover.owns(update.getKey()));
     }
@@ -182,7 +184,7 @@ public class HeadsUpDecisionTest {
         HeadsUpHooks.dismissStock(note(1,100).getKey());assertEquals(1,manager.removals);
         assertTrue(takeover.take(note(1,101)));
         org.robolectric.Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(600));
-        assertEquals(3,manager.removals); // initial recovery and first retry belong only to the new card
+        assertEquals(4,manager.removals); // only the new card consumes its three-attempt recovery budget
         String key=note(1,101).getKey();
         for(int i=0;i<8;i++) HeadsUpHooks.dismissStock(key);
         assertEquals(4,manager.removals); // one old attempt and at most three for the new posting

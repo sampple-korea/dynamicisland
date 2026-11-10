@@ -44,6 +44,7 @@ public final class ProgressSource {
     private final Runnable tick = new Runnable() {
         @Override
         public void run() {
+            lastNotify = SystemClock.uptimeMillis();
             onChange.run();
         }
     };
@@ -77,8 +78,7 @@ public final class ProgressSource {
         if (!changed) {
             for (Map.Entry<String, IslandItem> e : fresh.entrySet()) {
                 IslandItem old = items.get(e.getKey());
-                if (old == null || old.progressIndeterminate != e.getValue().progressIndeterminate || old.progress != e.getValue().progress || !String.valueOf(old.title).equals(String.valueOf(e.getValue().title))
-                        || !String.valueOf(old.subtitle).equals(String.valueOf(e.getValue().subtitle))) {
+                if (old == null || !sameCard(old, e.getValue())) {
                     changed = true;
                     break;
                 }
@@ -95,18 +95,56 @@ public final class ProgressSource {
         notifyChanged();
     }
 
+    private static boolean sameCard(IslandItem a, IslandItem b) {
+        if (a.progressIndeterminate != b.progressIndeterminate || Float.compare(a.progress, b.progress) != 0
+                || !String.valueOf(a.title).equals(String.valueOf(b.title))
+                || !String.valueOf(a.subtitle).equals(String.valueOf(b.subtitle)) || a.accent != b.accent
+                || !java.util.Objects.equals(a.contentIntent, b.contentIntent) || a.actions.size() != b.actions.size()) return false;
+        for (int i = 0; i < a.actions.size(); i++) {
+            IslandItem.Action x = a.actions.get(i), y = b.actions.get(i);
+            if (!String.valueOf(x.title).equals(String.valueOf(y.title)) || x.destructive != y.destructive
+                    || !java.util.Objects.equals(x.intent, y.intent)) return false;
+        }
+        return true;
+    }
+
     /** Refreshes the island, but at most every {@link #NOTIFY_INTERVAL_MS}: apps report progress very often. */
     private void notifyChanged() {
         long now = SystemClock.uptimeMillis();
         long wait = lastNotify + NOTIFY_INTERVAL_MS - now;
+        main.removeCallbacks(tick);
         if (wait <= 0) {
             lastNotify = now;
             onChange.run();
         } else {
-            main.removeCallbacks(tick);
-            lastNotify = now + wait;
             main.postDelayed(tick, wait);
         }
+    }
+
+    /** A real, determinate progress bar in the notification's own fields. */
+    static boolean hasBar(Bundle extras) {
+        return extras != null && !extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false)
+                && extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) > 0 && extras.getInt(Notification.EXTRA_PROGRESS, 0) >= 0;
+    }
+
+    /**
+     * An ordinary notification (one that is not ongoing) with a real progress bar, which the "progress of ordinary
+     * notifications" option turns into a progress card. Such a notification is no message popup then.
+     */
+    public static boolean takesOrdinary(StatusBarNotification sbn) {
+        Notification n = sbn == null ? null : sbn.getNotification();
+        if (n == null || n.extras == null || !ModuleSettings.progressAny() || !ModuleSettings.progressNotifications()
+                || IGNORED.contains(sbn.getPackageName())) {
+            return false;
+        }
+        boolean ongoing = (n.flags & (Notification.FLAG_ONGOING_EVENT | Notification.FLAG_FOREGROUND_SERVICE)) != 0;
+        return !ongoing && (n.flags & Notification.FLAG_GROUP_SUMMARY) == 0 && hasBar(n.extras) && !isSpecial(sbn, n, n.extras);
+    }
+
+    private static String liveSource(IslandItem live) {
+        if (!(live.key.startsWith("oa:") || live.key.startsWith("live:"))) return null;
+        if (live.sourceKey != null) return live.sourceKey;
+        return live.key.startsWith("oa:") ? live.key.substring(3) : null;
     }
 
     /** Adds the progress cards, except for the foreground app and those One UI already shows as live notification. */
@@ -114,6 +152,14 @@ public final class ProgressSource {
         if (items.isEmpty() || !ModuleSettings.progressNotifications()) {
             publishShown(Collections.emptySet());
             return;
+        }
+        Set<String> withBar = new HashSet<>();
+        if (ModuleSettings.progressAny()) {
+            // a card with a real bar beats the live card of the same notification, which usually has none
+            for (IslandItem it : items.values()) {
+                if (it.progress >= 0.0f || it.progressIndeterminate) withBar.add(it.key.substring(TASK_PREFIX.length()));
+            }
+            out.removeIf(live -> withBar.contains(liveSource(live)));
         }
         Set<String> promoted = new HashSet<>();
         for (IslandItem it : out) {
@@ -124,7 +170,7 @@ public final class ProgressSource {
         }
         Set<String> shown = new HashSet<>();
         for (IslandItem it : items.values()) {
-            if (it.packageName != null && it.packageName.equals(foregroundPackage)) {
+            if (it.packageName != null && it.packageName.equals(foregroundPackage) && !ModuleSettings.progressForeground()) {
                 continue;
             }
             if (promoted.contains(it.key.substring(TASK_PREFIX.length()))) {
@@ -164,7 +210,7 @@ public final class ProgressSource {
             return null;
         }
         boolean ongoing = (n.flags & (Notification.FLAG_ONGOING_EVENT | Notification.FLAG_FOREGROUND_SERVICE)) != 0;
-        if (!ongoing || (n.flags & Notification.FLAG_GROUP_SUMMARY) != 0) {
+        if (!(ongoing || takesOrdinary(sbn)) || (n.flags & Notification.FLAG_GROUP_SUMMARY) != 0) {
             return null;
         }
         if (isSpecial(sbn, n, extras)) {

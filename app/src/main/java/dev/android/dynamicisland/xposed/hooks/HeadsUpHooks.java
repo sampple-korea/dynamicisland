@@ -10,6 +10,7 @@ import dev.android.dynamicisland.xposed.Diagnostics;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XC_MethodHook;
 import dev.android.dynamicisland.island.IslandController;
+import dev.android.dynamicisland.settings.ModuleSettings;
 import dev.android.dynamicisland.xposed.Refl;
 import dev.android.dynamicisland.xposed.SafeHook;
 import dev.android.dynamicisland.xposed.XLog;
@@ -100,6 +101,9 @@ public final class HeadsUpHooks {
                 XLog.event("heads-up installed " + method.toGenericString());
             } catch (Throwable failure) { XLog.once("heads-up install " + method.getName(), failure); }
         }
+        if (Refl.hasClass(EDGE_CONDITIONS, cl)) {
+            installed += Refl.hookAll(cl, EDGE_CONDITIONS, "isRowPinned", SafeHook.after("edge lighting popup", HeadsUpHooks::afterEdgeRowPinned));
+        }
         Diagnostics.fact("heads-up capability", installed + " hooks installed; execution unconfirmed");
     }
 
@@ -117,6 +121,43 @@ public final class HeadsUpHooks {
         if (askedLogs++ < MAX_ASKED_LOGS) XLog.event("heads-up executed " + p.method.toString());
     }
 
+    private static final String EDGE_CONDITIONS = "com.android.systemui.edgelighting.SystemUIConditionListenerService$1";
+
+    /** After {@code isRowPinned(key)}: a notification the island has or takes counts as pinned, so Edge Lighting skips it. */
+    private static void afterEdgeRowPinned(XC_MethodHook.MethodHookParam p) {
+        if (p.hasThrowable() || Boolean.TRUE.equals(p.getResult()) || p.args.length < 1 || !(p.args[0] instanceof String)) {
+            return;
+        }
+        // A native heads-up may already be accepted while its asynchronously inflated row is not pinned yet.
+        // Never predict ownership from an island eligibility rule in the independent popup mode.
+        if (ModuleSettings.systemPopupStyle()) {
+            if (nativePopupPending((String) p.args[0])) p.setResult(true);
+            return;
+        }
+        if (!mainThread()) return;
+        IslandController controller = IslandController.get();
+        Object service = Refl.get(p.thisObject, "this$0");
+        Object entries = service == null ? null : Refl.get(service, "mEntries");
+        if (controller == null || !(entries instanceof Iterable)) {
+            return;
+        }
+        for (Object entry : (Iterable<?>) entries) {
+            Object sbn = entry == null ? null : Refl.get(entry, "mSbn");
+            if (sbn instanceof StatusBarNotification && p.args[0].equals(((StatusBarNotification) sbn).getKey())) {
+                if (controller.claimsNotification((StatusBarNotification) sbn)) {
+                    p.setResult(true);
+                    XLog.event("edge lighting popup held back for the island: " + ((StatusBarNotification) sbn).getPackageName());
+                }
+                return;
+            }
+        }
+    }
+
+    /** Accepted by the real manager, including the short bind-before-pin interval. */
+    public static boolean nativePopupPending(String key) {
+        return manager != null && key != null && Boolean.TRUE.equals(status(manager, key));
+    }
+
     /** Only dismiss a banner while the matching posting is still actually displayed by our overlay. */
     private static boolean owned(String key) {
         IslandController controller = IslandController.get();
@@ -125,17 +166,19 @@ public final class HeadsUpHooks {
 
     public static String dismissStock(String key) {
         if (!mainThread()) return "off main thread";
+        if (ModuleSettings.systemPopupStyle()) return "system popup retains its native lifetime";
         Object heads = manager;
         Object event = IslandController.get() == null ? null : IslandController.get().headsUpEvent(key);
         if (heads == null || key == null || !owned(key)) return "not currently owned by the island";
         try {
+            if (Boolean.FALSE.equals(status(heads, key))) return "stock banner not registered";
             if (removalMethod(heads.getClass()) == null) return "unsupported removal API";
             if (!attemptRemoval(heads, key, event)) return "retry budget exhausted";
             Boolean up = status(heads, key);
             if (Boolean.FALSE.equals(up)) return "stock banner removed";
             for (long delay : new long[]{150, 500}) {
-                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                    if (manager != heads || !owned(key) || IslandController.get() == null
+                new dev.android.dynamicisland.xposed.GuardedHandler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    if (ModuleSettings.systemPopupStyle() || manager != heads || !owned(key) || IslandController.get() == null
                             || IslandController.get().headsUpEvent(key) != event || Boolean.FALSE.equals(status(heads, key))) return;
                     try {
                         attemptRemoval(heads, key, event);
@@ -305,6 +348,7 @@ public final class HeadsUpHooks {
         if (!mainThread()) { leaveNativeOffThread(p); return; }
         if (replaying) return;
         manager = p.thisObject;
+        if (ModuleSettings.systemPopupStyle()) return;
         executed(p);
         if (p.args.length < 2) return;
         // Unknown statuses and explicit user requests retain native behavior.
@@ -347,6 +391,7 @@ public final class HeadsUpHooks {
         if (!mainThread()) { leaveNativeOffThread(p); return; }
         if (replaying) return;
         manager = p.thisObject;
+        if (ModuleSettings.systemPopupStyle()) return;
         executed(p);
         if (p.hasThrowable() || !Boolean.TRUE.equals(p.getResult()) || p.args.length != 1) return;
         StatusBarNotification sbn = notificationOf(p.args[0]);

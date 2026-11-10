@@ -27,110 +27,6 @@ import org.robolectric.util.ReflectionHelpers;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk=35,qualifiers="en-rUS-w440dp-h400dp-mdpi")
 public class IModeTest {
-    @Test public void morphReplyButtonDispatchesOriginalRemoteInputAction() {
-        try(Fixture f=new Fixture(1)) {
-            f.prefs.edit().putBoolean(ModuleSettings.KEY_NOTIFICATION_MORPH,true).commit();ModuleSettings.configurePreview(f.prefs);
-            IslandItem alert=item("reply-morph",2);alert.kind=IslandItem.Kind.PEEK;alert.isMedia=false;
-            IslandItem.Action reply=new IslandItem.Action("Responder",null,null,null,false);
-            reply.remoteInputs=new android.app.RemoteInput[]{new android.app.RemoteInput.Builder("reply").build()};
-            alert.actions.add(reply);
-            f.view.setItems(List.of(alert,f.items.get(0)));assertTrue(f.view.peek(alert,5000));f.step(16,100);
-            Card card=f.active();
-            java.util.List<dev.android.dynamicisland.island.view.card.Btn> buttons=ReflectionHelpers.getField(card.body,"buttons");
-            assertEquals(1,buttons.size());
-            RectF target=new RectF(buttons.get(0).r);RectF bounds=f.bounds(card);target.offset(bounds.left,bounds.top);
-            f.tap(target);
-            assertEquals(1,f.actions.size());assertSame(reply,f.actions.get(0));
-            assertNotNull(f.actions.get(0).remoteInputs);
-        }
-    }
-    @Test public void morphUsesExistingFrostedGpuMaterialAndRendersActions() throws Exception {
-        try(Fixture f=new Fixture(1)) {
-            f.prefs.edit().putBoolean(ModuleSettings.KEY_NOTIFICATION_MORPH,true)
-                    .putInt(ModuleSettings.KEY_MATERIAL_STYLE,ModuleSettings.MATERIAL_FROSTED).commit();ModuleSettings.configurePreview(f.prefs);
-            IslandItem alert=item("glass-morph",2);alert.kind=IslandItem.Kind.PEEK;alert.isMedia=false;
-            alert.appName="WhatsApp";alert.title="Maria";alert.subtitle="Vamos tomar um café depois?";
-            alert.actions.add(new IslandItem.Action("Responder",null,null,null,false));
-            alert.actions.add(new IslandItem.Action("Marcar como lida",null,null,null,false));
-            f.view.setItems(List.of(alert,f.items.get(0)));assertTrue(f.view.peek(alert,5000));f.step(16,100);
-            Bitmap bitmap=capture(f,"");
-            assertNotNull(ReflectionHelpers.getField(f.active().material,"shader"));
-            writeMorphFrame(bitmap,"frosted-actions");
-            f.view.setItems(f.items);f.step(16,100);assertTrue(f.scene.cards.isEmpty());
-        }
-    }
-    @Test public void morphIsPaintedByIslandOverlayWithoutNativeBlurSlots() {
-        try(Fixture f=new Fixture(1)) {
-            f.prefs.edit().putBoolean(ModuleSettings.KEY_NOTIFICATION_MORPH,true).commit();ModuleSettings.configurePreview(f.prefs);
-            IslandItem alert=item("overlay-peek",2);alert.kind=IslandItem.Kind.PEEK;alert.isMedia=false;
-            f.view.setItems(List.of(alert,f.items.get(0)));assertTrue(f.view.peek(alert,5000));f.step(16,100);
-            Bitmap image=Bitmap.createBitmap(440,400,Bitmap.Config.ARGB_8888);
-            f.view.draw(new Canvas(image));
-            RectF bounds=f.bounds(f.active());
-            assertEquals(255,Color.alpha(image.getPixel((int)bounds.centerX(),(int)bounds.centerY())));
-        }
-    }
-    @Test public void repeatedPeekCanConvertAnAlreadyOpenedOrdinaryCardWithoutJump() {
-        try(Fixture f=new Fixture(1)) {
-            f.prefs.edit().putBoolean(ModuleSettings.KEY_NOTIFICATION_MORPH,true).commit();ModuleSettings.configurePreview(f.prefs);
-            IslandItem alert=item("double-dispatch",2);alert.kind=IslandItem.Kind.PEEK;alert.isMedia=false;
-            f.view.setItems(List.of(alert,f.items.get(0)));
-            f.scene.iMode.open(alert.key,false);f.step(16,4);
-            Card card=f.active();RectF before=f.bounds(card);
-            assertFalse(card.notificationMorph);
-            assertTrue(f.view.peek(alert,5000));
-            assertSame(card,f.active());assertTrue(card.notificationMorph);
-            assertEquals(before,f.bounds(card));
-            f.step(16,100);
-            assertTrue(card.body instanceof dev.android.dynamicisland.island.view.card.NotificationMorphBody);
-            RectF settled=f.bounds(card);
-            assertTrue(f.view.peek(alert,5000));assertEquals(settled,f.bounds(card));
-            f.step(16,100);assertEquals(settled.top,f.bounds(card).top,.1f);
-        }
-    }
-    @Test public void morphProducesIntermediateFramesAndPreservesBodyOnRelayout() throws Exception {
-        try(Fixture f=new Fixture(1)) {
-            f.prefs.edit().putBoolean(ModuleSettings.KEY_NOTIFICATION_MORPH,true).commit();ModuleSettings.configurePreview(f.prefs);
-            IslandItem alert=item("morph-frames",2);alert.kind=IslandItem.Kind.PEEK;alert.isMedia=false;
-            alert.title="WhatsApp · Maria";alert.subtitle="Mensagem de teste para conferir a expansão e o recolhimento.";
-            f.view.setItems(List.of(alert,f.items.get(0)));assertTrue(f.view.peek(alert,5000));
-            Card card=f.active();float initial=f.bounds(card).height();
-            f.step(16,6);float intermediate=f.bounds(card).height();
-            assertTrue(intermediate>initial);assertTrue(intermediate<card.targetH);
-            Bitmap entering=capture(f,"");
-            f.step(16,24);Bitmap settled=capture(f,"");
-            assertFalse(entering.sameAs(settled));
-            writeMorphFrame(entering,"entering");
-            writeMorphFrame(settled,"settled");
-            f.scene.iMode.relayout();
-            assertTrue(card.body instanceof dev.android.dynamicisland.island.view.card.NotificationMorphBody);
-            f.view.setItems(f.items);f.step(16,6);
-            writeMorphFrame(capture(f,"Morph · returning"),"returning");
-            f.step(16,100);assertTrue(f.scene.cards.isEmpty());
-        }
-    }
-    private static void writeMorphFrame(Bitmap frame,String name) throws Exception {
-        File directory=new File("build/render/morph-review");directory.mkdirs();
-        try(java.io.FileOutputStream stream=new java.io.FileOutputStream(new File(directory,name+".png"))) {
-            assertTrue(frame.compress(Bitmap.CompressFormat.PNG,100,stream));
-        }
-    }
-    @Test public void notificationMorphUsesCameraRowAndReturnsToExistingActivity() {
-        try(Fixture f=new Fixture(1)) {
-            f.prefs.edit().putBoolean(ModuleSettings.KEY_NOTIFICATION_MORPH,true).commit();
-            ModuleSettings.configurePreview(f.prefs);
-            IslandItem alert=item("morph",2);alert.kind=IslandItem.Kind.PEEK;alert.isMedia=false;
-            f.view.setItems(List.of(alert,f.items.get(0)));
-            assertTrue(f.view.peek(alert,5000));
-            Card card=f.active();assertTrue(card.notificationMorph);
-            f.step(16,100);
-            assertEquals(15,f.bounds(card).top,1);
-            assertTrue(card.body instanceof dev.android.dynamicisland.island.view.card.NotificationMorphBody);
-            f.view.setItems(f.items);f.step(16,100);
-            assertEquals(Mode.COMPACT,f.scene.mode);
-            assertTrue(f.scene.cards.isEmpty());
-        }
-    }
     private static final class Fixture implements AutoCloseable {
         final Context context=RuntimeEnvironment.getApplication();
         final SharedPreferences prefs=context.getSharedPreferences("imode-test",0);
@@ -141,6 +37,7 @@ public class IModeTest {
         final List<IslandItem> items=new ArrayList<>();
         final List<String> closed=new ArrayList<>();
         final List<IslandItem.Action> actions=new ArrayList<>();
+        final List<String> shadePulls=new ArrayList<>();
         Fixture(int count) {
             ShadowChoreographer.setFrameDelay(Duration.ofMillis(16));
             ShadowChoreographer.setPaused(true);
@@ -151,6 +48,7 @@ public class IModeTest {
                     new Class<?>[]{IslandHost.class},(proxy,method,args)->switch(method.getName()) {
                         case "onPeekClosed" -> { closed.add((String)args[0]); yield null; }
                         case "onItemAction" -> { actions.add((IslandItem.Action)args[1]);yield null; }
+                        case "onShadeDragStart" -> { shadePulls.add("start"); yield null; }
                         case "hasMinimized", "onShadeFade" -> false;
                         default -> null;
                     });
@@ -171,6 +69,16 @@ public class IModeTest {
         void event(int action,float x,float y) {
             long now=SystemClock.uptimeMillis();MotionEvent e=MotionEvent.obtain(now,now,action,x,y,0);
             view.onTouchEvent(e);e.recycle();
+        }
+        /** A swipe straight up of {@code distance} px that takes {@code ms} ms, with the timestamps a finger would give. */
+        void swipeUp(float x,float y,float distance,int ms) {
+            long down=SystemClock.uptimeMillis();int steps=8;
+            send(MotionEvent.ACTION_DOWN,down,down,x,y);
+            for(int i=1;i<=steps;i++) send(MotionEvent.ACTION_MOVE,down,down+ms*i/steps,x,y-distance*i/steps);
+            send(MotionEvent.ACTION_UP,down,down+ms+1,x,y-distance);
+        }
+        private void send(int action,long down,long at,float x,float y) {
+            MotionEvent e=MotionEvent.obtain(down,at,action,x,y,0);view.onTouchEvent(e);e.recycle();
         }
         void tap(RectF r) { event(MotionEvent.ACTION_DOWN,r.centerX(),r.centerY());event(MotionEvent.ACTION_UP,r.centerX(),r.centerY()); }
         Card active() { for(Card c:scene.cards) if(!c.leaving)return c;return null; }
@@ -222,6 +130,220 @@ public class IModeTest {
         @Override public void setAlpha(int alpha) { paint.setAlpha(alpha); }
         @Override public void setColorFilter(ColorFilter filter) { paint.setColorFilter(filter); }
         @Override public int getOpacity() { return PixelFormat.TRANSLUCENT; }
+    }
+
+    @Test public void morphReplyButtonDispatchesOriginalRemoteInputAction() {
+        try(Fixture f=new Fixture(1)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_NOTIFICATION_MORPH,true).commit();ModuleSettings.configurePreview(f.prefs);
+            IslandItem alert=item("reply-morph",2);alert.kind=IslandItem.Kind.PEEK;alert.isMedia=false;
+            IslandItem.Action reply=new IslandItem.Action("Responder",null,null,null,false);
+            reply.remoteInputs=new android.app.RemoteInput[]{new android.app.RemoteInput.Builder("reply").build()};
+            alert.actions.add(reply);
+            f.view.setItems(List.of(alert,f.items.get(0)));assertTrue(f.view.peek(alert,5000));f.step(16,100);
+            Card card=f.active();
+            java.util.List<dev.android.dynamicisland.island.view.card.Btn> buttons=ReflectionHelpers.getField(card.body,"buttons");
+            assertEquals(1,buttons.size());
+            RectF target=new RectF(buttons.get(0).r);RectF bounds=f.bounds(card);target.offset(bounds.left,bounds.top);
+            f.tap(target);
+            assertEquals(1,f.actions.size());assertSame(reply,f.actions.get(0));
+            assertNotNull(f.actions.get(0).remoteInputs);
+        }
+    }
+
+    @Test public void morphUsesExistingFrostedGpuMaterialAndRendersActions() throws Exception {
+        try(Fixture f=new Fixture(1)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_NOTIFICATION_MORPH,true)
+                    .putInt(ModuleSettings.KEY_MATERIAL_STYLE,ModuleSettings.MATERIAL_FROSTED).commit();ModuleSettings.configurePreview(f.prefs);
+            IslandItem alert=item("glass-morph",2);alert.kind=IslandItem.Kind.PEEK;alert.isMedia=false;
+            alert.appName="WhatsApp";alert.title="Maria";alert.subtitle="Vamos tomar um café depois?";
+            alert.actions.add(new IslandItem.Action("Responder",null,null,null,false));
+            alert.actions.add(new IslandItem.Action("Marcar como lida",null,null,null,false));
+            f.view.setItems(List.of(alert,f.items.get(0)));assertTrue(f.view.peek(alert,5000));f.step(16,100);
+            Bitmap bitmap=capture(f,"");
+            assertNotNull(ReflectionHelpers.getField(f.active().material,"shader"));
+            writeMorphFrame(bitmap,"frosted-actions");
+            f.view.setItems(f.items);f.step(16,100);assertTrue(f.scene.cards.isEmpty());
+        }
+    }
+
+    @Test public void morphIsPaintedByIslandOverlayWithoutNativeBlurSlots() {
+        try(Fixture f=new Fixture(1)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_NOTIFICATION_MORPH,true).commit();ModuleSettings.configurePreview(f.prefs);
+            IslandItem alert=item("overlay-peek",2);alert.kind=IslandItem.Kind.PEEK;alert.isMedia=false;
+            f.view.setItems(List.of(alert,f.items.get(0)));assertTrue(f.view.peek(alert,5000));f.step(16,100);
+            Bitmap image=Bitmap.createBitmap(440,400,Bitmap.Config.ARGB_8888);
+            f.view.draw(new Canvas(image));
+            RectF bounds=f.bounds(f.active());
+            assertEquals(255,Color.alpha(image.getPixel((int)bounds.centerX(),(int)bounds.centerY())));
+        }
+    }
+
+    @Test public void repeatedPeekCanConvertAnAlreadyOpenedOrdinaryCardWithoutJump() {
+        try(Fixture f=new Fixture(1)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_NOTIFICATION_MORPH,true).commit();ModuleSettings.configurePreview(f.prefs);
+            IslandItem alert=item("double-dispatch",2);alert.kind=IslandItem.Kind.PEEK;alert.isMedia=false;
+            f.view.setItems(List.of(alert,f.items.get(0)));
+            f.scene.iMode.open(alert.key,false);f.step(16,4);
+            Card card=f.active();RectF before=f.bounds(card);
+            assertFalse(card.notificationMorph);
+            assertTrue(f.view.peek(alert,5000));
+            assertSame(card,f.active());assertTrue(card.notificationMorph);
+            assertEquals(before,f.bounds(card));
+            f.step(16,100);
+            assertTrue(card.body instanceof dev.android.dynamicisland.island.view.card.NotificationMorphBody);
+            RectF settled=f.bounds(card);
+            assertTrue(f.view.peek(alert,5000));assertEquals(settled,f.bounds(card));
+            f.step(16,100);assertEquals(settled.top,f.bounds(card).top,.1f);
+        }
+    }
+
+    @Test public void morphProducesIntermediateFramesAndPreservesBodyOnRelayout() throws Exception {
+        try(Fixture f=new Fixture(1)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_NOTIFICATION_MORPH,true).commit();ModuleSettings.configurePreview(f.prefs);
+            IslandItem alert=item("morph-frames",2);alert.kind=IslandItem.Kind.PEEK;alert.isMedia=false;
+            alert.title="WhatsApp · Maria";alert.subtitle="Mensagem de teste para conferir a expansão e o recolhimento.";
+            f.view.setItems(List.of(alert,f.items.get(0)));assertTrue(f.view.peek(alert,5000));
+            Card card=f.active();float initial=f.bounds(card).height();
+            f.step(16,6);float intermediate=f.bounds(card).height();
+            assertTrue(intermediate>initial);assertTrue(intermediate<card.targetH);
+            Bitmap entering=capture(f,"");
+            f.step(16,24);Bitmap settled=capture(f,"");
+            assertFalse(entering.sameAs(settled));
+            writeMorphFrame(entering,"entering");
+            writeMorphFrame(settled,"settled");
+            f.scene.iMode.relayout();
+            assertTrue(card.body instanceof dev.android.dynamicisland.island.view.card.NotificationMorphBody);
+            f.view.setItems(f.items);f.step(16,6);
+            writeMorphFrame(capture(f,"Morph · returning"),"returning");
+            f.step(16,100);assertTrue(f.scene.cards.isEmpty());
+        }
+    }
+
+    @Test public void notificationMorphUsesCameraRowAndReturnsToExistingActivity() {
+        try(Fixture f=new Fixture(1)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_NOTIFICATION_MORPH,true).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            IslandItem alert=item("morph",2);alert.kind=IslandItem.Kind.PEEK;alert.isMedia=false;
+            f.view.setItems(List.of(alert,f.items.get(0)));
+            assertTrue(f.view.peek(alert,5000));
+            Card card=f.active();assertTrue(card.notificationMorph);
+            f.step(16,100);
+            assertEquals(15,f.bounds(card).top,1);
+            assertTrue(card.body instanceof dev.android.dynamicisland.island.view.card.NotificationMorphBody);
+            f.view.setItems(f.items);f.step(16,100);
+            assertEquals(Mode.COMPACT,f.scene.mode);
+            assertTrue(f.scene.cards.isEmpty());
+        }
+    }
+
+    @Test public void alwaysVisibleReturnsToIdleAndRespectsGesture() {
+        try (Fixture f=new Fixture(1)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_ALWAYS_VISIBLE,true).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            f.view.setItems(Collections.emptyList()); f.step(16,80);
+            assertTrue(f.scene.restingShown());
+            assertFalse(f.view.isFullyHidden());
+            f.view.setItems(f.items); f.step(16,80);
+            assertEquals(Mode.COMPACT,f.scene.mode);
+            f.scene.iMode.hideByGesture(); f.step(16,80);
+            assertEquals(Mode.HIDDEN,f.scene.mode);
+            f.view.setItems(Collections.emptyList()); f.step(16,80);
+            assertEquals(Mode.HIDDEN,f.scene.mode);
+            f.scene.iMode.restoreByGesture(); f.step(16,80);
+            assertTrue(f.scene.restingShown());
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_ALWAYS_VISIBLE,false).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            f.view.setItems(Collections.emptyList()); f.step(16,80);
+            assertEquals(Mode.HIDDEN,f.scene.mode);
+        }
+    }
+
+    @Test public void classicIdleCanBeDisabledAndRestoresHidden() {
+        try (Fixture f=new Fixture(1)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_I_MODE,false)
+                    .putBoolean(ModuleSettings.KEY_ALWAYS_VISIBLE,true).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            f.view.setItems(Collections.emptyList()); f.step(16,80);
+            assertTrue(f.scene.restingShown());
+            assertFalse(f.view.isFullyHidden());
+            f.view.setItems(f.items); f.step(16,80);
+            assertEquals(Mode.COMPACT,f.scene.mode);
+            f.view.setItems(Collections.emptyList()); f.step(16,80);
+            assertTrue(f.scene.restingShown());
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_ALWAYS_VISIBLE,false).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            f.view.setItems(Collections.emptyList()); f.step(16,100);
+            assertEquals(Mode.HIDDEN,f.scene.mode);
+            assertTrue(f.view.isFullyHidden());
+        }
+    }
+
+    @Test public void idleObeysSuppressionAndSleep() {
+        try (Fixture f=new Fixture(0)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_ALWAYS_VISIBLE,true).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            f.view.setItems(Collections.emptyList()); f.step(16,80);
+            assertTrue(f.scene.restingShown());
+            f.view.setSuppressed(true); f.step(16,100);
+            assertTrue(f.view.isFullyHidden());
+            f.view.setSuppressed(false); f.step(16,100);
+            assertFalse(f.view.isFullyHidden());
+            f.view.setSleeping(true); f.step(16,100);
+            assertTrue(f.view.isFullyHidden());
+            f.view.setSleeping(false); f.step(16,100);
+            assertFalse(f.view.isFullyHidden());
+        }
+    }
+
+    @Test public void temporaryCardKeepsContinuousActivityAndReturnsAfterRemoval() {
+        try (Fixture f=new Fixture(1)) {
+            IslandItem music=f.items.get(0);
+            IslandItem alert=item("alert",2); alert.kind=IslandItem.Kind.PEEK;
+            f.view.setItems(List.of(alert,music));
+            assertTrue(f.view.peek(alert,5000));
+            f.step(16,5);
+            assertTrue(f.scene.iMode.visibleItems().stream().anyMatch(it -> it.key.equals(music.key)));
+            f.view.setItems(List.of(music));
+            f.step(16,100);
+            assertFalse(f.view.isExpanded());
+            assertTrue(f.scene.iMode.visibleItems().stream().anyMatch(it -> it.key.equals(music.key)));
+            assertEquals(Mode.COMPACT,f.scene.mode);
+        }
+    }
+
+    @Test public void consecutiveAlertsRestorePreviouslyExpandedActivity() {
+        try (Fixture f=new Fixture(1)) {
+            IslandItem music=f.items.get(0);
+            IslandItem first=item("first-alert",2); first.kind=IslandItem.Kind.PEEK;
+            IslandItem second=item("second-alert",2); second.kind=IslandItem.Kind.PEEK;
+            f.scene.iMode.open(music.key,true);
+            f.view.setItems(List.of(first,music));
+            assertTrue(f.view.peek(first,5000));
+            f.step(16,5);
+            f.view.setItems(List.of(music));
+            f.assertSingle(music.key);
+            f.view.setItems(List.of(second,music));
+            assertTrue(f.view.peek(second,5000));
+            f.step(16,5);
+            f.view.setItems(List.of(music));
+            f.step(16,100);
+            f.assertSingle(music.key);
+            assertEquals(Mode.EXPANDED,f.scene.mode);
+        }
+    }
+
+    @Test public void suppressedAlertDoesNotRestoreAnExpandedCard() {
+        try (Fixture f=new Fixture(1)) {
+            IslandItem music=f.items.get(0);
+            IslandItem alert=item("alert-sleep",2); alert.kind=IslandItem.Kind.PEEK;
+            f.scene.iMode.open(music.key,true);
+            f.view.setItems(List.of(alert,music));
+            assertTrue(f.view.peek(alert,5000));
+            f.view.setSuppressed(true);
+            assertFalse(f.view.isExpanded());
+            f.step(16,100);
+            assertTrue(f.view.isFullyHidden());
+        }
     }
 
     @Test public void widerCapsulesAndEveryTransitionFrameKeepArtworkAndIconsSquare() {
@@ -355,6 +477,20 @@ public class IModeTest {
         }
     }
 
+    @Test public void aRingingBannerSwipesAwayInEitherDirectionWithoutPagingOrRejectingTheCall() {
+        for(int direction:new int[]{-1,1}) try(Fixture f=new Fixture(3)) {
+            IslandItem incoming=f.items.get(0);incoming.incomingCall=true;incoming.transientPopup=true;
+            f.view.setItems(f.items);f.view.peek(incoming,1000);f.step(16,70);
+            RectF start=f.bounds(f.active());
+            f.event(MotionEvent.ACTION_DOWN,start.centerX(),start.centerY());
+            f.event(MotionEvent.ACTION_MOVE,start.centerX()+direction*110,start.centerY());
+            assertFalse("incoming calls dismiss; they do not start the activity pager",f.scene.iMode.hasPageDrag());
+            f.event(MotionEvent.ACTION_UP,start.centerX()+direction*110,start.centerY());
+            f.step(16,70);assertFalse(f.view.isExpanded());
+            assertTrue("the unanswered call is still available as a pill",f.scene.items.contains(incoming));
+        }
+    }
+
     @Test public void aSharedVectorIconRemainsVisibleWhenTheBubbleBecomesTheMainPill() {
         try(Fixture f=new Fixture(3)) {
             f.items.get(1).icon=f.context.getDrawable(dev.android.dynamicisland.R.drawable.ic_battery_pill_39);
@@ -465,7 +601,14 @@ public class IModeTest {
             f.event(MotionEvent.ACTION_DOWN,card.centerX(),card.centerY());
             f.event(MotionEvent.ACTION_MOVE,card.centerX(),card.centerY()-48);
             f.event(MotionEvent.ACTION_UP,card.centerX(),card.centerY()-48);
-            f.step(16,90);assertTrue("the same gesture hides the expanded presentation too",f.scene.iMode.hiddenByGesture());
+            f.step(16,90);
+            assertFalse("an open card folds back on a swipe up, it does not hide the island",f.scene.iMode.hiddenByGesture());
+            assertEquals(Mode.COMPACT,f.scene.mode);assertEquals(7,f.scene.items.size());
+            f.scene.iMode.mainBounds(main);
+            f.event(MotionEvent.ACTION_DOWN,main.centerX(),main.centerY());
+            f.event(MotionEvent.ACTION_MOVE,main.centerX(),main.centerY()-48);
+            f.event(MotionEvent.ACTION_UP,main.centerX(),main.centerY()-48);
+            f.step(16,90);assertTrue("a swipe up on the small pill hides it",f.scene.iMode.hiddenByGesture());
             assertTrue(f.scene.cards.isEmpty());assertEquals(7,f.scene.items.size());
         }
     }
@@ -743,7 +886,9 @@ public class IModeTest {
                         card.centerY()-(action==MotionEvent.ACTION_DOWN?0:48),0);
                 assertTrue(layer.dispatchTouchEvent(event));event.recycle();
             }
-            f.step(16,90);assertTrue("a native notification's upward swipe hides the group",f.scene.iMode.hiddenByGesture());
+            f.step(16,90);assertFalse("a native notification's upward swipe folds its card, it does not hide the group",f.scene.iMode.hiddenByGesture());
+            assertEquals(Mode.COMPACT,f.scene.mode);
+            f.scene.iMode.hideByGesture();f.step(16,90);assertTrue(f.scene.iMode.hiddenByGesture());
             for(int action:new int[]{MotionEvent.ACTION_DOWN,MotionEvent.ACTION_MOVE,MotionEvent.ACTION_UP}) {
                 long time=SystemClock.uptimeMillis();
                 MotionEvent event=MotionEvent.obtain(time,time,action,220,action==MotionEvent.ACTION_DOWN?30:50,0);
@@ -804,7 +949,7 @@ public class IModeTest {
         p.setColor(0xff242428);canvas.drawRoundRect(new RectF(16,185,424,227),21,21,p);
         p.setColor(0xff9c9ca4);p.setTextSize(15);canvas.drawText("Search settings",36,212,p);
         int cardFade=canvas.saveLayerAlpha(0,0,440,330,Math.round(255*IslandView.clamp01(f.scene.visibleAlpha())));
-        for(int i=f.scene.cards.size()-1;i>=0;i--) if(!f.scene.cards.get(i).notificationMorph) f.view.drawCard(canvas,f.scene.cards.get(i),IslandView.now());
+        for(int i=f.scene.cards.size()-1;i>=0;i--) f.view.drawCard(canvas,f.scene.cards.get(i),IslandView.now());
         canvas.restoreToCount(cardFade);
         f.view.draw(canvas);
         p.setColor(0xffc4c4ce);p.setTextSize(13);
@@ -969,111 +1114,280 @@ public class IModeTest {
         }
     }
 
-    @Test public void alwaysVisibleReturnsToIdleAndRespectsGesture() {
-        try (Fixture f=new Fixture(1)) {
-            f.prefs.edit().putBoolean(ModuleSettings.KEY_ALWAYS_VISIBLE,true).commit();
-            ModuleSettings.configurePreview(f.prefs);
-            f.view.setItems(Collections.emptyList()); f.step(16,80);
-            assertEquals(Mode.IDLE,f.scene.mode);
-            assertFalse(f.view.isFullyHidden());
-            f.view.setItems(f.items); f.step(16,80);
-            assertEquals(Mode.COMPACT,f.scene.mode);
-            f.scene.iMode.hideByGesture(); f.step(16,80);
-            assertEquals(Mode.HIDDEN,f.scene.mode);
-            f.view.setItems(Collections.emptyList()); f.step(16,80);
-            assertEquals(Mode.HIDDEN,f.scene.mode);
-            f.scene.iMode.restoreByGesture(); f.step(16,80);
-            assertEquals(Mode.IDLE,f.scene.mode);
-            f.prefs.edit().putBoolean(ModuleSettings.KEY_ALWAYS_VISIBLE,false).commit();
-            ModuleSettings.configurePreview(f.prefs);
-            f.view.setItems(Collections.emptyList()); f.step(16,80);
-            assertEquals(Mode.HIDDEN,f.scene.mode);
-        }
-    }
-    @Test public void classicIdleCanBeDisabledAndRestoresHidden() {
-        try (Fixture f=new Fixture(1)) {
-            f.prefs.edit().putBoolean(ModuleSettings.KEY_I_MODE,false)
-                    .putBoolean(ModuleSettings.KEY_ALWAYS_VISIBLE,true).commit();
-            ModuleSettings.configurePreview(f.prefs);
-            f.view.setItems(Collections.emptyList()); f.step(16,80);
-            assertEquals(Mode.IDLE,f.scene.mode);
-            assertFalse(f.view.isFullyHidden());
-            f.view.setItems(f.items); f.step(16,80);
-            assertEquals(Mode.COMPACT,f.scene.mode);
-            f.view.setItems(Collections.emptyList()); f.step(16,80);
-            assertEquals(Mode.IDLE,f.scene.mode);
-            f.prefs.edit().putBoolean(ModuleSettings.KEY_ALWAYS_VISIBLE,false).commit();
-            ModuleSettings.configurePreview(f.prefs);
-            f.view.setItems(Collections.emptyList()); f.step(16,100);
-            assertEquals(Mode.HIDDEN,f.scene.mode);
-            assertTrue(f.view.isFullyHidden());
-        }
-    }
-    @Test public void idleObeysSuppressionAndSleep() {
-        try (Fixture f=new Fixture(0)) {
-            f.prefs.edit().putBoolean(ModuleSettings.KEY_ALWAYS_VISIBLE,true).commit();
-            ModuleSettings.configurePreview(f.prefs);
-            f.view.setItems(Collections.emptyList()); f.step(16,80);
-            assertEquals(Mode.IDLE,f.scene.mode);
-            f.view.setSuppressed(true); f.step(16,100);
-            assertTrue(f.view.isFullyHidden());
-            f.view.setSuppressed(false); f.step(16,100);
-            assertFalse(f.view.isFullyHidden());
-            f.view.setSleeping(true); f.step(16,100);
-            assertTrue(f.view.isFullyHidden());
-            f.view.setSleeping(false); f.step(16,100);
-            assertFalse(f.view.isFullyHidden());
+
+    @Test public void aSwipeUpOnAnOpenCardFoldsItByDistanceAndSpeedAndSlowShortOnesSpringBack() {
+        try(Fixture f=new Fixture(4)) {
+            f.scene.iMode.open("item0",true);f.step(16,80);RectF card=f.bounds(f.active());
+            f.swipeUp(card.centerX(),card.centerY(),20,600);
+            f.step(16,60);
+            assertEquals("a short, slow drag is not enough: the card springs back and stays open",Mode.EXPANDED,f.scene.mode);
+            assertFalse(f.scene.iMode.hiddenByGesture());
+
+            card=f.bounds(f.active());
+            f.swipeUp(card.centerX(),card.centerY(),60,500);
+            f.step(16,90);
+            assertEquals("a long drag folds the card back into the pill",Mode.COMPACT,f.scene.mode);
+            assertFalse("and the island stays",f.scene.iMode.hiddenByGesture());
+
+            f.scene.iMode.open("item0",true);f.step(16,80);card=f.bounds(f.active());
+            f.swipeUp(card.centerX(),card.centerY(),24,24);
+            f.step(16,90);
+            assertEquals("a quick flick folds it after a short move",Mode.COMPACT,f.scene.mode);
+            assertFalse(f.scene.iMode.hiddenByGesture());
         }
     }
 
-    @Test public void temporaryCardKeepsContinuousActivityAndReturnsAfterRemoval() {
-        try (Fixture f=new Fixture(1)) {
-            IslandItem music=f.items.get(0);
-            IslandItem alert=item("alert",2); alert.kind=IslandItem.Kind.PEEK;
-            f.view.setItems(List.of(alert,music));
-            assertTrue(f.view.peek(alert,5000));
-            f.step(16,5);
-            assertTrue(f.scene.iMode.visibleItems().stream().anyMatch(it -> it.key.equals(music.key)));
-            f.view.setItems(List.of(music));
-            f.step(16,100);
-            assertFalse(f.view.isExpanded());
-            assertTrue(f.scene.iMode.visibleItems().stream().anyMatch(it -> it.key.equals(music.key)));
+    @Test public void aSwipeUpOnTheSmallPillHidesItAndAFlickNeedsLessDistance() {
+        try(Fixture f=new Fixture(3)) {
+            RectF main=new RectF();f.scene.iMode.mainBounds(main);
+            f.swipeUp(main.centerX(),main.centerY(),20,500);
+            f.step(16,60);
+            assertFalse("a short slow drag on the pill does nothing",f.scene.iMode.hiddenByGesture());
+
+            f.scene.iMode.mainBounds(main);
+            f.swipeUp(main.centerX(),main.centerY(),24,12);
+            f.step(16,90);
+            assertTrue("a flick hides it after a short move",f.scene.iMode.hiddenByGesture());
+        }
+    }
+
+    @Test public void theSwipeUpToHideCanBeTurnedOffAndFoldingStillWorks() {
+        try(Fixture f=new Fixture(4)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_SWIPE_UP_HIDES,false).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            RectF main=new RectF();f.scene.iMode.mainBounds(main);
+            f.swipeUp(main.centerX(),main.centerY(),80,60);
+            f.step(16,90);
+            assertFalse("switched off: even a long fast swipe leaves the pill alone",f.scene.iMode.hiddenByGesture());
+            assertEquals(Mode.COMPACT,f.scene.mode);
+
+            f.scene.iMode.open("item0",true);f.step(16,80);
+            assertEquals(Mode.EXPANDED,f.scene.mode);
+            RectF card=f.bounds(f.active());
+            f.swipeUp(card.centerX(),card.centerY(),60,500);f.step(16,90);
+            assertEquals("folding an open card is not part of the switch",Mode.COMPACT,f.scene.mode);
+
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_SWIPE_UP_HIDES,true).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            f.scene.iMode.mainBounds(main);
+            f.swipeUp(main.centerX(),main.centerY(),24,12);f.step(16,90);
+            assertTrue("switched on again: it hides",f.scene.iMode.hiddenByGesture());
+        }
+    }
+
+    @Test public void holdingTheSmallPillHidesItButATapOrADragDoesNot() {
+        try(Fixture f=new Fixture(3)) {
+            long timeout=android.view.ViewConfiguration.getLongPressTimeout();
+            RectF main=new RectF();f.scene.iMode.mainBounds(main);
+            // a short press is a tap: it opens the card instead
+            f.event(MotionEvent.ACTION_DOWN,main.centerX(),main.centerY());
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(timeout/3,java.util.concurrent.TimeUnit.MILLISECONDS);
+            f.event(MotionEvent.ACTION_UP,main.centerX(),main.centerY());
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(timeout*2,java.util.concurrent.TimeUnit.MILLISECONDS);
+            f.step(16,90);
+            assertFalse("a tap does not hide",f.scene.iMode.hiddenByGesture());
+            assertEquals(Mode.EXPANDED,f.scene.mode);
+            f.scene.iMode.collapse();f.step(16,90);
+            assertEquals(Mode.COMPACT,f.scene.mode);
+
+            // a drag past the touch slop cancels the hold
+            f.scene.iMode.mainBounds(main);
+            f.event(MotionEvent.ACTION_DOWN,main.centerX(),main.centerY());
+            f.event(MotionEvent.ACTION_MOVE,main.centerX()+60,main.centerY());
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(timeout*2,java.util.concurrent.TimeUnit.MILLISECONDS);
+            f.event(MotionEvent.ACTION_UP,main.centerX()+60,main.centerY());
+            f.step(16,90);
+            assertFalse("a drag does not hide",f.scene.iMode.hiddenByGesture());
+
+            // holding still hides it, and lifting the finger afterwards does not open anything
+            f.scene.iMode.mainBounds(main);
+            f.event(MotionEvent.ACTION_DOWN,main.centerX(),main.centerY());
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(timeout+100,java.util.concurrent.TimeUnit.MILLISECONDS);
+            assertTrue("held: hidden",f.scene.iMode.hiddenByGesture());
+            f.event(MotionEvent.ACTION_UP,main.centerX(),main.centerY());
+            f.step(16,90);
+            assertEquals(Mode.HIDDEN,f.scene.mode);
+
+            // and it stays available when the swipe up is switched off
+            f.scene.iMode.restoreByGesture();f.step(16,90);
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_SWIPE_UP_HIDES,false).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            f.scene.iMode.mainBounds(main);
+            f.event(MotionEvent.ACTION_DOWN,main.centerX(),main.centerY());
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(timeout+100,java.util.concurrent.TimeUnit.MILLISECONDS);
+            assertTrue("held with the swipe switched off: still hidden",f.scene.iMode.hiddenByGesture());
+            f.event(MotionEvent.ACTION_UP,main.centerX(),main.centerY());
+        }
+    }
+
+    @Test public void aPullDownThatBeganWithASidewaysWobbleStillReachesTheShade() {
+        try(Fixture f=new Fixture(3)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_SWIPE_DOWN_OPENS,false).commit();ModuleSettings.configurePreview(f.prefs);
+            RectF main=new RectF();f.scene.iMode.mainBounds(main);
+            float x=main.centerX(),y=main.centerY();
+            f.event(MotionEvent.ACTION_DOWN,x,y);
+            f.event(MotionEvent.ACTION_MOVE,x+24,y+2);   // the first move is mostly sideways: the pill starts to page
+            assertTrue("the pill began to page",f.scene.iMode.hasCompactDrag());
+            f.event(MotionEvent.ACTION_MOVE,x+30,y+48);  // then the finger goes clearly down
+            assertEquals("the pull is handed to the shade",1,f.shadePulls.size());
+            assertFalse(f.scene.iMode.hasCompactDrag());
+            f.event(MotionEvent.ACTION_UP,x+30,y+120);
+            f.step(16,60);
             assertEquals(Mode.COMPACT,f.scene.mode);
         }
     }
 
-    @Test public void consecutiveAlertsRestorePreviouslyExpandedActivity() {
-        try (Fixture f=new Fixture(1)) {
-            IslandItem music=f.items.get(0);
-            IslandItem first=item("first-alert",2); first.kind=IslandItem.Kind.PEEK;
-            IslandItem second=item("second-alert",2); second.kind=IslandItem.Kind.PEEK;
-            f.scene.iMode.open(music.key,true);
-            f.view.setItems(List.of(first,music));
-            assertTrue(f.view.peek(first,5000));
-            f.step(16,5);
-            f.view.setItems(List.of(music));
-            f.assertSingle(music.key);
-            f.view.setItems(List.of(second,music));
-            assertTrue(f.view.peek(second,5000));
-            f.step(16,5);
-            f.view.setItems(List.of(music));
-            f.step(16,100);
-            f.assertSingle(music.key);
+    @Test public void aPullDownOnThePillOpensItsCardsByDefaultAndGoesToTheShadeWhenTheOptionIsOff() {
+        try(Fixture f=new Fixture(3)) {
+            RectF main=new RectF();f.scene.iMode.mainBounds(main);
+            float x=main.centerX(),y=main.centerY();
+            f.event(MotionEvent.ACTION_DOWN,x,y);
+            f.event(MotionEvent.ACTION_MOVE,x,y+48);
+            f.event(MotionEvent.ACTION_UP,x,y+120);
+            f.step(16,80);
+            assertEquals("by default nothing goes to the shade",0,f.shadePulls.size());
+            assertEquals("the cards opened",Mode.EXPANDED,f.scene.mode);
+            assertFalse(f.scene.cards.isEmpty());
+        }
+        try(Fixture f=new Fixture(3)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_SWIPE_DOWN_OPENS,false).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            RectF main=new RectF();f.scene.iMode.mainBounds(main);
+            float x=main.centerX(),y=main.centerY();
+            f.event(MotionEvent.ACTION_DOWN,x,y);
+            f.event(MotionEvent.ACTION_MOVE,x,y+48);
+            f.event(MotionEvent.ACTION_UP,x,y+120);
+            assertEquals("with the option off the pull goes to the shade",1,f.shadePulls.size());
+            f.step(16,60);
+            assertEquals(Mode.COMPACT,f.scene.mode);
+        }
+    }
+
+    @Test public void aShortPopupIsTheMainPillEvenWhenTheRowWasPagedToAnotherOne() {
+        try(Fixture f=new Fixture(3)) {
+            RectF main=new RectF();
+            f.scene.iMode.next(1);f.step(16,80);f.scene.iMode.mainBounds(main);
+            String paged=f.scene.iMode.hit(main.centerX(),main.centerY(),0);
+            assertEquals("the row was paged to the next pill","item1",paged);
+            IslandItem popup=new IslandItem("event:toggle:dnd");
+            popup.kind=IslandItem.Kind.EVENT;popup.title="Do Not Disturb on";popup.transientPopup=true;
+            popup.icon=GlyphIcon.of(GlyphIcon.Kind.BELL);
+            popup.trailing=IslandItem.Trailing.TEXT;popup.trailingText="On";
+            List<IslandItem> items=new ArrayList<>();
+            items.add(popup);items.addAll(f.items);
+            f.view.setItems(items);f.step(16,80);f.scene.iMode.mainBounds(main);
+            assertEquals("the popup is the main pill, not a sub pill waiting behind",popup.key,f.scene.iMode.hit(main.centerX(),main.centerY(),0));
+            f.view.setItems(f.items);f.step(16,80);f.scene.iMode.mainBounds(main);
+            assertEquals("when it is over the row is back where it was",paged,f.scene.iMode.hit(main.centerX(),main.centerY(),0));
+        }
+    }
+
+    @Test public void chargingPreemptsAPageAndSurvivesLowerPriorityArrivalsAndUpdates() {
+        try(Fixture f=new Fixture(3)) {
+            f.scene.iMode.next(1);f.step(16,80);
+            IslandItem system=item("event:toggle:dnd",0);
+            system.kind=IslandItem.Kind.EVENT;system.transientPopup=true;
+            List<IslandItem> items=new ArrayList<>(f.items);items.add(0,system);
+            f.view.setItems(items);f.step(16,40);
+            assertMain(f,system.key);
+
+            // A high-priority arrival during an unfinished swipe used to be ignored forever.
+            assertTrue(f.scene.iMode.dragCompact(-30));
+            IslandItem charging=item("event:charging",0);
+            charging.kind=IslandItem.Kind.EVENT;charging.transientPopup=true;charging.fullWidth=true;
+            items.add(0,charging);f.view.setItems(items);f.step(16,40);
+            assertMain(f,charging.key);
+            IslandItem message=item("peek:message",0);
+            message.kind=IslandItem.Kind.PEEK;message.transientPopup=true;
+            items.add(2,message);f.view.setItems(items);f.step(16,40);
+            assertMain(f,charging.key);
+            assertFalse("a message cannot open over charging",f.view.peek(message,4000));
+            f.view.setItems(items);f.step(16,40);assertMain(f,charging.key);
+
+            items.remove(charging);f.view.setItems(items);f.step(16,40);assertMain(f,system.key);
+            // An expanded ongoing card must not keep a new system popup in the sub-pill either.
+            f.scene.iMode.open("item0",true);f.step(16,40);
+            IslandItem headset=item("event:bt:headset",0);
+            headset.kind=IslandItem.Kind.EVENT;headset.transientPopup=true;headset.postTime=100;
+            items.add(0,headset);f.view.setItems(items);f.step(16,40);assertMain(f,headset.key);
+            f.scene.iMode.collapse();f.view.setItems(f.items);f.step(16,80);
+            assertMain(f,"item1");
+        }
+    }
+
+    private static void assertMain(Fixture f,String key) {
+        RectF main=new RectF();f.scene.iMode.mainBounds(main);
+        assertEquals(key,f.scene.iMode.hit(main.centerX(),main.centerY(),0));
+    }
+
+    @Test public void aPullDownOnASubPillOpensThatActivity() {
+        try(Fixture f=new Fixture(3)) {
+            RectF sub=new RectF();f.scene.iMode.bubbleBounds(sub);
+            assertTrue("there is a sub pill",sub.width()>0);
+            String key=f.scene.iMode.hit(sub.centerX(),sub.centerY(),0);
+            assertTrue("the sub pill is a different activity than the first",key!=null);
+            f.event(MotionEvent.ACTION_DOWN,sub.centerX(),sub.centerY());
+            f.event(MotionEvent.ACTION_MOVE,sub.centerX(),sub.centerY()+48);
+            f.event(MotionEvent.ACTION_UP,sub.centerX(),sub.centerY()+120);
+            f.step(16,80);
+            assertEquals(0,f.shadePulls.size());
+            assertEquals(Mode.EXPANDED,f.scene.mode);
+            assertEquals("the pulled pill's activity is the one that opened",key,f.scene.iMode.selectedKey());
+        }
+    }
+
+    @Test public void aPullDownThatBeganWithASidewaysWobbleOpensTheCardsWhenSwipeDownOpensIsOn() {
+        try(Fixture f=new Fixture(3)) {
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_SWIPE_DOWN_OPENS,true).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            RectF main=new RectF();f.scene.iMode.mainBounds(main);
+            float x=main.centerX(),y=main.centerY();
+            f.event(MotionEvent.ACTION_DOWN,x,y);
+            f.event(MotionEvent.ACTION_MOVE,x+24,y+2);
+            assertTrue(f.scene.iMode.hasCompactDrag());
+            f.event(MotionEvent.ACTION_MOVE,x+30,y+48);
+            assertFalse("the half-made page swipe is dropped",f.scene.iMode.hasCompactDrag());
+            f.event(MotionEvent.ACTION_UP,x+30,y+120);
+            f.step(16,80);
+            assertEquals(0,f.shadePulls.size());
             assertEquals(Mode.EXPANDED,f.scene.mode);
         }
     }
 
-    @Test public void suppressedAlertDoesNotRestoreAnExpandedCard() {
-        try (Fixture f=new Fixture(1)) {
-            IslandItem music=f.items.get(0);
-            IslandItem alert=item("alert-sleep",2); alert.kind=IslandItem.Kind.PEEK;
-            f.scene.iMode.open(music.key,true);
-            f.view.setItems(List.of(alert,music));
-            assertTrue(f.view.peek(alert,5000));
-            f.view.setSuppressed(true);
-            assertFalse(f.view.isExpanded());
-            f.step(16,100);
-            assertTrue(f.view.isFullyHidden());
+    @Test public void aSidewaysDragStillPagesAndANearlyHorizontalOneIsNotAPullDown() {
+        try(Fixture f=new Fixture(3)) {
+            RectF main=new RectF();f.scene.iMode.mainBounds(main);
+            float x=main.centerX(),y=main.centerY();
+            f.event(MotionEvent.ACTION_DOWN,x,y);
+            f.event(MotionEvent.ACTION_MOVE,x+24,y+2);
+            f.event(MotionEvent.ACTION_MOVE,x+70,y+30);
+            assertTrue(f.scene.iMode.hasCompactDrag());
+            assertEquals(0,f.shadePulls.size());
+            f.event(MotionEvent.ACTION_UP,x+70,y+30);
+        }
+    }
+
+    @Test public void theIslandAsksForAHighFrameRateOnlyWhileItMoves() {
+        try(Fixture f=new Fixture(1)) {
+            f.step(16,240);
+            assertEquals("still: the default",View.REQUESTED_FRAME_RATE_CATEGORY_DEFAULT,f.view.getRequestedFrameRate(),0f);
+            f.view.setItems(Collections.emptyList());   // the pill leaves: it animates
+            f.step(16,4);
+            assertEquals(View.REQUESTED_FRAME_RATE_CATEGORY_HIGH,f.view.getRequestedFrameRate(),0f);
+            f.step(16,240);
+            assertEquals("still again: back to the default",View.REQUESTED_FRAME_RATE_CATEGORY_DEFAULT,f.view.getRequestedFrameRate(),0f);
+
+            f.prefs.edit().putBoolean(ModuleSettings.KEY_LOW_PERFORMANCE,true).commit();
+            ModuleSettings.configurePreview(f.prefs);
+            f.view.setItems(f.items);
+            f.step(16,4);
+            assertEquals("low-performance mode never asks for more",View.REQUESTED_FRAME_RATE_CATEGORY_DEFAULT,f.view.getRequestedFrameRate(),0f);
+        }
+    }
+    private static void writeMorphFrame(Bitmap frame,String name) throws Exception {
+        File directory=new File("build/render/morph-review");directory.mkdirs();
+        try(java.io.FileOutputStream stream=new java.io.FileOutputStream(new File(directory,name+".png"))) {
+            assertTrue(frame.compress(Bitmap.CompressFormat.PNG,100,stream));
         }
     }
 }

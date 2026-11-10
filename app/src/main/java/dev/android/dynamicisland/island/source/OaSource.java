@@ -31,7 +31,7 @@ public final class OaSource {
     /** Run on the main thread when the call card changed without a notification update (speaker route). */
     public Runnable onChanged;
 
-    private final Handler main = new Handler(Looper.getMainLooper());
+    private final Handler main = new dev.android.dynamicisland.xposed.GuardedHandler(Looper.getMainLooper());
     private final OaReader reader;
     private final ProgressBinder progress;
     private final OaCardBuilder cards;
@@ -87,6 +87,12 @@ public final class OaSource {
 
     /** Shares the same foreground snapshot as the media and ordinary-notification sources. */
     public void collect(List<IslandItem> out, Set<String> hiddenByForeground, Collection<String> packages, String foreground) {
+        collect(out, hiddenByForeground, packages, foreground, false);
+    }
+
+    /** {@code foregroundConfirmed}: the foreground package comes from a fresh task snapshot, not the vendor's cache. */
+    public void collect(List<IslandItem> out, Set<String> hiddenByForeground, Collection<String> packages, String foreground,
+            boolean foregroundConfirmed) {
         if (!reader.available()) {
             return;
         }
@@ -95,8 +101,7 @@ public final class OaSource {
         for (Object data : reader.activities()) {
             order = collectOne(data, order, out, foreground, pip, hiddenByForeground, packages);
         }
-        calls.collect(callController, out, packages, hiddenByForeground);
-        cards.pruneStopwatches(out);
+        calls.collect(callController, out, packages, hiddenByForeground, foreground, foregroundConfirmed);
     }
 
     /** Adds the card of one activity to {@code out}; returns the next sort order. */

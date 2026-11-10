@@ -21,7 +21,7 @@ import dev.android.dynamicisland.settings.ModuleSettings;
  */
 public final class GlyphIcon extends Drawable {
     /** Which pictogram to draw. {@code POWER_SAVE} is drawn as a battery with a plus cut out. */
-    public enum Kind { BATTERY, BATTERY_CHARGING, BELL, BELL_OFF, VIBRATE, HEADPHONES, CAMERA, MIC, LOCATION, MOON, PLANE, TORCH, HOTSPOT, ROTATE_LOCK, POWER_SAVE, DOWNLOAD, SPEAKER }
+    public enum Kind { BATTERY, BATTERY_CHARGING, BELL, BELL_OFF, VIBRATE, HEADPHONES, CAMERA, MIC, LOCATION, MOON, PLANE, TORCH, HOTSPOT, ROTATE_LOCK, POWER_SAVE, DOWNLOAD, SPEAKER, FINGERPRINT, FACE, PIN, CALL_ANSWER, CALL_END, CAR, BLUETOOTH }
 
     private static final int INTRINSIC_SIZE_PX = 96;
     /** An icon drawn again after this long without a draw plays from the start, like a fresh island. */
@@ -68,7 +68,7 @@ public final class GlyphIcon extends Drawable {
 
     /** True while the animation still moves, so the island keeps its frame loop running. */
     public boolean animating() {
-        if (ModuleSettings.lowPerformance()) return false;
+        if (ModuleSettings.stillIcons()) return false;
         LottiePlayer p = player(kind);
         if (p == null || frozen) {
             return false;
@@ -107,7 +107,7 @@ public final class GlyphIcon extends Drawable {
     }
 
     private float elapsedMillis(LottiePlayer p) {
-        if (frozen || ModuleSettings.lowPerformance()) {
+        if (frozen || ModuleSettings.stillIcons()) {
             return p.durationMillis();
         }
         long now = SystemClock.uptimeMillis();
@@ -161,9 +161,13 @@ public final class GlyphIcon extends Drawable {
         return INTRINSIC_SIZE_PX;
     }
 
+    /** Bounds of the drawing in progress; an icon is drawn on one thread, so one rectangle serves every frame. */
+    private final RectF drawBounds = new RectF();
+
     @Override
     public void draw(Canvas c) {
-        RectF bounds = new RectF(getBounds());
+        RectF bounds = drawBounds;
+        bounds.set(getBounds());
         if (bounds.isEmpty()) {
             return;
         }
@@ -199,6 +203,12 @@ public final class GlyphIcon extends Drawable {
             case HEADPHONES:
                 drawHeadphones(c, cx, cy, s);
                 break;
+            case CAR:
+                drawCar(c, cx, cy, s);
+                break;
+            case BLUETOOTH:
+                drawBluetooth(c, cx, cy, s);
+                break;
             case CAMERA:
                 drawCamera(c, cx, cy, s);
                 break;
@@ -229,9 +239,53 @@ public final class GlyphIcon extends Drawable {
             case SPEAKER:
                 drawSpeaker(c, cx, cy, s);
                 break;
+            case FINGERPRINT:
+                drawFingerprint(c, cx, cy, s);
+                break;
+            case FACE:
+                drawFace(c, cx, cy, s);
+                break;
+            case PIN:
+                drawPin(c, cx, cy, s);
+                break;
+            case CALL_ANSWER:
+            case CALL_END:
+                Glyphs.draw(c, kind == Kind.CALL_ANSWER ? Glyphs.ANSWER : Glyphs.HANGUP, cx, cy, s, paint);
+                break;
             default:
                 break;
         }
+    }
+
+    private void drawCar(Canvas c, float cx, float cy, float s) {
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(s * .065f);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setStrokeJoin(Paint.Join.ROUND);
+        rect.set(cx-s*.38f, cy-s*.03f, cx+s*.38f, cy+s*.25f);
+        c.drawRoundRect(rect, s*.07f, s*.07f, paint);
+        path.reset();
+        path.moveTo(cx-s*.32f,cy-s*.03f); path.lineTo(cx-s*.23f,cy-s*.28f);
+        path.lineTo(cx+s*.23f,cy-s*.28f); path.lineTo(cx+s*.32f,cy-s*.03f);
+        c.drawPath(path,paint);
+        c.drawLine(cx-s*.27f,cy+s*.25f,cx-s*.27f,cy+s*.34f,paint);
+        c.drawLine(cx+s*.27f,cy+s*.25f,cx+s*.27f,cy+s*.34f,paint);
+        c.drawLine(cx-s*.26f,cy+s*.1f,cx-s*.16f,cy+s*.1f,paint);
+        c.drawLine(cx+s*.16f,cy+s*.1f,cx+s*.26f,cy+s*.1f,paint);
+        paint.setStyle(Paint.Style.FILL);
+    }
+
+    private void drawBluetooth(Canvas c, float cx, float cy, float s) {
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(s*.065f);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setStrokeJoin(Paint.Join.ROUND);
+        path.reset();
+        path.moveTo(cx-s*.22f,cy-s*.24f); path.lineTo(cx+s*.21f,cy+s*.22f);
+        path.lineTo(cx,cy+s*.42f); path.lineTo(cx,cy-s*.42f);
+        path.lineTo(cx+s*.21f,cy-s*.22f); path.lineTo(cx-s*.22f,cy+s*.24f);
+        c.drawPath(path,paint);
+        paint.setStyle(Paint.Style.FILL);
     }
 
     private void drawBattery(Canvas c, float cx, float cy, float s) {
@@ -377,6 +431,54 @@ public final class GlyphIcon extends Drawable {
         c.drawLine(cx, cy + (s * 0.22f), cx, cy + (s * 0.36f), paint);
         c.drawLine(cx - (s * 0.12f), cy + (s * 0.36f), cx + (s * 0.12f), cy + (s * 0.36f), paint);
         paint.setStyle(Paint.Style.FILL);
+    }
+
+    /** Three ridges and a core: arcs opening downwards, like the print on a sensor. */
+    private void drawFingerprint(Canvas c, float cx, float cy, float s) {
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(Math.max(1.5f, s * 0.07f));
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        for (float radius : new float[] {0.38f, 0.27f, 0.16f}) {
+            rect.set(cx - (s * radius), cy - (s * radius) - (s * 0.04f), cx + (s * radius), cy + (s * radius) - (s * 0.04f));
+            c.drawArc(rect, 200f, 140f, false, paint);
+        }
+        c.drawLine(cx, cy - (s * 0.06f), cx, cy + (s * 0.22f), paint);
+        c.drawLine(cx - (s * 0.2f), cy + (s * 0.02f), cx - (s * 0.2f), cy + (s * 0.3f), paint);
+        c.drawLine(cx + (s * 0.2f), cy + (s * 0.02f), cx + (s * 0.2f), cy + (s * 0.3f), paint);
+        paint.setStyle(Paint.Style.FILL);
+    }
+
+    /** Four corner brackets, two eyes and a smile. */
+    private void drawFace(Canvas c, float cx, float cy, float s) {
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(Math.max(1.5f, s * 0.07f));
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        float half = s * 0.36f;
+        float arm = s * 0.14f;
+        for (int sx = -1; sx <= 1; sx += 2) {
+            for (int sy = -1; sy <= 1; sy += 2) {
+                float x = cx + (sx * half);
+                float y = cy + (sy * half);
+                c.drawLine(x, y, x - (sx * arm), y, paint);
+                c.drawLine(x, y, x, y - (sy * arm), paint);
+            }
+        }
+        c.drawLine(cx - (s * 0.13f), cy - (s * 0.12f), cx - (s * 0.13f), cy - (s * 0.04f), paint);
+        c.drawLine(cx + (s * 0.13f), cy - (s * 0.12f), cx + (s * 0.13f), cy - (s * 0.04f), paint);
+        rect.set(cx - (s * 0.15f), cy - (s * 0.02f), cx + (s * 0.15f), cy + (s * 0.2f));
+        c.drawArc(rect, 20f, 140f, false, paint);
+        paint.setStyle(Paint.Style.FILL);
+    }
+
+    /** A keypad: three rows of three dots. */
+    private void drawPin(Canvas c, float cx, float cy, float s) {
+        paint.setStyle(Paint.Style.FILL);
+        float step = s * 0.22f;
+        for (int row = -1; row <= 1; row++) {
+            for (int col = -1; col <= 1; col++) {
+                c.drawCircle(cx + (col * step), cy + (row * step), s * 0.07f, paint);
+            }
+        }
     }
 
     private void drawLocation(Canvas c, float cx, float cy, float s) {

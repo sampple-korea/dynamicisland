@@ -192,6 +192,7 @@ public final class TorchSource {
             supersededOffCamera=null;supersededOffUntil=0;
             if(superseded) return; // the known old off command precedes our newer on command
         }
+        String previousCamera = cameraId;
         if (isOn) {
             enabled.add(id);
             cameraId = id;
@@ -204,7 +205,16 @@ public final class TorchSource {
             }
         }
         if (ramping && !java.util.Objects.equals(rampCamera,cameraId)) cancelPowerRamp();
+        boolean cameraChanged = !java.util.Objects.equals(previousCamera, cameraId);
+        if (cameraChanged) {
+            level = Math.max(1, Math.min(maxLevel, level));
+            try { level = Math.max(1, Math.min(maxLevel, cameras.getTorchStrengthLevel(cameraId))); }
+            catch (Throwable ignored) { }
+            preferredLevel = level;
+        }
+        boolean wasOn = on;
         onMode(!enabled.isEmpty());
+        if (cameraChanged && wasOn == on && on) onChange.run();
     }
 
     private void onMode(boolean enabled) {
