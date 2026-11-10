@@ -39,6 +39,7 @@ public final class ModuleSettings {
     public static final String KEY_HOTSPOT_CARD = "hotspot_card";
     public static final String KEY_UNLOCK_NOTICE = "unlock_notice";
     public static final String KEY_PEEK_PROGRESS = "peek_progress";
+    public static final String KEY_PEEK_PULL_BUTTONS = "peek_pull_buttons";
     public static final String KEY_PROGRESS_FOREGROUND = "progress_foreground";
     public static final String KEY_PROGRESS_ANY = "progress_any";
     public static final String KEY_EVENT_RINGER = "event_ringer";
@@ -208,6 +209,7 @@ public final class ModuleSettings {
     private static volatile boolean hotspotCard;
     private static volatile boolean unlockNotice;
     private static volatile boolean peekProgress;
+    private static volatile boolean peekPullButtons;
     private static volatile boolean progressForeground;
     private static volatile boolean progressAny;
     private static volatile boolean eventRinger = true;
@@ -841,6 +843,8 @@ public final class ModuleSettings {
     public static boolean unlockNotice() { ensureStarted(); return unlockNotice; }
     /** A notification card shows the notification's own progress bar. */
     public static boolean peekProgress() { ensureStarted(); return peekProgress; }
+    /** A notification card shows its buttons only once it is pulled down. */
+    public static boolean peekPullButtons() { ensureStarted(); return peekPullButtons; }
     /** Progress cards are also made for the app that is open (they are left out by default). */
     public static boolean progressForeground() { ensureStarted(); return progressForeground; }
     /** Ordinary (not ongoing) notifications with a progress bar also become progress cards, and a bar card beats a live card. */
@@ -867,6 +871,7 @@ public final class ModuleSettings {
         hotspotCard = source.getBoolean(KEY_HOTSPOT_CARD, false);
         unlockNotice = source.getBoolean(KEY_UNLOCK_NOTICE, false);
         peekProgress = source.getBoolean(KEY_PEEK_PROGRESS, false);
+        peekPullButtons = source.getBoolean(KEY_PEEK_PULL_BUTTONS, false);
         progressForeground = source.getBoolean(KEY_PROGRESS_FOREGROUND, false);
         progressAny = source.getBoolean(KEY_PROGRESS_ANY, false);
     }

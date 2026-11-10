@@ -746,4 +746,6 @@
     <string name="setting_screen_recording">屏幕录制</string>
     <string name="setting_screen_recording_desc">在灵动岛上显示屏幕录制的计时和停止按钮。关闭后，交给系统自带的指示和通知。</string>
     <string name="search_terms_screen_recording">屏幕录制 录屏 录制 截取 计时 停止 胶囊 关闭 禁用</string>
+    <string name="setting_peek_pull_buttons">下拉显示按钮</string>
+    <string name="setting_peek_pull_buttons_desc">通知卡片打开时不显示按钮。向下拉动卡片即可显示。</string>
 </resources>

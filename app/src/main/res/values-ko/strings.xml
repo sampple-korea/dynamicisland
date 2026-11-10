@@ -746,4 +746,6 @@
     <string name="setting_screen_recording">화면 녹화</string>
     <string name="setting_screen_recording_desc">화면 녹화를 타이머와 중지 버튼과 함께 아일랜드에 보여 줍니다. 끄면 시스템의 표시와 알림에 맡깁니다.</string>
     <string name="search_terms_screen_recording">화면 녹화 녹화기 캡처 타이머 중지 칩 끄기 해제</string>
+    <string name="setting_peek_pull_buttons">아래로 당겨 버튼 보기</string>
+    <string name="setting_peek_pull_buttons_desc">알림 카드를 버튼 없이 엽니다. 카드를 아래로 당기면 버튼을 보여 줍니다.</string>
 </resources>
