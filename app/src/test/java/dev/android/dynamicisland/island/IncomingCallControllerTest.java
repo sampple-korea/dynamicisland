@@ -74,4 +74,33 @@ public class IncomingCallControllerTest {
         assertTrue(controller.peekHeadsUp(call));assertTrue(controller.ownsHeadsUp(call.getKey()));
         view(controller).setSuppressed(true);assertFalse(controller.peekHeadsUp(call));assertFalse(controller.ownsHeadsUp(call.getKey()));
     }
+    private long hideRequests() {
+        return shadowOf((android.app.Application) app).getBroadcastIntentsForUser(android.os.UserHandle.getUserHandleForUid(0)).stream()
+                .filter(intent->SamsungCallPopupTakeover.HIDE_ACTION.equals(intent.getAction())).count();
+    }
+    @Test public void withIncomingCallCardsOffSamsungsWindowStaysWhileTheCallRingsEvenIfItsNotificationLooksLikeACallInProgress() {
+        var controller=controller(false);var audio=app.getSystemService(android.media.AudioManager.class);
+        ReflectionHelpers.setStaticField(ModuleSettings.class,"incomingCallCards",false);
+        try {
+            // Samsung can post the ringing call as one in progress; the phone itself says that it still rings
+            audio.setMode(android.media.AudioManager.MODE_RINGTONE);
+            controller.onNotificationsSnapshot(List.of(call(false)));shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6));
+            assertEquals("no hide request while the phone rings with the card off",0L,hideRequests());
+            // answered: the phone stops ringing and the island takes the call over as before
+            audio.setMode(android.media.AudioManager.MODE_IN_CALL);
+            controller.onNotificationsSnapshot(List.of(call(false)));shadowOf(Looper.getMainLooper()).idle();
+            assertTrue("the hide request goes once the call is answered",hideRequests()>=1L);
+        } finally {
+            ReflectionHelpers.setStaticField(ModuleSettings.class,"incomingCallCards",true);
+            audio.setMode(android.media.AudioManager.MODE_NORMAL);
+        }
+    }
+    @Test public void withIncomingCallCardsOnTheHoldDoesNotApplyWhileTheCallRings() {
+        var controller=controller(false);var audio=app.getSystemService(android.media.AudioManager.class);
+        try {
+            audio.setMode(android.media.AudioManager.MODE_RINGTONE);
+            controller.onNotificationsSnapshot(List.of(call(true)));shadowOf(Looper.getMainLooper()).idle();
+            assertTrue("the island card replaces Samsung's window as before",hideRequests()>=1L);
+        } finally { audio.setMode(android.media.AudioManager.MODE_NORMAL); }
+    }
 }
