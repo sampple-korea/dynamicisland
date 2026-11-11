@@ -746,4 +746,6 @@
     <string name="setting_screen_recording">Запись экрана</string>
     <string name="setting_screen_recording_desc">Показывать запись экрана на острове с таймером и кнопкой остановки. Если выключить, запись остаётся за системным индикатором и уведомлением.</string>
     <string name="search_terms_screen_recording">запись экрана запись рекордер захват таймер остановить чип выключить отключить</string>
+    <string name="setting_peek_pull_buttons">Кнопки по свайпу вниз</string>
+    <string name="setting_peek_pull_buttons_desc">Карточки уведомлений открываются без кнопок. Потяните карточку вниз, чтобы их показать.</string>
 </resources>

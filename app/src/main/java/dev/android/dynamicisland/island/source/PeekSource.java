@@ -58,6 +58,8 @@ public final class PeekSource {
     public void show(IslandItem item, long ms) {
         item.expiresAtUptime = SystemClock.uptimeMillis() + ms;
         item.transientPopup = true;
+        // a newer message of the same conversation keeps the buttons its card was pulled open to
+        if (current != null && current.key.equals(item.key)) item.actionsHidden &= current.actionsHidden;
         current = item;
         main.removeCallbacks(tick);
         main.postDelayed(tick, ms + 40);
@@ -84,6 +86,9 @@ public final class PeekSource {
             current = null;
             return;
         }
+        // the card may have been given longer since it was shown (its buttons were pulled into view)
+        main.removeCallbacks(tick);
+        main.postDelayed(tick, current.expiresAtUptime - SystemClock.uptimeMillis() + 40);
         out.add(current);
     }
 
@@ -284,6 +289,7 @@ public final class PeekSource {
             }
         }
         addWearableReply(n, it);
+        it.actionsHidden = ModuleSettings.peekPullButtons() && !it.actions.isEmpty();
         return it;
     }
 

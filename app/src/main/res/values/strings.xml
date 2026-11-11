@@ -755,4 +755,6 @@
     <string name="setting_screen_recording">Screen recording</string>
     <string name="setting_screen_recording_desc">Show screen recording on the island with the timer and a stop button. Turn off to leave it to the system\'s own indicator and notification.</string>
     <string name="search_terms_screen_recording">screen recording record recorder capture timer stop chip off disable</string>
+    <string name="setting_peek_pull_buttons">Pull down for buttons</string>
+    <string name="setting_peek_pull_buttons_desc">Notification cards open without their buttons. Pull a card down to show them.</string>
 </resources>

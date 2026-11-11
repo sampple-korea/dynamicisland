@@ -532,6 +532,7 @@ public final class SettingsActivity extends Activity {
         if (mode == 3) ui.note(page, getString(R.string.ui_notification_system_style_desc));
         Switch foreground = toggle(banners, R.string.foreground_notifications, R.string.foreground_notifications_desc, ModuleSettings.KEY_FOREGROUND_NOTIFICATIONS, false);
         toggle(banners, R.string.setting_peek_progress, R.string.setting_peek_progress_desc, ModuleSettings.KEY_PEEK_PROGRESS, false);
+        toggle(banners, R.string.setting_peek_pull_buttons, R.string.setting_peek_pull_buttons_desc, ModuleSettings.KEY_PEEK_PULL_BUTTONS, false);
         OneUi.setDependentsEnabled(mode != 3 && (mode > 0 || flag(ModuleSettings.KEY_OTP_CARD, true)), OneUi.rowOf(foreground));
         ui.linkRow(banners, getString(R.string.apps_title), appsSummary(), () -> open(this::appsPage));
         ui.note(page, getString(R.string.ui_notification_scope));

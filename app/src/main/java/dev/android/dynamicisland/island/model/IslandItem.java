@@ -185,6 +185,8 @@ public final class IslandItem {
     public int[] actionBgColors;
     /** Index in {@link #actions} of the emphasised button, -1 = none. */
     public int primaryActionIndex = -1;
+    /** The buttons wait for a pull down ("Pull down for buttons"). Set by the peek source, cleared by the view. */
+    public boolean actionsHidden;
     /** Opens the owning app / notification when the card is tapped. */
     public PendingIntent contentIntent;
 

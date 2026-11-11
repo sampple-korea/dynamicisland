@@ -746,4 +746,6 @@
     <string name="setting_screen_recording">画面録画</string>
     <string name="setting_screen_recording_desc">画面録画をタイマーと停止ボタン付きでアイランドに表示します。オフにすると、システムの表示と通知に任せます。</string>
     <string name="search_terms_screen_recording">画面録画 録画 レコーダー キャプチャ タイマー 停止 チップ オフ 無効</string>
+    <string name="setting_peek_pull_buttons">下に引いてボタンを表示</string>
+    <string name="setting_peek_pull_buttons_desc">通知カードをボタンなしで開きます。カードを下に引くとボタンを表示します。</string>
 </resources>
