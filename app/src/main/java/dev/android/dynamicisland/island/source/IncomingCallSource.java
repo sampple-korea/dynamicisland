@@ -129,6 +129,9 @@ public final class IncomingCallSource {
         return item;
     }
 
+    /** Whether a call is ringing right now (also a second call while another is active), whatever notifications say. */
+    public boolean phoneRinging() { return ringing(); }
+
     @android.annotation.SuppressLint("MissingPermission")
     private boolean ringing() {
         try {

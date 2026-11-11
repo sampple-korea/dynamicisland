@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 
 /** Dismiss Samsung's app-owned mini call window independently of the island's presentation. Main thread only. */
 final class SamsungCallPopupTakeover {
@@ -21,6 +22,8 @@ final class SamsungCallPopupTakeover {
     private final Handler main;
     private final Sender sender;
     private final Map<Integer, Target> targets = new HashMap<>();
+    /** While this says true Samsung's window is left alone, whatever the call notification looks like. */
+    private BooleanSupplier hold = () -> false;
 
     interface Sender { void hide(int userId); }
 
@@ -35,6 +38,16 @@ final class SamsungCallPopupTakeover {
 
     SamsungCallPopupTakeover(Handler main, Sender sender) {
         this.main = main;this.sender = sender;
+    }
+
+    /**
+     * Samsung's window stays for as long as {@code hold} says true (the phone rings and the island's incoming-call card
+     * is switched off). This is decided by the state of the phone, not by the shape of the call notification: Samsung
+     * posts ringing notifications that look like a call in progress (call type 2 or 3, or a running clock), and those
+     * used to close the window even with the card switched off.
+     */
+    void holdWhile(BooleanSupplier hold) {
+        this.hold = hold == null ? () -> false : hold;
     }
 
     /** Start from the native call notification, before any card has to be built, opened or drawn. */
@@ -54,6 +67,8 @@ final class SamsungCallPopupTakeover {
             if (user < 0 || user > Integer.MAX_VALUE / 100_000) continue;
             calls.computeIfAbsent(user, ignored -> new HashMap<>()).put(sbn.getKey(), sbn.getPostTime());
         }
+        // Asked only when there is a call to act on. Held: no new burst, and a burst already running is dropped below.
+        if (!calls.isEmpty() && hold.getAsBoolean()) calls.clear();
         Iterator<Map.Entry<Integer, Target>> old = targets.entrySet().iterator();
         while (old.hasNext()) {
             Map.Entry<Integer, Target> entry = old.next();
@@ -100,7 +115,7 @@ final class SamsungCallPopupTakeover {
         }
 
         @Override public void run() {
-            if (targets.get(userId) != this) return;
+            if (targets.get(userId) != this || hold.getAsBoolean()) return;
             try {
                 sender.hide(userId);
                 Diagnostics.fact("stock call mini popup", "Samsung hide request sent on call notification; user "
