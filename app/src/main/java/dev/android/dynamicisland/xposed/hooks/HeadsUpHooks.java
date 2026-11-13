@@ -6,6 +6,7 @@ import java.util.Arrays;
 import de.robv.android.xposed.XC_MethodHook;
 import dev.android.dynamicisland.island.IslandController;
 import dev.android.dynamicisland.settings.ModuleSettings;
+import dev.android.dynamicisland.xposed.Diagnostics;
 import dev.android.dynamicisland.xposed.Refl;
 import dev.android.dynamicisland.xposed.SafeHook;
 import dev.android.dynamicisland.xposed.XLog;
@@ -27,16 +28,75 @@ public final class HeadsUpHooks {
     }
 
     static void install(ClassLoader cl) {
-        Refl.hookAll(cl, MANAGER, "shouldHeadsUpBecomePinned", SafeHook.after("heads-up to island", HeadsUpHooks::afterPinDecision));
-        Refl.hookAll(cl, MANAGER, "addListener", SafeHook.after("heads-up manager", p -> manager = p.thisObject));
-        Refl.hookAll(cl, MANAGER, "updateNotificationInternal", SafeHook.after("heads-up manager", p -> manager = p.thisObject));
+        int decision = Refl.hookAll(cl, MANAGER, "shouldHeadsUpBecomePinned", SafeHook.after("heads-up to island", HeadsUpHooks::afterPinDecision));
+        int listener = Refl.hookAll(cl, MANAGER, "addListener", SafeHook.after("heads-up manager", p -> { manager = p.thisObject; called(LISTENER, null); }));
+        int update = Refl.hookAll(cl, MANAGER, "updateNotificationInternal", SafeHook.after("heads-up manager", p -> { manager = p.thisObject; called(UPDATE, null); }));
         // Android 17 also pins from a delayed runnable (several banners in a row) without asking the method above again
-        Refl.hookAll(cl, MANAGER, "setEntryPinned", SafeHook.before("heads-up pin to island", HeadsUpHooks::beforeSetPinned));
+        int pin = Refl.hookAll(cl, MANAGER, "setEntryPinned", SafeHook.before("heads-up pin to island", HeadsUpHooks::beforeSetPinned));
+        Class<?> type = Refl.findClass(MANAGER, cl);
+        Diagnostics.fact("heads-up hooks", (type == null ? "no manager class" : type.getName()) + ": shouldHeadsUpBecomePinned x" + decision
+                + ", setEntryPinned x" + pin + ", updateNotificationInternal x" + update + ", addListener x" + listener);
+        Diagnostics.fact("heads-up manager methods", describe(type), 1600);
+        Diagnostics.fact("heads-up calls", "none yet");
         // Samsung's Edge Lighting popup (the small brief one, which opens into the detailed one) is its own window. It
         // stays away only while the entry's banner is pinned, and a banner the island took is not pinned.
         if (Refl.hasClass(EDGE_CONDITIONS, cl)) {
             Refl.hookAll(cl, EDGE_CONDITIONS, "isRowPinned", SafeHook.after("edge lighting popup", HeadsUpHooks::afterEdgeRowPinned));
         }
+    }
+
+    // ---- what this System UI really calls (for the report: the hooks attach on builds that no longer call them) --------
+
+    private static final int DECISION = 0, PIN = 1, UPDATE = 2, LISTENER = 3;
+    private static final String[] CALL_NAMES = {"decision", "pin", "update", "listener"};
+    private static final int[] CALLS = new int[CALL_NAMES.length];
+    private static final String[] LAST = new String[CALL_NAMES.length];
+
+    /** Counts a call of a hooked manager method and keeps what the last one was about. */
+    static synchronized void called(int which, String detail) {
+        CALLS[which]++;
+        if (detail != null) LAST[which] = detail;
+        StringBuilder all = new StringBuilder();
+        for (int i = 0; i < CALL_NAMES.length; i++) {
+            if (i > 0) all.append("; ");
+            all.append(CALL_NAMES[i]).append(" x").append(CALLS[i]);
+            if (LAST[i] != null) all.append(" (last: ").append(LAST[i]).append(')');
+        }
+        Diagnostics.fact("heads-up calls", all.toString(), 700);
+    }
+
+    /** Whether the notification of a manager argument can be read, the way the hooks read it and by the wider search. */
+    private static String readable(Object direct, Object argument) {
+        if (direct instanceof StatusBarNotification) return ((StatusBarNotification) direct).getPackageName();
+        StatusBarNotification found = argument == null ? null : notificationOf(argument);
+        return "notification not read from " + (argument == null ? "null" : argument.getClass().getSimpleName())
+                + (found == null ? "" : ", the wider search finds " + found.getPackageName());
+    }
+
+    /** The manager's methods that pin, show or update a banner, with their parameter types. */
+    static String describe(Class<?> type) {
+        if (type == null) return "none";
+        java.util.TreeSet<String> found = new java.util.TreeSet<>();
+        for (Class<?> level = type; level != null && level != Object.class; level = level.getSuperclass()) {
+            Method[] methods;
+            try {
+                methods = level.getDeclaredMethods();
+            } catch (Throwable unavailable) {
+                continue;
+            }
+            for (Method method : methods) {
+                String name = method.getName().toLowerCase(java.util.Locale.ROOT);
+                if (!name.contains("pin") && !name.contains("shownotification") && !name.contains("updatenotification")) continue;
+                StringBuilder line = new StringBuilder(method.getName()).append('(');
+                Class<?>[] parameters = method.getParameterTypes();
+                for (int i = 0; i < parameters.length; i++) {
+                    if (i > 0) line.append(',');
+                    line.append(parameters[i].getSimpleName());
+                }
+                found.add(line.append("):").append(method.getReturnType().getSimpleName()).toString());
+            }
+        }
+        return found.isEmpty() ? "none" : String.join(" ", found);
     }
 
     private static final String EDGE_CONDITIONS = "com.android.systemui.edgelighting.SystemUIConditionListenerService$1";
@@ -272,6 +332,10 @@ public final class HeadsUpHooks {
     /** Before {@code setEntryPinned(entry, status, reason)}: a system pin the island takes over becomes "not pinned". */
     private static void beforeSetPinned(XC_MethodHook.MethodHookParam p) {
         manager = p.thisObject;
+        Object pinnedEntry = p.args.length > 0 && p.args[0] != null ? Refl.get(p.args[0], "mEntry") : null;
+        called(PIN, "status " + (p.args.length > 1 ? String.valueOf(p.args[1]) : "missing")
+                + (p.args.length > 2 ? ", reason " + p.args[2] : "") + ", " + p.args.length + " arguments, "
+                + readable(pinnedEntry == null ? null : Refl.get(pinnedEntry, "mSbn"), p.args.length > 0 ? p.args[0] : null));
         if (ModuleSettings.systemPopupStyle()) return;
         if (p.args.length < 2 || p.args[0] == null || p.args[1] == null || !"PinnedBySystem".equals(String.valueOf(p.args[1]))) {
             return;
@@ -289,6 +353,9 @@ public final class HeadsUpHooks {
 
     private static void afterPinDecision(XC_MethodHook.MethodHookParam p) {
         manager = p.thisObject;
+        Object asked = p.args.length > 0 ? p.args[0] : null;
+        called(DECISION, (p.hasThrowable() ? "failed" : String.valueOf(p.getResult())) + " for "
+                + readable(asked == null ? null : Refl.get(asked, "mSbn"), asked));
         if (ModuleSettings.systemPopupStyle()) return;
         Object entry = p.args.length > 0 ? p.args[0] : null;
         Object sbn = entry == null ? null : Refl.get(entry, "mSbn");
