@@ -62,6 +62,7 @@ final class HeadsUpTakeover {
     private final Set<String> allChecked = new HashSet<>();
     private List<StatusBarNotification> snapshot = java.util.Collections.emptyList();
     private Map<String, Integer> importance = java.util.Collections.emptyMap();
+    private Set<String> blocked = java.util.Collections.emptySet();
     private int otpLogs;
     private String lastOtpCode;
     private long lastOtpAt;
@@ -75,6 +76,11 @@ final class HeadsUpTakeover {
     /** How the system rates each notification of the list (by key); a key it did not rate counts as not silent. */
     void setImportance(Map<String, Integer> importance) {
         this.importance = importance == null ? java.util.Collections.emptyMap() : new HashMap<>(importance);
+    }
+
+    /** The keys Do Not Disturb keeps from popping up; the island leaves them out as well. */
+    void setBlocked(Set<String> blocked) {
+        this.blocked = blocked == null ? java.util.Collections.emptySet() : new HashSet<>(blocked);
     }
 
     /** No sound, no banner: the system does not pop it up, so the island does not either. */
@@ -204,7 +210,7 @@ final class HeadsUpTakeover {
             if (age > ALL_FRESH_MS || age < -OTP_CLOCK_SKEW_MS || !allChecked.add(sbn.getKey() + "@" + sbn.getPostTime())) {
                 continue;
             }
-            if (alreadyHadCard(sbn) || recentlyShown(sbn) || quietUpdate(sbn) || silent(importance.get(sbn.getKey())) || !PeekSource.eligible(sbn) || !ModuleSettings.appAllowed(sbn.getPackageName())
+            if (alreadyHadCard(sbn) || recentlyShown(sbn) || quietUpdate(sbn) || blocked.contains(sbn.getKey()) || silent(importance.get(sbn.getKey())) || !PeekSource.eligible(sbn) || !ModuleSettings.appAllowed(sbn.getPackageName())
                     || (!ModuleSettings.experimentalRecovery()
                     && (foregroundBlocked(sbn) || !PeekSource.preferred(sbn, snapshot)))) {
                 continue;
@@ -256,7 +262,7 @@ final class HeadsUpTakeover {
         }
         for (StatusBarNotification sbn : snapshot) {
             long age = now - sbn.getPostTime();
-            if (age > OTP_FRESH_MS || age < -OTP_CLOCK_SKEW_MS || alreadyHadCard(sbn)) {
+            if (age > OTP_FRESH_MS || age < -OTP_CLOCK_SKEW_MS || alreadyHadCard(sbn) || blocked.contains(sbn.getKey())) {
                 continue;
             }
             if (!otpChecked.add(sbn.getKey() + "@" + sbn.getPostTime()) || !PeekSource.eligible(sbn) || !PeekSource.preferred(sbn, snapshot)) {

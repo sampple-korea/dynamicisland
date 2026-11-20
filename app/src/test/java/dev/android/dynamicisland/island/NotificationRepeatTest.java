@@ -173,4 +173,18 @@ public class NotificationRepeatTest {
         assertFalse("an ongoing one stays with the system", takeover.claims(ongoing));
         assertEquals("claiming shows nothing", null, sources[0].peeks.showing());
     }
+
+    @Test public void aNotificationDoNotDisturbBlocksGetsNoCard() {
+        ReflectionHelpers.setStaticField(ModuleSettings.class, "allNotifications", true);
+        long now = System.currentTimeMillis();
+        for (boolean blocked : new boolean[] {true, false}) {
+            IslandSources[] sources = new IslandSources[1];
+            HeadsUpTakeover takeover = takeover(sources);
+            StatusBarNotification sbn = note(blocked ? 71 : 72, chat("Hello " + blocked), now);
+            takeover.setBlocked(blocked ? java.util.Set.of(sbn.getKey()) : java.util.Set.of());
+            takeover.setSnapshot(List.of(sbn));
+            takeover.scanAll(List.of(sbn));
+            assertEquals("blocked " + blocked, !blocked, sources[0].peeks.showing() != null);
+        }
+    }
 }

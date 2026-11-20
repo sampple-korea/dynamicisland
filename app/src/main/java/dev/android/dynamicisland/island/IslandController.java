@@ -299,7 +299,14 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
 
     /** As above, with each notification's importance (by key) where the system said what it is. */
     public void onNotificationsSnapshot(List<StatusBarNotification> all, java.util.Map<String, Integer> importance) {
+        onNotificationsSnapshot(all, importance, java.util.Collections.emptySet());
+    }
+
+    /** As above, and the keys Do Not Disturb keeps from popping up: the island does not pop them up either. */
+    public void onNotificationsSnapshot(List<StatusBarNotification> all, java.util.Map<String, Integer> importance,
+                                        java.util.Set<String> blocked) {
         headsUp.setImportance(importance);
+        headsUp.setBlocked(blocked);
         lastNotifications = new ArrayList<>(all);
         List<StatusBarNotification> snapshot = lastNotifications;
         List<StatusBarNotification> allowed = new ArrayList<>(all.size());
