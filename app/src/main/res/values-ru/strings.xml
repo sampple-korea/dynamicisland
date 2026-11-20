@@ -549,6 +549,8 @@
     <string name="glow_theme_colour">Настройки цвета темы</string>
     <string name="show_in_fullscreen">Показывать в портретном полноэкранном режиме</string>
     <string name="show_in_fullscreen_desc">Показывать текущие активности, когда камера или другое приложение скрывает строку состояния. На экране блокировки, Always On Display и при отсутствии активностей остров скрывается.</string>
+    <string name="show_in_landscape">Показывать в альбомной ориентации и в играх</string>
+    <string name="show_in_landscape_desc">Остров остаётся видимым, когда телефон повёрнут набок, и в полноэкранных приложениях, например в играх. На экране блокировки и в Always On Display он по-прежнему скрыт. Альбомная раскладка отточена хуже, чем портретная.</string>
     <string name="setting_charging_info">Подробная карточка зарядки</string>
     <string name="setting_charging_info_desc">Ток батареи, расчётная мощность и температура при зарядке.</string>
     <string name="setting_charging_stats">Статистика зарядки</string>
@@ -612,6 +614,7 @@
     <string name="search_terms_music">песня музыка аудио альбом обложка плеер воспроизведение</string>
     <string name="search_terms_battery">зарядка заряд батарея аккумулятор ток напряжение мощность температура проценты</string>
     <string name="search_terms_charging_effect">Samsung стандартная системная зарядка анимация батарея молния мигание</string>
+    <string name="search_terms_landscape">альбомная горизонтальная поворот игра игры полный экран видео</string>
     <string name="search_terms_wide_charging">широкое длинное большое маленькое размер зарядка окно капсула ширина</string>
     <string name="search_terms_notifications">уведомление уведомления баннер всплывающее сообщения оповещение беззвучные карточка стандартный звук чат</string>
     <string name="search_terms_download">загрузка скачивание передача прогресс отправка файл</string>

@@ -287,9 +287,11 @@ final class IslandPlacement {
             return;
         }
         boolean locked = barState == BAR_STATE_KEYGUARD || barState == BAR_STATE_SHADE_LOCKED;
-        boolean fullscreen = statusBarWindowState != 0 && !(portrait && ModuleSettings.showInFullscreen());
+        boolean landscapeShown = ModuleSettings.showInLandscape();
+        boolean fullscreen = statusBarWindowState != 0
+                && !(portrait ? ModuleSettings.showInFullscreen() : landscapeShown);
         boolean suppressed = ((locked || dozing) && !(sleeping && sleepExitVisible))
-                || (fullscreen && !(sleeping && sleepExitVisible)) || landscapeSuppressed || revealPending;
+                || (fullscreen && !(sleeping && sleepExitVisible)) || (landscapeSuppressed && !landscapeShown) || revealPending;
         if (suppressed != lastSuppressed) {
             lastSuppressed = suppressed;
             XLog.event("island " + (suppressed ? "hidden" : "shown") + " (keyguard=" + locked + " dozing=" + dozing + " sleeping=" + sleeping + " fullscreen=" + fullscreen

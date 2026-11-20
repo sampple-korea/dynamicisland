@@ -475,6 +475,8 @@ public final class SettingsActivity extends Activity {
                 ModuleSettings.KEY_SWIPE_DOWN_OPENS, true);
         toggle(visibility, R.string.show_in_fullscreen, R.string.show_in_fullscreen_desc,
                 ModuleSettings.KEY_SHOW_IN_FULLSCREEN, false);
+        toggle(visibility, R.string.show_in_landscape, R.string.show_in_landscape_desc,
+                ModuleSettings.KEY_SHOW_IN_LANDSCAPE, false);
         boolean still = flag(ModuleSettings.KEY_LOW_PERFORMANCE, false) || flag(ModuleSettings.KEY_STATIC_WAVEFORM, false);
         LinearLayout motion = ui.card(page);
         toggle(motion, R.string.setting_haptics, R.string.setting_haptics_desc, ModuleSettings.KEY_HAPTICS, true);

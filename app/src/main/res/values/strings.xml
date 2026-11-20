@@ -558,6 +558,8 @@
     <string name="glow_theme_colour">Theme colour settings</string>
     <string name="show_in_fullscreen">Show in portrait full screen</string>
     <string name="show_in_fullscreen_desc">Keep active cards visible when apps such as Camera hide the status bar. The island still hides on the lock screen, Always On Display, or when there is no active content.</string>
+    <string name="show_in_landscape">Show in landscape and in games</string>
+    <string name="show_in_landscape_desc">Keep the island visible when the phone is turned sideways and in full-screen apps such as games. It still hides on the lock screen and Always On Display. Landscape layouts are less polished than portrait.</string>
     <string name="setting_charging_info">Live charging card</string>
     <string name="setting_charging_info_desc">Battery current, estimated power and temperature while plugged in.</string>
     <string name="setting_charging_stats">Charging statistics</string>
@@ -621,6 +623,7 @@
     <string name="search_terms_music">song songs music audio album artwork player media sound playback</string>
     <string name="search_terms_battery">charge charging charger battery current voltage watt power temperature percent</string>
     <string name="search_terms_charging_effect">Samsung stock original charging animation battery lightning flash bolt</string>
+    <string name="search_terms_landscape">landscape sideways horizontal rotate rotated game gaming full screen fullscreen video</string>
     <string name="search_terms_wide_charging">wide long big large small size charging popup pill width</string>
     <string name="search_terms_notifications">notification notifications banner banners headsup alerts popup pop-up messages message chat silent stock card cards sound</string>
     <string name="search_terms_download">download transfer progress upload file</string>

@@ -535,6 +535,8 @@
     <string name="glow_theme_colour">Tema rengi ayarları</string>
     <string name="show_in_fullscreen">Dikey tam ekranda göster</string>
     <string name="show_in_fullscreen_desc">Kamera gibi durum çubuğunu gizleyen uygulamalarda devam eden etkinlikleri gösterir. Kilit ekranında, Always On Display sırasında veya etkin içerik olmadığında ada gizlenir.</string>
+    <string name="show_in_landscape">Yatay modda ve oyunlarda göster</string>
+    <string name="show_in_landscape_desc">Telefon yan çevrildiğinde ve oyun gibi tam ekran uygulamalarda adayı görünür tutar. Kilit ekranında ve Always On Display\'de yine gizlenir. Yatay düzen dikey kadar özenli değildir.</string>
     <string name="setting_charging_info">Ayrıntılı şarj kartı</string>
     <string name="setting_charging_info_desc">Şarja bağlıyken pil akımını, tahmini gücü ve sıcaklığı gösterir.</string>
     <string name="setting_charging_stats">Şarj istatistikleri</string>
@@ -597,6 +599,7 @@
     <string name="search_terms_music">şarkı müzik ses albüm kapak oynatıcı medya çalma</string>
     <string name="search_terms_battery">şarj batarya pil akım voltaj güç sıcaklık yüzde</string>
     <string name="search_terms_charging_effect">Samsung sistem varsayılan şarj animasyon pil şimşek yanıp sönme</string>
+    <string name="search_terms_landscape">yatay döndür oyun tam ekran video</string>
     <string name="search_terms_wide_charging">geniş uzun büyük küçük boyut şarj pencere hap genişlik</string>
     <string name="search_terms_notifications">bildirim bildirimler afiş açılır pencere mesaj uyarı sessiz kart standart ses sohbet</string>
     <string name="search_terms_download">indirme aktarım ilerleme yükleme dosya</string>

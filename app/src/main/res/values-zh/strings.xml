@@ -549,6 +549,8 @@
     <string name="glow_theme_colour">主题色设置</string>
     <string name="show_in_fullscreen">竖屏全屏时仍然显示</string>
     <string name="show_in_fullscreen_desc">在相机等隐藏状态栏的应用中继续显示正在进行的活动。锁屏、息屏显示或没有活动内容时仍会隐藏。</string>
+    <string name="show_in_landscape">横屏和游戏中也显示</string>
+    <string name="show_in_landscape_desc">手机横置时以及在游戏等全屏应用中仍显示灵动岛。在锁屏和息屏显示上仍会隐藏。横屏布局不如竖屏精细。</string>
     <string name="setting_charging_info">充电详情卡片</string>
     <string name="setting_charging_info_desc">连接充电器时持续显示电池电流、估算功率和温度。</string>
     <string name="setting_charging_stats">充电统计</string>
@@ -612,6 +614,7 @@
     <string name="search_terms_music">歌曲 音乐 音频 专辑 封面 播放 播放器</string>
     <string name="search_terms_battery">充电 充电器 电池 电量 电流 电压 功率 温度 百分比</string>
     <string name="search_terms_charging_effect">三星 原生 默认 充电 动画 电池 闪电 闪烁</string>
+    <string name="search_terms_landscape">横屏 横向 旋转 游戏 全屏 视频</string>
     <string name="search_terms_wide_charging">宽 长 大 小 尺寸 充电 弹窗 胶囊 宽度</string>
     <string name="search_terms_notifications">通知 横幅 弹窗 消息 提醒 静默 卡片 系统 声音 聊天</string>
     <string name="search_terms_download">下载 传输 进度 上传 文件</string>

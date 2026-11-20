@@ -56,6 +56,7 @@ public final class ModuleSettings {
     public static final int MATERIAL_FROSTED = 0, MATERIAL_CLASSIC = 1;
     /** Keep active content visible when a portrait app hides the status bar. */
     public static final String KEY_SHOW_IN_FULLSCREEN = "show_in_fullscreen";
+    public static final String KEY_SHOW_IN_LANDSCAPE = "show_in_landscape";
     /** Plays the animations of version 0.1.3 and before instead of the smoothed ones. */
     public static final String KEY_LEGACY_ANIMATION = "legacy_animation";
     public static final String KEY_I_MODE = "i_mode";
@@ -219,6 +220,7 @@ public final class ModuleSettings {
     private static volatile boolean stillMusic, staticWaveform, limitFrameRate, stillIcons;
     private static volatile int materialStyle = MATERIAL_CLASSIC;
     private static volatile boolean showInFullscreen;
+    private static volatile boolean showInLandscape;
     private static volatile boolean legacyAnimation;
     private static volatile boolean iMode;
     private static volatile boolean alwaysVisible;
@@ -678,7 +680,9 @@ public final class ModuleSettings {
             int yBefore = pillYDp;
             int textPaddingBefore = holeTextPaddingDp;
             boolean fullscreenBefore = showInFullscreen;
+            boolean landscapeBefore = showInLandscape;
             showInFullscreen = source.getBoolean(KEY_SHOW_IN_FULLSCREEN, false);
+            showInLandscape = source.getBoolean(KEY_SHOW_IN_LANDSCAPE, false);
             boolean previewBefore = placementPreviewActive();
             previewWallUntil = source.getLong(KEY_PILL_PREVIEW_UNTIL, 0L);
             if (!placementPreviewActive()) {
@@ -697,7 +701,7 @@ public final class ModuleSettings {
             }
             Runnable placementListener = onPlacementChanged;
             if (placementListener != null && (anchorBefore != pillAnchor || xBefore != pillXDp || yBefore != pillYDp
-                    || fullscreenBefore != showInFullscreen
+                    || fullscreenBefore != showInFullscreen || landscapeBefore != showInLandscape
                     || textPaddingBefore != holeTextPaddingDp
                     || previewBefore != placementPreviewActive()
                     || sizeBefore != pillHPct * 1_000_000 + pillMinWDp * 1000 + pillMaxWDp + (keepPillWidth ? 1 : 0) * 100_000_000
@@ -775,6 +779,7 @@ public final class ModuleSettings {
         materialStyle = readMaterialStyle(settings);
         torchStyle = settings.getInt(KEY_TORCH_STYLE, 0) == 1 ? 1 : 0;
         showInFullscreen = settings.getBoolean(KEY_SHOW_IN_FULLSCREEN, false);
+        showInLandscape = settings.getBoolean(KEY_SHOW_IN_LANDSCAPE, false);
         eventCharging = settings.getBoolean(KEY_EVENT_CHARGING, true);
         readOptionalDeviceSettings(settings);
         holeTextPaddingDp = clampHoleTextPadding(settings.getInt(KEY_HOLE_TEXT_PADDING_DP, 0));
@@ -832,6 +837,7 @@ public final class ModuleSettings {
     }
     public static boolean frostedMaterial() { ensureStarted(); return materialStyle == MATERIAL_FROSTED; }
     public static boolean showInFullscreen() { ensureStarted(); return showInFullscreen; }
+    public static boolean showInLandscape() { ensureStarted(); return showInLandscape; }
     public static boolean chargingInfo() { ensureStarted(); return eventCharging && chargingInfo; }
     public static boolean stockChargingAnimation() { ensureStarted(); return stockChargingAnimation; }
     public static boolean wideChargingPopup() { ensureStarted(); return wideChargingPopup; }
@@ -927,7 +933,7 @@ public final class ModuleSettings {
                 + " smartRules=" + smartRules + " otp=" + otpCard + "/" + otpAutoCopy + " calls3p=" + thirdPartyCalls + " incomingCalls=" + incomingCallCards + " screenRecording=" + screenRecordingCard + " peekPullButtons=" + peekPullButtons
                 + " privacy=" + privacyIndicator + "/" + privacyLocation + " events=" + eventCharging + "/" + eventRinger + "/" + eventBluetooth
                 + " pill=" + pillAnchor + "/" + pillXDp + "/" + pillYDp + " size=" + pillHPct + "/" + pillMinWDp + "/" + pillMaxWDp + "/" + keepPillWidth + " hole=" + holeMode + "/" + holeDDp + "/" + holeXDp + "/" + holeYDp + " pausedS=" + pausedTimeoutS + " collapseS=" + autoCollapseS + " rules=" + rulesConfig.revision
-                + " pillOutline=" + pillOutlineMode + " showInFullscreen=" + showInFullscreen + " appFilter=" + (appFilter.onlyListed() ? "only " : "except ") + appFilter.size();
+                + " pillOutline=" + pillOutlineMode + " showInFullscreen=" + showInFullscreen + " showInLandscape=" + showInLandscape + " appFilter=" + (appFilter.onlyListed() ? "only " : "except ") + appFilter.size();
         Diagnostics.fact("pill outline mode", Integer.toString(pillOutlineMode));
         Diagnostics.fact("island presentation", iMode ? "iMotion" : "stack");
         Diagnostics.fact("card material selected", materialStyle == MATERIAL_CLASSIC ? "classic" : "frosted");
