@@ -74,7 +74,16 @@ public final class GlyphIcon extends Drawable {
             return false;
         }
         long[] state = PLAYBACK.get(kind);
-        return state == null || SystemClock.uptimeMillis() - state[0] < p.durationMillis();
+        if (state == null) return true;
+        long now = SystemClock.uptimeMillis();
+        if (now - state[1] > REPLAY_GAP_MS) {
+            // Not drawn for a while: the next draw plays it from the start. The frame loop asks before that draw, so
+            // it has to be told now, or the draw lands on the first frame (no rays on the torch) and no more come.
+            state[0] = now;
+            state[1] = now;
+            return true;
+        }
+        return now - state[0] < p.durationMillis();
     }
 
     private static String animationName(Kind kind) {

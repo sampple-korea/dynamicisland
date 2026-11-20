@@ -309,6 +309,10 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
         headsUp.setBlocked(blocked);
         lastNotifications = new ArrayList<>(all);
         List<StatusBarNotification> snapshot = lastNotifications;
+        sources.torch.noteStockNotification(snapshot, () -> {
+            IslandView torchView = placement.view();
+            return torchView != null && torchView.isSuppressedNow();
+        });
         List<StatusBarNotification> allowed = new ArrayList<>(all.size());
         for (StatusBarNotification sbn : all) {
             if (sbn != null && ModuleSettings.appAllowed(sbn.getPackageName())) {

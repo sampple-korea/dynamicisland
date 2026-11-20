@@ -10,6 +10,7 @@ import dev.android.dynamicisland.island.graphics.GlyphIcon;
 import dev.android.dynamicisland.island.model.IslandItem;
 import dev.android.dynamicisland.settings.ModuleSettings;
 import dev.android.dynamicisland.xposed.Refl;
+import dev.android.dynamicisland.xposed.Diagnostics;
 import dev.android.dynamicisland.xposed.XLog;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -114,6 +115,64 @@ public final class TorchSource {
         String title = it.title.toString().toLowerCase(Locale.ROOT);
         return title.contains("flashlight") || title.contains("torch") || title.contains("손전등")
                 || title.contains("el feneri");
+    }
+
+    private OaReader storeReader;
+    private String lastStockState;
+    private List<android.service.notification.StatusBarNotification> stockCheckList = java.util.Collections.emptyList();
+    private java.util.function.BooleanSupplier stockCheckSuppressed = () -> false;
+    private final Runnable stockRecheck = this::checkStockNotification;
+
+    /**
+     * For the report: whether System UI's flashlight notification is in the list, whether the island replaces it, and
+     * what System UI's ongoing-activity store holds for it (the Now Bar and the lock screen's live notification read
+     * that store). Said again a moment later, because the store follows the list.
+     */
+    public void noteStockNotification(List<android.service.notification.StatusBarNotification> list, java.util.function.BooleanSupplier islandSuppressed) {
+        stockCheckList = list;
+        stockCheckSuppressed = islandSuppressed;
+        main.removeCallbacks(stockRecheck);
+        if (checkStockNotification()) main.postDelayed(stockRecheck, 1500L);
+    }
+
+    /** @return true when the flashlight notification is in the list (so the store is worth looking at again). */
+    private boolean checkStockNotification() {
+        if (!cameraFound) return false;
+        List<android.service.notification.StatusBarNotification> list = stockCheckList;
+        java.util.function.BooleanSupplier islandSuppressed = stockCheckSuppressed;
+        android.service.notification.StatusBarNotification stock = null;
+        for (android.service.notification.StatusBarNotification sbn : list) {
+            if (sbn != null && isStockNotification(sbn.getKey())) {
+                stock = sbn;
+                break;
+            }
+        }
+        if (stock == null && !on) return false;
+        if (storeReader == null) storeReader = new OaReader(ctx.getClassLoader());
+        String store = "unavailable";
+        String extras = "-";
+        if (stock != null) {
+            String key = stock.getKey();
+            android.os.Bundle bundle = stock.getNotification().extras;
+            if (bundle != null) {
+                StringBuilder found = new StringBuilder();
+                for (String name : bundle.keySet()) {
+                    if (name.startsWith("android.ongoingActivityNoti")) found.append(found.length() == 0 ? "" : ",").append(name.substring(name.lastIndexOf('.') + 1));
+                }
+                extras = found.length() == 0 ? "none" : found.toString();
+            }
+            if (storeReader.available()) {
+                store = "chipList=" + (storeReader.findByNotificationKey(key) != null) + " nowBarMap=" + (storeReader.nowBarOnly(key) != null);
+            }
+        }
+        String state = "torchOn=" + on + " stockInList=" + (stock != null) + " islandReplacesIt=" + replacesStockNotification()
+                + " islandSuppressed=" + islandSuppressed.getAsBoolean() + " ongoingExtras=" + extras + " store(" + store + ")";
+        if (!state.equals(lastStockState)) {
+            lastStockState = state;
+            XLog.event("flashlight notification: " + state);
+        }
+        Diagnostics.fact("flashlight notification", state);
+        return stock != null;
     }
 
     /** True while the card is up, so the stock notification (and its Now Bar copy) must not be shown as well. */
