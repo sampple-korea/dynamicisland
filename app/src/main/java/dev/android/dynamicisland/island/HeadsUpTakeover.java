@@ -174,6 +174,11 @@ final class HeadsUpTakeover {
      * here: Samsung's other popups (Edge Lighting) ask, because they stay away only while a stock banner is up.
      */
     boolean claims(StatusBarNotification sbn) {
+        return claims(sbn, null);
+    }
+
+    /** As above; {@code importance} is how the system rates the notification, or null when that is not known. */
+    boolean claims(StatusBarNotification sbn, Integer importance) {
         if (ModuleSettings.systemPopupStyle()) return false;
         try {
             if (sbn == null || !placement.ready()) return false;
@@ -184,10 +189,32 @@ final class HeadsUpTakeover {
                     || (!ModuleSettings.experimentalRecovery()
                     && (foregroundBlocked(sbn) || !PeekSource.preferred(sbn, snapshot)))) return false;
             if (code) return true;
-            return (ModuleSettings.headsUpIsland() || ModuleSettings.allNotifications()) && sources.peeks.buildMessage(sbn) != null;
+            if (!(ModuleSettings.headsUpIsland() || ModuleSettings.allNotifications())) return false;
+            // the island takes a banner the system makes; All notifications also shows the quieter ones by itself
+            if (!ModuleSettings.allNotifications() && !systemMakesBanner(importance)) return false;
+            return sources.peeks.buildMessage(sbn) != null;
         } catch (Throwable t) {
             XLog.once("IslandController.claims", t);
             return false;
+        }
+    }
+
+    /** The island has a card of this notification up, or had one a moment ago. */
+    boolean showing(String key) {
+        if (key == null) return false;
+        if (owns(key)) return true;
+        Shown last = shown.get(key);
+        return last != null && SystemClock.uptimeMillis() - last.at < 6_000L;
+    }
+
+    /** The system makes a heads-up banner only for a notification rated high, and only while banners are on. */
+    private boolean systemMakesBanner(Integer importance) {
+        if (importance != null && importance < android.app.NotificationManager.IMPORTANCE_HIGH) return false;
+        try {
+            return android.provider.Settings.Global.getInt(placement.view().getContext().getContentResolver(),
+                    "heads_up_notifications_enabled", 1) != 0;
+        } catch (Throwable t) {
+            return true;
         }
     }
 

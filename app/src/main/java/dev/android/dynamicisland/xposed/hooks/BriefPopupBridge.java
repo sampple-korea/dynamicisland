@@ -44,7 +44,11 @@ public final class BriefPopupBridge {
 
     private static void beforeEffect(XC_MethodHook.MethodHookParam param) {
         Context context = service.get();
-        if (context == null || !ModuleSettings.systemPopupStyle()) return;
+        if (context == null) return;
+        if (!ModuleSettings.systemPopupStyle()) {
+            skipWhenTheIslandHasIt(param, context);
+            return;
+        }
         PowerManager power = context.getSystemService(PowerManager.class);
         KeyguardManager keyguard = context.getSystemService(KeyguardManager.class);
         if (power == null || !power.isInteractive() || keyguard == null || keyguard.isKeyguardLocked()) return;
@@ -106,6 +110,31 @@ public final class BriefPopupBridge {
         PENDING.put(target, pending);
         param.setResult(null);
         pending.start();
+    }
+
+    /**
+     * Island mode: Edge Lighting asks whether the banner exists when the notification arrives, which can be before System UI
+     * has decided. Asking once more right before the popup is drawn catches a banner the island has taken since, so the brief
+     * popup does not come up next to the island's card. One binder call, no waiting; if the answer is no the popup is drawn.
+     */
+    private static void skipWhenTheIslandHasIt(XC_MethodHook.MethodHookParam param, Context context) {
+        if (!ModuleSettings.headsUpIsland() && !ModuleSettings.allNotifications()) return;
+        try {
+            Object scheduler = param.thisObject;
+            boolean staticMethod = param.method instanceof Method && java.lang.reflect.Modifier.isStatic(param.method.getModifiers());
+            if (staticMethod) scheduler = param.args.length > 0 ? param.args[0] : null;
+            Object notifications = Refl.get(scheduler, "mNotificationLightingScheduler");
+            Object info = Refl.get(notifications, "mCurrentLightingScheduleInfo");
+            Object key = info == null ? null : Refl.call(info, "getNotificationKey");
+            Object binder = Refl.get(context, "mConditionListener");
+            if (!(key instanceof String) || ((String) key).isEmpty() || binder == null) return;
+            Method status = Refl.method(binder.getClass(), "isRowPinned", 1);
+            if (status == null || !Boolean.TRUE.equals(status.invoke(binder, key))) return;
+            if (Refl.method(notifications.getClass(), "flushNotiNow", 0) != null) Refl.call(notifications, "flushNotiNow");
+            param.setResult(null);
+        } catch (ReflectiveOperationException | RuntimeException error) {
+            XLog.once("brief popup island check", error); // the popup is drawn as usual
+        }
     }
 
     interface Status { boolean pinned(); }

@@ -107,4 +107,25 @@ public class BriefPopupBridgeTest {
             preferences.edit().clear().commit();ModuleSettings.configurePreview(preferences);
         }
     }
+
+    @Test public void inIslandModeThePopupIsSkippedOnlyOnceTheIslandHasTheBannerAndNeverTurnedIntoOne() throws Exception {
+        Context context=RuntimeEnvironment.getApplication();Service service=new Service(context);Scheduler scheduler=new Scheduler();
+        var preferences=context.getSharedPreferences("brief-island-mode",0);
+        preferences.edit().clear().putBoolean(ModuleSettings.KEY_HEADS_UP_ISLAND,true).commit();ModuleSettings.configurePreview(preferences);
+        ReflectionHelpers.setStaticField(BriefPopupBridge.class,"service",new WeakReference<Context>(service));
+        var hook=BriefPopupBridge.class.getDeclaredMethod("beforeEffect",XC_MethodHook.MethodHookParam.class);hook.setAccessible(true);
+        try {
+            var param=ReflectionHelpers.callConstructor(XC_MethodHook.MethodHookParam.class);
+            param.method=Scheduler.class.getDeclaredMethod("startEffect",Scheduler.class,boolean.class);param.args=new Object[]{scheduler,false};
+            service.mConditionListener.pinned=false;hook.invoke(null,param);
+            assertEquals("no banner yet: the popup is drawn as usual",0,scheduler.mNotificationLightingScheduler.flushed);
+            assertEquals("and nothing is turned into a banner in this mode",0,service.mConditionListener.requests);
+            service.mConditionListener.pinned=true;hook.invoke(null,param);
+            assertEquals("the island has it now: no popup",1,scheduler.mNotificationLightingScheduler.flushed);
+            assertEquals(0,service.mConditionListener.requests);
+        } finally {
+            ReflectionHelpers.setStaticField(BriefPopupBridge.class,"service",new WeakReference<Context>(null));
+            preferences.edit().clear().commit();ModuleSettings.configurePreview(preferences);
+        }
+    }
 }

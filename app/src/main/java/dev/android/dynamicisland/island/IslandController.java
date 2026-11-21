@@ -265,6 +265,16 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
         return headsUp.claims(sbn);
     }
 
+    /** Whether the island shows this notification right now or just did (its card is up, or was a moment ago). */
+    public boolean showingNotification(String key) {
+        return headsUp.showing(key);
+    }
+
+    /** As above, knowing how the system rates the notification (null when it does not say). */
+    public boolean claimsNotification(StatusBarNotification sbn, Integer importance) {
+        return headsUp.claims(sbn, importance);
+    }
+
     /** Whether the island takes this call over from Samsung's own window right now (else that window must stay). */
     private boolean islandTakesCall(StatusBarNotification sbn) {
         IslandView view = placement.view();

@@ -187,4 +187,19 @@ public class NotificationRepeatTest {
             assertEquals("blocked " + blocked, !blocked, sources[0].peeks.showing() != null);
         }
     }
+
+    @Test public void theIslandClaimsABannerOnlyForANotificationTheSystemWouldPopUp() {
+        long now = System.currentTimeMillis();
+        IslandSources[] sources = new IslandSources[1];
+        HeadsUpTakeover takeover = takeover(sources);
+        StatusBarNotification message = note(81, chat("Hello"), now);
+        assertTrue("rated high: the system makes a banner and the island takes it",
+                takeover.claims(message, android.app.NotificationManager.IMPORTANCE_HIGH));
+        assertFalse("rated default: the system makes no banner, so there is nothing to take over",
+                takeover.claims(message, android.app.NotificationManager.IMPORTANCE_DEFAULT));
+        assertTrue("not known: as before", takeover.claims(message, null));
+        ReflectionHelpers.setStaticField(ModuleSettings.class, "allNotifications", true);
+        assertTrue("All notifications shows the quieter ones as well",
+                takeover.claims(message, android.app.NotificationManager.IMPORTANCE_DEFAULT));
+    }
 }

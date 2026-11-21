@@ -43,6 +43,111 @@ public final class HeadsUpHooks {
         if (Refl.hasClass(EDGE_CONDITIONS, cl)) {
             Refl.hookAll(cl, EDGE_CONDITIONS, "isRowPinned", SafeHook.after("edge lighting popup", HeadsUpHooks::afterEdgeRowPinned));
         }
+        // With the pop-up style "Brief" (and the app allowed for Edge Lighting) System UI makes no heads-up at all: this
+        // filter suppresses it, the brief popup of Edge Lighting is shown instead, and nothing ever asks the island.
+        int suppressor = Refl.hasClass(EDGE_SUPPRESSOR, cl)
+                ? Refl.hookAll(cl, EDGE_SUPPRESSOR, "shouldSuppress", SafeHook.after("edge lighting suppressor", HeadsUpHooks::afterEdgeSuppress)) : -1;
+        // The banner decision asks every filter; what the island does with Edge Lighting follows its final answer.
+        int decisions = 0;
+        for (String method : new String[]{"makeAndLogHeadsUpDecision", "makeUnloggedHeadsUpDecision"}) {
+            decisions += Refl.hookAll(cl, DECISION_PROVIDER, method, SafeHook.before("banner decision", HeadsUpHooks::beforeDecision));
+            decisions += Refl.hookAll(cl, DECISION_PROVIDER, method, SafeHook.after("banner decision", HeadsUpHooks::afterDecision));
+        }
+        Diagnostics.fact("brief pop-up suppressor", (suppressor < 0 ? "this System UI has none" : "shouldSuppress x" + suppressor)
+                + ", banner decision hooks x" + decisions);
+    }
+
+    private static final String DECISION_PROVIDER = "com.android.systemui.statusbar.notification.interruption.VisualInterruptionDecisionProviderImpl";
+
+    /** The banner decision running on this thread: {entry, the method that began it, whether the island claims it (once asked)}. */
+    private static final ThreadLocal<Object[]> DECIDING = new ThreadLocal<>();
+
+    private static void beforeDecision(XC_MethodHook.MethodHookParam p) {
+        if (DECIDING.get() == null && p.args.length > 0 && p.args[0] != null) DECIDING.set(new Object[]{p.args[0], p.method, null});
+    }
+
+    /** After the banner decision: when System UI will make a banner and the island takes it, Edge Lighting's popup is not wanted. */
+    private static void afterDecision(XC_MethodHook.MethodHookParam p) {
+        Object[] state = DECIDING.get();
+        if (state == null || state[1] != p.method) return; // an inner call of the decision that is already being followed
+        DECIDING.remove();
+        if (p.hasThrowable() || p.getResult() == null) return;
+        Object entry = state[0];
+        Object sbn = Refl.get(entry, "mSbn");
+        if (!(sbn instanceof StatusBarNotification) || !Boolean.TRUE.equals(Refl.get(p.getResult(), "shouldInterrupt"))) return;
+        IslandController controller = IslandController.get();
+        if (controller == null || ModuleSettings.systemPopupStyle() || blockedByDoNotDisturb(entry)) return;
+        boolean claimed = state[2] != null ? Boolean.TRUE.equals(state[2])
+                : controller.claimsNotification((StatusBarNotification) sbn, importanceOf(entry));
+        if (claimed) expect(((StatusBarNotification) sbn).getKey(), android.os.SystemClock.uptimeMillis());
+    }
+
+    /** Keys System UI is going to make a banner for and the island takes: Edge Lighting's popup stays away from these. */
+    private static final java.util.Map<String, Long> EXPECTED = new java.util.HashMap<>();
+    static final long EXPECTED_MS = 6000L;
+
+    static synchronized void expect(String key, long now) {
+        if (key == null) return;
+        EXPECTED.values().removeIf(at -> now - at >= EXPECTED_MS);
+        EXPECTED.put(key, now);
+    }
+
+    static synchronized boolean expected(String key, long now) {
+        Long at = key == null ? null : EXPECTED.get(key);
+        return at != null && now - at < EXPECTED_MS;
+    }
+
+    static synchronized void forgetExpected() {
+        EXPECTED.clear();
+    }
+
+    /** The result of the Edge Lighting filter for a notification whose banner decision is running. */
+    static boolean flippedSuppression(boolean original, boolean systemPopupStyle, boolean insideItsDecision, boolean blocked, boolean claimed) {
+        return original && !(!systemPopupStyle && insideItsDecision && !blocked && claimed);
+    }
+
+    /** Whether Edge Lighting is told the notification already has its banner (so it shows no popup of its own). */
+    static boolean holdsBackPopup(boolean expected, boolean islandHasIt) {
+        return expected || islandHasIt;
+    }
+
+    private static boolean blockedByDoNotDisturb(Object entry) {
+        Object ranking = entry == null ? null : Refl.get(entry, "mRanking");
+        return ranking instanceof android.service.notification.NotificationListenerService.Ranking
+                && HideDuplicated.blockedByDoNotDisturb((android.service.notification.NotificationListenerService.Ranking) ranking);
+    }
+    private static final String EDGE_SUPPRESSOR = "com.android.systemui.statusbar.notification.interruption.EdgeLightingSuppressor";
+
+    /**
+     * After {@code EdgeLightingSuppressor.shouldSuppress(entry)}: with the "Brief" pop-up style it says yes, so no banner
+     * is made and the island is never asked. For a notification the island will show, say no: System UI then makes its
+     * ordinary banner, the island takes it over as usual, and Edge Lighting's popup is held back once System UI's
+     * final answer is that the banner is made (see {@link #afterDecision}). Only inside the banner decision of that
+     * same entry: the cover screen asks this filter for its own brief popup, and that stays as it is.
+     */
+    private static void afterEdgeSuppress(XC_MethodHook.MethodHookParam p) {
+        if (p.hasThrowable() || !Boolean.TRUE.equals(p.getResult()) || p.args.length < 1 || p.args[0] == null) {
+            return;
+        }
+        Object[] state = DECIDING.get();
+        boolean inside = state != null && state[0] == p.args[0];
+        IslandController controller = IslandController.get();
+        Object sbn = Refl.get(p.args[0], "mSbn");
+        if (controller == null || !(sbn instanceof StatusBarNotification)) return;
+        boolean claimed = inside && !ModuleSettings.systemPopupStyle() && !blockedByDoNotDisturb(p.args[0])
+                && controller.claimsNotification((StatusBarNotification) sbn, importanceOf(p.args[0]));
+        if (inside) state[2] = claimed; // the banner decision that follows does not ask again
+        if (!flippedSuppression(true, ModuleSettings.systemPopupStyle(), inside, blockedByDoNotDisturb(p.args[0]), claimed)) {
+            p.setResult(false);
+            XLog.event("brief pop-up style: banner allowed so the island can take it: " + ((StatusBarNotification) sbn).getPackageName());
+        }
+    }
+
+    /** How the system rates a notification entry, or null when the entry does not say. */
+    private static Integer importanceOf(Object entry) {
+        Object ranking = entry == null ? null : Refl.get(entry, "mRanking");
+        return ranking instanceof android.service.notification.NotificationListenerService.Ranking
+                ? ((android.service.notification.NotificationListenerService.Ranking) ranking).getImportance() : null;
     }
 
     // ---- what this System UI really calls (for the report: the hooks attach on builds that no longer call them) --------
@@ -112,21 +217,15 @@ public final class HeadsUpHooks {
             if (nativePopupPending((String) p.args[0])) p.setResult(true);
             return;
         }
+        // Hold the popup back only for what is certain: System UI said it makes the banner and the island takes it
+        // (see afterDecision), or the island already has the notification. A guess that a banner will come loses the
+        // message when one of System UI's other filters says no, so there is none.
+        String key = (String) p.args[0];
         IslandController controller = IslandController.get();
-        Object service = Refl.get(p.thisObject, "this$0");
-        Object entries = service == null ? null : Refl.get(service, "mEntries");
-        if (controller == null || !(entries instanceof Iterable)) {
-            return;
-        }
-        for (Object entry : (Iterable<?>) entries) {
-            Object sbn = entry == null ? null : Refl.get(entry, "mSbn");
-            if (sbn instanceof StatusBarNotification && p.args[0].equals(((StatusBarNotification) sbn).getKey())) {
-                if (controller.claimsNotification((StatusBarNotification) sbn)) {
-                    p.setResult(true);
-                    XLog.event("edge lighting popup held back for the island: " + ((StatusBarNotification) sbn).getPackageName());
-                }
-                return;
-            }
+        boolean has = controller != null && controller.showingNotification(key);
+        if (holdsBackPopup(expected(key, android.os.SystemClock.uptimeMillis()), has)) {
+            p.setResult(true);
+            XLog.event("edge lighting popup held back for the island: " + key);
         }
     }
 
