@@ -1,7 +1,11 @@
 package dev.android.dynamicisland.island.source;
 
+import android.app.Notification;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.ImageDecoder;
+import android.net.Uri;
 import android.graphics.drawable.AdaptiveIconDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -10,8 +14,10 @@ import android.media.session.MediaController;
 import android.media.session.MediaSession;
 import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
+import android.graphics.drawable.Icon;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.service.notification.StatusBarNotification;
 import dev.android.dynamicisland.island.graphics.ArtworkPalette;
 import dev.android.dynamicisland.island.graphics.GlyphIcon;
 import dev.android.dynamicisland.island.model.IslandItem;
@@ -19,12 +25,15 @@ import dev.android.dynamicisland.settings.ModuleSettings;
 import dev.android.dynamicisland.xposed.XLog;
 import dev.android.dynamicisland.xposed.Refl;
 import java.util.Collection;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiPredicate;
+import java.util.function.Function;
 
 /**
  * Tracks the active media sessions and offers the one worth showing as a media card: the playing
@@ -148,6 +157,10 @@ public final class MediaSource {
             live.add(s.controller.getPackageName());
         }
         assets.retainActionIconsOf(live);
+        if (sessions.isEmpty()) {
+            uriCovers.clear();
+            uriFailed.clear();
+        }
     }
 
     /** Existing callers already supply their foreground decision; null means no filtering. */
@@ -272,6 +285,211 @@ public final class MediaSource {
             }
         }, 20 + left);
         return cover.art;
+    }
+
+    /** Longest side of a cover taken from a notification icon or a metadata URI: it only is a cover and a palette source. */
+    private static final int COVER_ART_MAX_PX = 512;
+    /** Covers loaded from URIs that are kept, so a card rebuild does not load them again. */
+    private static final int URI_COVER_CACHE = 4;
+    /** Failed URIs that are remembered (so they are not retried on every rebuild) before the memory is cleared. */
+    private static final int URI_FAILED_MAX = 32;
+
+    /** The large icon of each player's media notification, with the cover taken from it. */
+    private final Map<MediaSession.Token, NotificationArt> notificationArt = new HashMap<>();
+    /** Covers loaded from URIs (metadata art URIs, or a large icon that is a URI), most recently used last. */
+    private final Map<String, Bitmap> uriCovers = new java.util.LinkedHashMap<String, Bitmap>(8, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Bitmap> eldest) {
+            return size() > URI_COVER_CACHE;
+        }
+    };
+    private final Set<String> uriLoading = new HashSet<>();
+    private final Set<String> uriFailed = new HashSet<>();
+    private Executor background;
+    private Function<String, Bitmap> uriDecoder = this::decodeUri;
+
+    private static final class NotificationArt {
+        final Icon icon;
+        /** The picture of an icon that is held in memory, or null. */
+        final Bitmap bitmap;
+        /** The URI of an icon that points to one, or null: it is loaded away from the main thread. */
+        final String uri;
+
+        NotificationArt(Icon icon, Bitmap bitmap, String uri) {
+            this.icon = icon;
+            this.bitmap = bitmap;
+            this.uri = uri;
+        }
+    }
+
+    /** For tests: where URI covers are loaded, and how. */
+    void setUriLoader(Executor executor, Function<String, Bitmap> decoder) {
+        background = executor;
+        uriDecoder = decoder;
+    }
+
+    /**
+     * Takes the large icon of every media notification in the list. Some players (SoundCloud) keep their cover only
+     * there and none in the session's metadata, which left the card without a cover, a palette and a coloured
+     * waveform. Used by {@link Session#bindImages} when the metadata has no bitmap. Main thread: only icons that are
+     * already held in memory are read here, an icon that is a URI is loaded in the background.
+     */
+    public void updateNotificationArt(List<StatusBarNotification> snapshot) {
+        Map<MediaSession.Token, Icon> now = new HashMap<>();
+        if (snapshot != null) {
+            for (StatusBarNotification sbn : snapshot) {
+                Notification n = sbn == null ? null : sbn.getNotification();
+                if (n == null || n.extras == null || n.getLargeIcon() == null) continue;
+                MediaSession.Token token = mediaToken(n);
+                if (token != null) now.putIfAbsent(token, n.getLargeIcon());
+            }
+        }
+        boolean changed = notificationArt.keySet().retainAll(now.keySet());
+        for (Map.Entry<MediaSession.Token, Icon> e : now.entrySet()) {
+            NotificationArt known = notificationArt.get(e.getKey());
+            if (known != null && known.icon == e.getValue()) continue;
+            Icon icon = e.getValue();
+            int type = icon.getType();
+            Bitmap decoded = null;
+            String uri = null;
+            if (type == Icon.TYPE_BITMAP || type == Icon.TYPE_ADAPTIVE_BITMAP) {
+                decoded = decodeIcon(icon);
+            } else if (type == Icon.TYPE_URI && icon.getUri() != null && loadableUri(icon.getUri().toString())) {
+                uri = icon.getUri().toString();
+            } // a resource icon is the app's own picture, not a cover
+            if (known != null && known.bitmap != null && decoded != null && looksIdentical(known.bitmap, decoded)) {
+                decoded = known.bitmap; // the same picture again: keep the instance that was already analysed
+            }
+            notificationArt.put(e.getKey(), new NotificationArt(icon, decoded, uri));
+            if (known == null || known.bitmap != decoded || !java.util.Objects.equals(known.uri, uri)) {
+                changed = true;
+                Session session = sessions.get(e.getKey());
+                if (session != null) session.card = null;
+            }
+        }
+        if (changed) onChange.run();
+    }
+
+    @SuppressWarnings("deprecation")
+    private static MediaSession.Token mediaToken(Notification n) {
+        Object token = n.extras.getParcelable(Notification.EXTRA_MEDIA_SESSION);
+        return token instanceof MediaSession.Token ? (MediaSession.Token) token : null;
+    }
+
+    /** A picture held in memory (bitmap and adaptive bitmap icons), scaled down to cover size. */
+    private Bitmap decodeIcon(Icon icon) {
+        try {
+            Drawable d = icon.loadDrawable(ctx);
+            if (d == null) return null;
+            int w = d.getIntrinsicWidth();
+            int h = d.getIntrinsicHeight();
+            if (w <= 0 || h <= 0) return null;
+            if (d instanceof BitmapDrawable && ((BitmapDrawable) d).getBitmap() != null
+                    && Math.max(w, h) <= COVER_ART_MAX_PX) {
+                return ((BitmapDrawable) d).getBitmap();
+            }
+            float scale = Math.min(1f, COVER_ART_MAX_PX / (float) Math.max(w, h));
+            Bitmap out = Bitmap.createBitmap(Math.max(1, Math.round(w * scale)), Math.max(1, Math.round(h * scale)),
+                    Bitmap.Config.ARGB_8888);
+            d.setBounds(0, 0, out.getWidth(), out.getHeight());
+            d.draw(new Canvas(out));
+            return out;
+        } catch (Throwable t) {
+            return null; // an icon that cannot be read is no cover
+        }
+    }
+
+    /** The system's media controls read only these schemes, so does the island. */
+    static boolean loadableUri(String uri) {
+        if (uri == null || uri.isEmpty()) return false;
+        try {
+            String scheme = Uri.parse(uri).getScheme();
+            return "content".equalsIgnoreCase(scheme) || "file".equalsIgnoreCase(scheme)
+                    || "android.resource".equalsIgnoreCase(scheme);
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    /** The cover of a metadata art URI when it was loaded; otherwise starts loading it and returns null. */
+    private Bitmap uriCover(MediaMetadata meta) {
+        for (String key : new String[]{MediaMetadata.METADATA_KEY_ART_URI, MediaMetadata.METADATA_KEY_ALBUM_ART_URI,
+                MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI}) {
+            String uri = meta.getString(key);
+            if (loadableUri(uri)) {
+                return uriCover(uri);
+            }
+        }
+        return null;
+    }
+
+    private Bitmap uriCover(String uri) {
+        Bitmap known = uriCovers.get(uri);
+        if (known != null) return known;
+        if (uriLoading.contains(uri) || uriFailed.contains(uri)) return null;
+        uriLoading.add(uri);
+        if (background == null) {
+            background = Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "island-cover");
+                t.setDaemon(true);
+                return t;
+            });
+        }
+        try {
+            background.execute(() -> {
+                Bitmap loaded = null;
+                try {
+                    loaded = uriDecoder.apply(uri);
+                } catch (Throwable ignored) {
+                    // no cover from this URI
+                }
+                Bitmap result = loaded;
+                main.post(() -> coverLoaded(uri, result));
+            });
+        } catch (Throwable t) {
+            uriLoading.remove(uri);
+        }
+        return null;
+    }
+
+    private void coverLoaded(String uri, Bitmap loaded) {
+        uriLoading.remove(uri);
+        if (loaded == null) {
+            if (uriFailed.size() >= URI_FAILED_MAX) uriFailed.clear();
+            uriFailed.add(uri);
+            return;
+        }
+        uriCovers.put(uri, loaded);
+        for (Session session : sessions.values()) {
+            session.card = null;
+        }
+        onChange.run();
+    }
+
+    /** Reads a cover from a content, file or resource URI. Runs on the background thread. */
+    private Bitmap decodeUri(String uri) {
+        try {
+            ImageDecoder.Source source = ImageDecoder.createSource(ctx.getContentResolver(), Uri.parse(uri));
+            return ImageDecoder.decodeBitmap(source, (decoder, info, src) -> {
+                decoder.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE); // the palette reads pixels
+                int w = info.getSize().getWidth();
+                int h = info.getSize().getHeight();
+                int longest = Math.max(w, h);
+                if (longest > COVER_ART_MAX_PX) {
+                    float scale = COVER_ART_MAX_PX / (float) longest;
+                    decoder.setTargetSize(Math.max(1, Math.round(w * scale)), Math.max(1, Math.round(h * scale)));
+                }
+            });
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    /** The cover from the player's notification, or null. */
+    private Bitmap notificationCover(MediaSession.Token token) {
+        NotificationArt art = notificationArt.get(token);
+        if (art == null) return null;
+        return art.uri != null ? uriCover(art.uri) : art.bitmap;
     }
 
     private static boolean looksIdentical(Bitmap a, Bitmap b) {
@@ -504,6 +722,12 @@ public final class MediaSource {
                 if (fromMeta != null) {
                     break;
                 }
+            }
+            if (fromMeta == null) {
+                fromMeta = uriCover(meta); // the system's controls read these first; here they only fill a gap
+            }
+            if (fromMeta == null) {
+                fromMeta = notificationCover(controller.getSessionToken());
             }
             Bitmap art = resolveArt(this, fromMeta, track);
             if (art != paletteArt) {

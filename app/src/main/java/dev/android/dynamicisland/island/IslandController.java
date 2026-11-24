@@ -337,6 +337,7 @@ public final class IslandController implements IslandHost, IslandWindow.Listener
             for (StatusBarNotification sbn : snapshot) if (sbn != null) live.add(sbn.getKey());
             autoOpenCards.notifications(live);
             headsUp.setSnapshot(snapshot);
+            sources.media.updateNotificationArt(snapshot);
         };
         if (Looper.myLooper() == main.getLooper()) policies.run();
         else main.post(policies);
