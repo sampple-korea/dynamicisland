@@ -557,6 +557,8 @@
     <string name="show_in_fullscreen_desc">カメラなどステータスバーを隠すアプリでも進行中のアクティビティを表示します。ロック画面、常時表示ディスプレイ、表示する内容がないときは非表示になります。</string>
     <string name="show_in_landscape">横向き・ゲーム中も表示</string>
     <string name="show_in_landscape_desc">端末を横向きにしたときや、ゲームなどの全画面アプリでもアイランドを表示し続けます。ロック画面と Always On Display では非表示のままです。横向きのレイアウトは縦向きほど作り込まれていません。</string>
+    <string name="setting_landscape_at_camera">横向きでもカメラの位置に</string>
+    <string name="setting_landscape_at_camera_desc">横向きでも、アイランドは縦向きと同じ形のまま端末と一緒に回転し、画面横のカメラの位置に留まります。カメラが画面の穴にある端末でのみ動作します。</string>
     <string name="setting_charging_info">充電詳細カード</string>
     <string name="setting_charging_info_desc">充電中のバッテリー電流・推定電力・温度を表示します。</string>
     <string name="setting_charging_stats">充電統計</string>
@@ -627,6 +629,7 @@
     <string name="search_terms_battery">充電 充電器 バッテリー 電池 残量 電流 電圧 電力 温度</string>
     <string name="search_terms_charging_effect">Samsung サムスン 標準 充電 アニメーション 電池 稲妻 点滅</string>
     <string name="search_terms_landscape">横向き 横 回転 ゲーム 全画面 フルスクリーン 動画</string>
+    <string name="search_terms_landscape_at_camera">横向き カメラ パンチホール 横 端 回転 留まる ゲーム</string>
     <string name="search_terms_wide_charging">ワイド 長い 大きい 小さい サイズ 充電 ポップアップ カプセル 幅</string>
     <string name="search_terms_charging_number">数字 パーセント 残量 充電 リング 稲妻 バッテリー</string>
     <string name="search_terms_silent_cards">サイレント 静か 無音 通知 カード すべての通知 アイランド 0.1.16</string>

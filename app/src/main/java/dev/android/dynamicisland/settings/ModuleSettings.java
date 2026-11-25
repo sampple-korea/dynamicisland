@@ -61,6 +61,8 @@ public final class ModuleSettings {
     /** Keep active content visible when a portrait app hides the status bar. */
     public static final String KEY_SHOW_IN_FULLSCREEN = "show_in_fullscreen";
     public static final String KEY_SHOW_IN_LANDSCAPE = "show_in_landscape";
+    /** In landscape the island stays at the camera on the side of the screen, turned with the phone. */
+    public static final String KEY_LANDSCAPE_AT_CAMERA = "landscape_at_camera";
     /** Plays the animations of version 0.1.3 and before instead of the smoothed ones. */
     public static final String KEY_LEGACY_ANIMATION = "legacy_animation";
     public static final String KEY_I_MODE = "i_mode";
@@ -237,6 +239,7 @@ public final class ModuleSettings {
     private static volatile int materialStyle = MATERIAL_CLASSIC;
     private static volatile boolean showInFullscreen;
     private static volatile boolean showInLandscape;
+    private static volatile boolean landscapeAtCamera;
     private static volatile boolean legacyAnimation;
     private static volatile boolean iMode;
     private static volatile boolean alwaysVisible;
@@ -751,8 +754,10 @@ public final class ModuleSettings {
             int textPaddingBefore = holeTextPaddingDp;
             boolean fullscreenBefore = showInFullscreen;
             boolean landscapeBefore = showInLandscape;
+            boolean atCameraBefore = landscapeAtCamera;
             showInFullscreen = source.getBoolean(KEY_SHOW_IN_FULLSCREEN, false);
             showInLandscape = source.getBoolean(KEY_SHOW_IN_LANDSCAPE, false);
+            landscapeAtCamera = source.getBoolean(KEY_LANDSCAPE_AT_CAMERA, false);
             boolean previewBefore = placementPreviewActive();
             previewWallUntil = source.getLong(KEY_PILL_PREVIEW_UNTIL, 0L);
             if (!placementPreviewActive()) {
@@ -776,7 +781,7 @@ public final class ModuleSettings {
             }
             Runnable placementListener = onPlacementChanged;
             if (placementListener != null && (anchorBefore != pillAnchor || xBefore != pillXDp || yBefore != pillYDp
-                    || fullscreenBefore != showInFullscreen || landscapeBefore != showInLandscape
+                    || fullscreenBefore != showInFullscreen || landscapeBefore != showInLandscape || atCameraBefore != landscapeAtCamera
                     || textPaddingBefore != holeTextPaddingDp
                     || unfoldedBefore != java.util.Arrays.hashCode(unfolded) * 31 + (separateUnfolded ? 1 : 0)
                     || previewBefore != placementPreviewActive()
@@ -856,6 +861,7 @@ public final class ModuleSettings {
         torchStyle = settings.getInt(KEY_TORCH_STYLE, 0) == 1 ? 1 : 0;
         showInFullscreen = settings.getBoolean(KEY_SHOW_IN_FULLSCREEN, false);
         showInLandscape = settings.getBoolean(KEY_SHOW_IN_LANDSCAPE, false);
+        landscapeAtCamera = settings.getBoolean(KEY_LANDSCAPE_AT_CAMERA, false);
         eventCharging = settings.getBoolean(KEY_EVENT_CHARGING, true);
         readOptionalDeviceSettings(settings);
         holeTextPaddingDp = clampHoleTextPadding(settings.getInt(KEY_HOLE_TEXT_PADDING_DP, 0));
@@ -914,6 +920,12 @@ public final class ModuleSettings {
     public static boolean frostedMaterial() { ensureStarted(); return materialStyle == MATERIAL_FROSTED; }
     public static boolean showInFullscreen() { ensureStarted(); return showInFullscreen; }
     public static boolean showInLandscape() { ensureStarted(); return showInLandscape; }
+
+    /** With {@link #showInLandscape}: the island stays at the camera on the side, drawn turned with the phone. */
+    public static boolean landscapeAtCamera() {
+        ensureStarted();
+        return showInLandscape && landscapeAtCamera;
+    }
     public static boolean chargingInfo() { ensureStarted(); return eventCharging && chargingInfo; }
     public static boolean stockChargingAnimation() { ensureStarted(); return stockChargingAnimation; }
     public static boolean wideChargingPopup() { ensureStarted(); return wideChargingPopup; }

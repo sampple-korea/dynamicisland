@@ -557,6 +557,8 @@
     <string name="show_in_fullscreen_desc">카메라처럼 상태 표시줄을 숨기는 앱에서도 진행 중인 활동을 표시합니다. 잠금 화면·AOD에서는 숨기며, 표시할 활동이 없을 때도 숨깁니다.</string>
     <string name="show_in_landscape">가로 모드·게임에서도 표시</string>
     <string name="show_in_landscape_desc">휴대폰을 가로로 돌렸을 때와 게임 같은 전체 화면 앱에서도 아일랜드를 표시합니다. 잠금 화면·AOD에서는 숨깁니다. 가로 화면 배치는 세로보다 덜 다듬어져 있습니다.</string>
+    <string name="setting_landscape_at_camera">가로 모드에서 카메라 옆에 유지</string>
+    <string name="setting_landscape_at_camera_desc">가로 모드에서도 아일랜드가 화면 옆의 카메라 자리에 세로일 때와 같은 모양으로 휴대폰과 함께 돌아간 채 머뭅니다. 카메라가 화면 구멍에 있는 휴대폰에서만 동작합니다.</string>
     <string name="setting_charging_info">충전 상세 카드</string>
     <string name="setting_charging_info_desc">충전기를 연결한 동안 배터리 전류·추정 전력·온도를 계속 표시합니다.</string>
     <string name="setting_charging_stats">충전 통계</string>
@@ -627,6 +629,7 @@
     <string name="search_terms_battery">충전 충전기 배터리 밧데리 잔량 전류 전압 와트 전력 온도 퍼센트</string>
     <string name="search_terms_charging_effect">삼성 기본 원래 충전 애니메이션 효과 번개 번쩍 배터리</string>
     <string name="search_terms_landscape">가로 가로모드 옆으로 회전 게임 게이밍 전체화면 전체 화면 영상</string>
+    <string name="search_terms_landscape_at_camera">가로 모드 카메라 펀치홀 옆 가장자리 회전 유지 게임</string>
     <string name="search_terms_wide_charging">넓은 긴 큰 작은 크기 충전 팝업 알약 너비</string>
     <string name="search_terms_charging_number">숫자 퍼센트 잔량 충전 링 번개 배터리</string>
     <string name="search_terms_silent_cards">무음 조용 소리 없는 알림 카드 모든 알림 아일랜드 0.1.16</string>

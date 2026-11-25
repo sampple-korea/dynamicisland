@@ -851,11 +851,19 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         if (!isAttachedToWindow()) {
             return false;
         }
-        int[] at = new int[2];
-        getLocationOnScreen(at);
+        // through the view's whole transform to the screen, so a turned island (a camera on the side) maps right too
+        android.graphics.Matrix toScreen = new android.graphics.Matrix();
+        transformMatrixToGlobal(toScreen);
+        int[] window = new int[2];
+        getRootView().getLocationOnScreen(window);
+        toScreen.postTranslate(window[0], window[1]);
+        android.graphics.Matrix toView = new android.graphics.Matrix();
+        if (!toScreen.invert(toView)) return false;
+        float[] p = {screenX, screenY};
+        toView.mapPoints(p);
         Region region = new Region();
         getTouchRegion(region);
-        return region.contains(Math.round(screenX - at[0]), Math.round(screenY - at[1]));
+        return region.contains(Math.round(p[0]), Math.round(p[1]));
     }
 
     /** The part of the window that should receive touches; everything else lets them through. */

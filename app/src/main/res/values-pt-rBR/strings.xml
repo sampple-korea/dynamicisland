@@ -584,6 +584,8 @@
     <string name="setting_stock_charging_animation_desc">Exibir a animação colorida que expande a bateria da barra de status ao iniciar o carregamento. Desativado por padrão.</string>
     <string name="setting_wide_charging">Pop-up de carregamento largo</string>
     <string name="setting_wide_charging_desc">Ao conectar, exibir o pop-up de carregamento como uma pílula longa cruzando a barra de status. Desative para ter um pop-up de tamanho comum. Aplica-se apenas com o efeito de carregamento da Samsung desativado.</string>
+    <string name="setting_landscape_at_camera">Ficar na câmera no modo paisagem</string>
+    <string name="setting_landscape_at_camera_desc">No modo paisagem a ilha fica na câmera, na lateral da tela, girada junto com o telefone, como no modo retrato. Só em telefones com a câmera em um furo na tela.</string>
     <string name="setting_charging_number">Número no anel de carregamento</string>
     <string name="setting_charging_number_desc">Durante o carregamento, mostra o nível da bateria como número dentro do anel em vez do raio.</string>
     <string name="setting_silent_cards">Cartões para notificações silenciosas</string>
@@ -625,6 +627,7 @@
     <string name="search_terms_battery">carga carregando carregador bateria corrente voltagem watt energia temperatura porcentagem</string>
     <string name="search_terms_charging_effect">Samsung estoque original animação carregamento bateria raio flash</string>
     <string name="search_terms_wide_charging">largo comprido grande pequeno tamanho pop-up de carregamento pílula largura</string>
+    <string name="search_terms_landscape_at_camera">paisagem horizontal câmera furo lateral borda girada ficar jogo</string>
     <string name="search_terms_charging_number">número porcentagem nível carregamento anel raio bateria</string>
     <string name="search_terms_silent_cards">silenciosa silencioso mudo sem som notificação cartão todas as notificações ilha 0.1.16</string>
     <string name="search_terms_notifications">notificação notificações banner banners heads-up alertas pop-up mensagens mensagem chat silencioso card cards som</string>

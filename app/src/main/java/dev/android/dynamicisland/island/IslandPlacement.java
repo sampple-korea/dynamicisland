@@ -84,6 +84,8 @@ final class IslandPlacement {
     private int neededHeight;
     private float centerYPortrait = -1.0f;
     private float centerYLandscape = -1.0f;
+    /** The turned island's centre, in from the edge with the camera (its own upright y). */
+    private float sidewaysCentreY;
     /** Packages whose chips the launcher animates into the island, from the last refresh. */
     private Set<String> exitPackages = new LinkedHashSet<>();
     private final RectF scratch = new RectF();
@@ -324,6 +326,9 @@ final class IslandPlacement {
         portrait = height > width;
         // a foldable's unfolded screen can keep its own position: say which screen this is before reading it
         ModuleSettings.setLargeScreen(ModuleSettings.isLargeScreen(width, height, density));
+        if (updateSideways(width, height)) {
+            return;
+        }
         float centerX = pillCenterX(width);
         float centerY = pillCenterY();
         // where the camera hole is: found from the cutout, or set by hand (then the island grows from that spot)
@@ -366,6 +371,67 @@ final class IslandPlacement {
         applyWindowHeight();
         updateSuppression();
         pushExitTargets(false);
+    }
+
+    /**
+     * In landscape with the camera in a hole on the left or right edge, and the option on, the island is drawn turned at
+     * that camera, as it sits in portrait (#55). The geometry is then worked out as the portrait one: the screen's
+     * short side is the width, the hole's place along the edge is the centre, its distance from the edge the height.
+     *
+     * @return true when the island is placed that way (the rest of {@link #updateGeometry} is for the upright island)
+     */
+    private boolean updateSideways(int width, int height) {
+        boolean tablet = ModuleSettings.isLargeScreen(width, height, density);
+        int edge = IslandWindow.SIDE_NONE;
+        Rect hole = null;
+        if (width > height && !tablet && ModuleSettings.landscapeAtCamera()) {
+            DisplayCutout cutout = window.displayCutout();
+            Rect left = cutout == null ? null : cutout.getBoundingRectLeft();
+            Rect right = cutout == null ? null : cutout.getBoundingRectRight();
+            if (left != null && !left.isEmpty()) {
+                edge = IslandWindow.SIDE_LEFT;
+                hole = left;
+            } else if (right != null && !right.isEmpty()) {
+                edge = IslandWindow.SIDE_RIGHT;
+                hole = right;
+            }
+        }
+        window.setSideways(edge);
+        if (edge == IslandWindow.SIDE_NONE) {
+            return false;
+        }
+        float[] centre = sidewaysCentre(edge, hole, width, height);
+        float holeD;
+        switch (ModuleSettings.holeMode()) {
+            case ModuleSettings.HOLE_NONE:
+                holeD = 0.0f;
+                break;
+            case ModuleSettings.HOLE_MANUAL:
+                holeD = ModuleSettings.holeDiameterDp() * density;
+                break;
+            default:
+                holeD = Math.min(hole.width(), hole.height()) * CUTOUT_VISIBLE_RATIO;
+                break;
+        }
+        landscapeSuppressed = false; // the option exists because the island is wanted here
+        centerYLandscape = centre[1];
+        view.setPillSize(ModuleSettings.pillHeightPercent(), ModuleSettings.pillMinWidthDp(), ModuleSettings.pillMaxWidthDp());
+        view.setHoleTextPadding(ModuleSettings.holeTextPaddingDp());
+        view.setGeometry(height, centre[0], centre[1], holeD, false);
+        view.setHoleMarker(-1.0f, 0.0f, 0.0f);
+        sidewaysCentreY = centre[1];
+        applyWindowHeight();
+        updateSuppression();
+        return true;
+    }
+
+    /** The island's centre in its own upright coordinates: x along the edge the camera is on, y in from that edge. */
+    static float[] sidewaysCentre(int edge, Rect hole, int screenWidth, int screenHeight) {
+        if (edge == IslandWindow.SIDE_LEFT) {
+            // the phone's top is on the left: upright x runs from the bottom of the screen to its top
+            return new float[] {screenHeight - hole.exactCenterY(), hole.exactCenterX()};
+        }
+        return new float[] {hole.exactCenterY(), screenWidth - hole.exactCenterX()};
     }
 
     /** Where the island's centre is horizontally: the middle, a quarter in from either side, plus the user's shift. */
@@ -425,9 +491,13 @@ final class IslandPlacement {
         if (window == null) {
             return;
         }
-        int height = Math.max(neededHeight, Math.round(pillCenterY() + density * WINDOW_EXTRA_HEIGHT_DP));
+        boolean sideways = window.sideways() != IslandWindow.SIDE_NONE;
+        float centreY = sideways ? sidewaysCentreY : pillCenterY();
+        int height = Math.max(neededHeight, Math.round(centreY + density * WINDOW_EXTRA_HEIGHT_DP));
         if (view != null && view.isExpanded()) {
-            height = Math.max(height, window.windowBounds().height());
+            // turned, the island's height runs across the screen's long side
+            Rect bounds = window.windowBounds();
+            height = Math.max(height, sideways ? Math.max(bounds.width(), bounds.height()) : bounds.height());
         }
         window.setWindowHeight(height);
     }
@@ -492,7 +562,9 @@ final class IslandPlacement {
         window.setShown(true);
         if (!view.shadePulled()) {
             view.getCoverageBounds(scratch);
-            fader.update(scratch, !hidden && view.visibleAlpha() > 0.3f, view.takesWholeStatusBar());
+            // turned at a camera on the side, the island is nowhere near the status bar icons
+            boolean upright = window.sideways() == IslandWindow.SIDE_NONE;
+            fader.update(scratch, upright && !hidden && view.visibleAlpha() > 0.3f, upright && view.takesWholeStatusBar());
         }
         audio.setActive(view.needsAudio());
     }

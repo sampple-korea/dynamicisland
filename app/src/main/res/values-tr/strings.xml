@@ -543,6 +543,8 @@
     <string name="show_in_fullscreen_desc">Kamera gibi durum çubuğunu gizleyen uygulamalarda devam eden etkinlikleri gösterir. Kilit ekranında, Always On Display sırasında veya etkin içerik olmadığında ada gizlenir.</string>
     <string name="show_in_landscape">Yatay modda ve oyunlarda göster</string>
     <string name="show_in_landscape_desc">Telefon yan çevrildiğinde ve oyun gibi tam ekran uygulamalarda adayı görünür tutar. Kilit ekranında ve Always On Display\'de yine gizlenir. Yatay düzen dikey kadar özenli değildir.</string>
+    <string name="setting_landscape_at_camera">Yatayda kameranın yanında kal</string>
+    <string name="setting_landscape_at_camera_desc">Yatay modda ada, dikey moddaki haliyle telefonla birlikte döner ve ekranın yanındaki kameranın yerinde kalır. Yalnızca kamerası ekran deliğinde olan telefonlarda çalışır.</string>
     <string name="setting_charging_info">Ayrıntılı şarj kartı</string>
     <string name="setting_charging_info_desc">Şarja bağlıyken pil akımını, tahmini gücü ve sıcaklığı gösterir.</string>
     <string name="setting_charging_stats">Şarj istatistikleri</string>
@@ -612,6 +614,7 @@
     <string name="search_terms_battery">şarj batarya pil akım voltaj güç sıcaklık yüzde</string>
     <string name="search_terms_charging_effect">Samsung sistem varsayılan şarj animasyon pil şimşek yanıp sönme</string>
     <string name="search_terms_landscape">yatay döndür oyun tam ekran video</string>
+    <string name="search_terms_landscape_at_camera">yatay kamera delik yan kenar döndürülmüş kal oyun</string>
     <string name="search_terms_wide_charging">geniş uzun büyük küçük boyut şarj pencere hap genişlik</string>
     <string name="search_terms_charging_number">sayı yüzde seviye şarj halka şimşek pil</string>
     <string name="search_terms_silent_cards">sessiz sakin sesiz bildirim kart tüm bildirimler ada 0.1.16</string>

@@ -557,6 +557,8 @@
     <string name="show_in_fullscreen_desc">在相机等隐藏状态栏的应用中继续显示正在进行的活动。锁屏、息屏显示或没有活动内容时仍会隐藏。</string>
     <string name="show_in_landscape">横屏和游戏中也显示</string>
     <string name="show_in_landscape_desc">手机横置时以及在游戏等全屏应用中仍显示灵动岛。在锁屏和息屏显示上仍会隐藏。横屏布局不如竖屏精细。</string>
+    <string name="setting_landscape_at_camera">横屏时停在摄像头处</string>
+    <string name="setting_landscape_at_camera_desc">横屏时，灵动岛保持竖屏时的样子，随手机一起旋转，停在屏幕侧边的摄像头处。仅适用于摄像头在屏幕挖孔中的手机。</string>
     <string name="setting_charging_info">充电详情卡片</string>
     <string name="setting_charging_info_desc">连接充电器时持续显示电池电流、估算功率和温度。</string>
     <string name="setting_charging_stats">充电统计</string>
@@ -627,6 +629,7 @@
     <string name="search_terms_battery">充电 充电器 电池 电量 电流 电压 功率 温度 百分比</string>
     <string name="search_terms_charging_effect">三星 原生 默认 充电 动画 电池 闪电 闪烁</string>
     <string name="search_terms_landscape">横屏 横向 旋转 游戏 全屏 视频</string>
+    <string name="search_terms_landscape_at_camera">横屏 摄像头 挖孔 侧边 旋转 停留 游戏</string>
     <string name="search_terms_wide_charging">宽 长 大 小 尺寸 充电 弹窗 胶囊 宽度</string>
     <string name="search_terms_charging_number">数字 百分比 电量 充电 环 闪电 电池</string>
     <string name="search_terms_silent_cards">静默 静音 安静 无声 通知 卡片 所有通知 灵动岛 0.1.16</string>

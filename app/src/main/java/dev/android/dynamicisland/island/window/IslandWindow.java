@@ -2,6 +2,8 @@ package dev.android.dynamicisland.island.window;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.Matrix;
+import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.Region;
@@ -51,6 +53,16 @@ public final class IslandWindow {
     private final WindowManager windowManager;
     private final WindowManager.LayoutParams params;
     private final Root root;
+    /** Holds the island's layers; turned a quarter when the island sits at a camera on the side (see {@link #setSideways}). */
+    private final Turner turner;
+    /** {@link #SIDE_NONE}, or the edge of the screen the camera is on while the island is drawn turned there. */
+    private int side = SIDE_NONE;
+    public static final int SIDE_NONE = 0;
+    public static final int SIDE_LEFT = 1;
+    public static final int SIDE_RIGHT = 2;
+    private final Path regionPath = new Path();
+    private final Region regionClip = new Region();
+    private final float[] point = new float[2];
     /** Region (window coordinates) that takes touches; everything else falls through to the app below. */
     private final Region touchRegion = new Region();
     private final Region latestRegion = new Region();
@@ -86,9 +98,12 @@ public final class IslandWindow {
 
         root = new Root(context, listener);
         root.setClipChildren(false);
-        root.addView(blur, matchParent());
-        root.addView(view, matchParent());
-        root.addView(remoteLayer, matchParent());
+        turner = new Turner(context);
+        turner.setClipChildren(false);
+        turner.addView(blur, matchParent());
+        turner.addView(view, matchParent());
+        turner.addView(remoteLayer, matchParent());
+        root.addView(turner, matchParent());
 
         params = createLayoutParams();
         TouchableRegionHook.install(root, touchRegion);
@@ -201,7 +216,43 @@ public final class IslandWindow {
             return;
         }
         requestedHeight = height;
-        params.height = Math.max(1, height);
+        applyShape();
+    }
+
+    /**
+     * Draws the island turned a quarter at the camera on one side of the screen ({@link #SIDE_LEFT} or
+     * {@link #SIDE_RIGHT}), the way it sits in portrait, or upright at the top again ({@link #SIDE_NONE}). The window then
+     * hugs that edge: as wide as the island's height would be and as tall as the screen.
+     */
+    public void setSideways(int edge) {
+        if (edge == side) {
+            return;
+        }
+        side = edge;
+        turner.setSide(edge);
+        applyShape();
+        if (edge != SIDE_NONE) {
+            // the pixels behind a turned island are not where these read them: plain pill and cards there
+            stopBackdropSampling();
+        }
+        invalidateTouchRegion();
+    }
+
+    public int sideways() {
+        return side;
+    }
+
+    private void applyShape() {
+        int extent = Math.max(1, requestedHeight);
+        if (side == SIDE_NONE) {
+            params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+            params.height = extent;
+            params.gravity = Gravity.TOP | Gravity.LEFT;
+        } else {
+            params.width = extent;
+            params.height = ViewGroup.LayoutParams.MATCH_PARENT;
+            params.gravity = Gravity.TOP | (side == SIDE_LEFT ? Gravity.LEFT : Gravity.RIGHT);
+        }
         pushLayout();
     }
 
@@ -221,6 +272,7 @@ public final class IslandWindow {
     /** Call when the island's shape changed; re-reads the touchable region on the next frame. */
     public void invalidateTouchRegion() {
         view.getTouchRegion(latestRegion);
+        if (side != SIDE_NONE) toWindow(latestRegion);
         if (!latestRegion.equals(touchRegion)) {
             touchRegion.set(latestRegion);
             root.invalidate();
@@ -312,6 +364,14 @@ public final class IslandWindow {
     }
 
     public boolean setSurfaceFade(float alpha, float scale, float px, float py) {
+        if (side != SIDE_NONE) {
+            // the pivot comes in the island's own (upright) coordinates
+            point[0] = px;
+            point[1] = py;
+            turner.getMatrix().mapPoints(point);
+            px = point[0];
+            py = point[1];
+        }
         if (surfaceFader.set(alpha, scale, px, py)) {
             applySurfaceFade();
         }
@@ -326,6 +386,10 @@ public final class IslandWindow {
 
     /** Re-applies the surface fade before each frame: the surface can be recreated and lose it. */
     public boolean onPreDraw() {
+        if (side != SIDE_NONE) {
+            if (!surfaceFader.isNeutral()) applySurfaceFade();
+            return true;
+        }
         updatePillBackgroundSampling();
         try {
             boolean material = root.isHardwareAccelerated() && view.materialBackdropRegion(materialRegion);
@@ -373,12 +437,77 @@ public final class IslandWindow {
         }
     }
 
+    /** The cutout in screen coordinates for the current rotation: the window's own insets are relative to where it is. */
+    public DisplayCutout displayCutout() {
+        try {
+            Display display = context.getDisplay();
+            DisplayCutout cutout = display != null ? display.getCutout() : null;
+            if (cutout != null) return cutout;
+        } catch (Throwable ignored) {
+            // fall back to the window insets below
+        }
+        return cutout();
+    }
+
     int rotation() {
         try {
             Display display = context.getDisplay();
             return display != null ? display.getRotation() : Surface.ROTATION_0;
         } catch (Throwable ignored) {
             return Surface.ROTATION_0;
+        }
+    }
+
+    /** Maps a region from the island's own coordinates to the window's while it is drawn turned. */
+    private void toWindow(Region region) {
+        if (region.isEmpty()) return;
+        regionPath.rewind();
+        region.getBoundaryPath(regionPath);
+        regionPath.transform(turner.getMatrix());
+        regionClip.set(-100_000, -100_000, 100_000, 100_000);
+        region.setPath(regionPath, regionClip);
+    }
+
+    /**
+     * Lays its children out upright and, for a camera on a side, turns them a quarter about its top-left corner and
+     * moves them back onto the window: measured with the window's width and height swapped, the island inside still
+     * sees a portrait status bar. Touches follow the turn on their own (the parent maps them through this matrix).
+     */
+    static final class Turner extends FrameLayout {
+        private int side = SIDE_NONE;
+
+        Turner(Context context) {
+            super(context);
+            setPivotX(0f);
+            setPivotY(0f);
+        }
+
+        void setSide(int edge) {
+            side = edge;
+            setRotation(edge == SIDE_LEFT ? -90f : edge == SIDE_RIGHT ? 90f : 0f);
+            place();
+            requestLayout();
+        }
+
+        @Override
+        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+            if (side == SIDE_NONE) {
+                super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+            } else {
+                super.onMeasure(heightMeasureSpec, widthMeasureSpec);
+            }
+        }
+
+        @Override
+        protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+            super.onLayout(changed, left, top, right, bottom);
+            place();
+        }
+
+        /** After the turn the upright box lies above (left side) or left of (right side) the window: move it back. */
+        private void place() {
+            setTranslationX(side == SIDE_RIGHT ? getHeight() : 0f);
+            setTranslationY(side == SIDE_LEFT ? getWidth() : 0f);
         }
     }
 

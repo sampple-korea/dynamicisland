@@ -557,6 +557,8 @@
     <string name="show_in_fullscreen_desc">Показывать текущие активности, когда камера или другое приложение скрывает строку состояния. На экране блокировки, Always On Display и при отсутствии активностей остров скрывается.</string>
     <string name="show_in_landscape">Показывать в альбомной ориентации и в играх</string>
     <string name="show_in_landscape_desc">Остров остаётся видимым, когда телефон повёрнут набок, и в полноэкранных приложениях, например в играх. На экране блокировки и в Always On Display он по-прежнему скрыт. Альбомная раскладка отточена хуже, чем портретная.</string>
+    <string name="setting_landscape_at_camera">У камеры в альбомном режиме</string>
+    <string name="setting_landscape_at_camera_desc">В альбомном режиме остров остаётся у камеры сбоку экрана и поворачивается вместе с телефоном, как в портретном режиме. Только на телефонах с камерой в вырезе экрана.</string>
     <string name="setting_charging_info">Подробная карточка зарядки</string>
     <string name="setting_charging_info_desc">Ток батареи, расчётная мощность и температура при зарядке.</string>
     <string name="setting_charging_stats">Статистика зарядки</string>
@@ -627,6 +629,7 @@
     <string name="search_terms_battery">зарядка заряд батарея аккумулятор ток напряжение мощность температура проценты</string>
     <string name="search_terms_charging_effect">Samsung стандартная системная зарядка анимация батарея молния мигание</string>
     <string name="search_terms_landscape">альбомная горизонтальная поворот игра игры полный экран видео</string>
+    <string name="search_terms_landscape_at_camera">альбомный горизонтальный камера вырез сбоку край поворот игра</string>
     <string name="search_terms_wide_charging">широкое длинное большое маленькое размер зарядка окно капсула ширина</string>
     <string name="search_terms_charging_number">число процент уровень заряд кольцо молния батарея</string>
     <string name="search_terms_silent_cards">беззвучные тихие без звука уведомления карточка все уведомления остров 0.1.16</string>
