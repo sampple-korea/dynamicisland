@@ -552,6 +552,8 @@
     <string name="hole_text_padding_desc">0dp özgün aralığı korur. Ek boşluk, seçilen ada genişliğine sığacak şekilde sınırlanır.</string>
     <string name="island_charge_full">Tamamen şarj oldu</string>
     <string name="island_charge_connected">Şarj cihazı bağlı</string>
+    <string name="island_charge_protected">Pil korunuyor</string>
+    <string name="island_charge_bypass">Telefon doğrudan besleniyor</string>
     <string name="island_charge_live">%1$s · %2$s · %3$s</string>
     <string name="island_charge_screen_on">Ekran açık: %1$s · %2$s</string>
     <string name="island_charge_screen_off">Ekran kapalı: %1$s · %2$s</string>
@@ -566,6 +568,8 @@
     <string name="setting_stock_charging_animation_desc">Şarj başladığında durum çubuğundaki pili genişleten renkli animasyonu gösterir. Varsayılan olarak kapalıdır.</string>
     <string name="setting_wide_charging">Geniş şarj açılır penceresi</string>
     <string name="setting_wide_charging_desc">Şarj başladığında şarj penceresini durum çubuğu boyunca uzanan uzun bir hap olarak gösterir. Kapatırsanız normal boyutta görünür. Yalnızca Samsung şarj efekti kapalıyken geçerlidir.</string>
+    <string name="setting_charging_number">Şarj halkasında sayı</string>
+    <string name="setting_charging_number_desc">Şarj olurken halkanın içinde şimşek yerine pil seviyesini sayı olarak gösterir.</string>
     <string name="setting_silent_cards">Sessiz bildirimler için kart</string>
     <string name="setting_silent_cards_desc">Sesi olmayan bildirimler için de 0.1.17 öncesi gibi kart açar. Kapalıyken sessiz kalırlar: sistemdeki gibi yalnızca durum çubuğu simgesi ve bildirim paneli. Yalnızca “Bannerlar ve sessiz bildirimler” ile çalışır.</string>
     <string name="concurrent_recording_input">Eşzamanlı mikrofon dalgası (deneysel)</string>
@@ -605,6 +609,7 @@
     <string name="search_terms_charging_effect">Samsung sistem varsayılan şarj animasyon pil şimşek yanıp sönme</string>
     <string name="search_terms_landscape">yatay döndür oyun tam ekran video</string>
     <string name="search_terms_wide_charging">geniş uzun büyük küçük boyut şarj pencere hap genişlik</string>
+    <string name="search_terms_charging_number">sayı yüzde seviye şarj halka şimşek pil</string>
     <string name="search_terms_silent_cards">sessiz sakin sesiz bildirim kart tüm bildirimler ada 0.1.16</string>
     <string name="search_terms_notifications">bildirim bildirimler afiş açılır pencere mesaj uyarı sessiz kart standart ses sohbet</string>
     <string name="search_terms_download">indirme aktarım ilerleme yükleme dosya</string>

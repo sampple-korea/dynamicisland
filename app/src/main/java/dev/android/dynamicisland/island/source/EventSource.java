@@ -416,21 +416,28 @@ public final class EventSource {
     }
 
     private android.graphics.drawable.Drawable batteryIcon(int percent, boolean charging) {
+        return batteryIcon(percent, charging, ChargingState.CHARGING);
+    }
+
+    private android.graphics.drawable.Drawable batteryIcon(int percent, boolean charging, int chargingState) {
         if (ModuleSettings.hideBatteryIcon()) return null;
-        return dev.android.dynamicisland.island.graphics.BatteryIcon.load(ctx, percent, charging);
+        return dev.android.dynamicisland.island.graphics.BatteryIcon.load(ctx, percent, charging, chargingState);
     }
 
     private IslandItem chargingItem(int percent, int plugged, Intent battery) {
         IslandItem it = base("event:charging");
-        it.title = IslandText.get(ctx, "island_charging");
-        String label = chargingLabel(plugged, battery);
+        int state = ChargingState.of(battery);
+        dev.android.dynamicisland.xposed.Diagnostics.fact("charging state", ChargingState.describe(battery));
+        it.title = IslandText.get(ctx, stateTitle(state, "island_charging"));
+        String label = state == ChargingState.CHARGING ? chargingLabel(plugged, battery) : String.valueOf(it.title);
         // The circular gauge owns the percentage; only a distinct charging type needs a subtitle.
         it.accent = GREEN;
         it.eventLayout = IslandItem.EventLayout.BATTERY;
         it.batteryPercent = percent;
         it.batteryCharging = true;
+        it.batteryMode = state;
         it.subtitle = label.equals(String.valueOf(it.title)) ? null : label;
-        it.icon = batteryIcon(percent, true);
+        it.icon = batteryIcon(percent, true, state);
         it.progress = percent / 100f;
         it.trailing = IslandItem.Trailing.TEXT;
         it.trailingText = percent + "%";
@@ -443,6 +450,12 @@ public final class EventSource {
             it.compactLabel = it.title; // the wide pill has room for the word on its left, the percentage stays on its right
         }
         return it;
+    }
+
+    /** The title for a charging state; {@code charging} is the key used while the battery really charges. */
+    static String stateTitle(int state, String charging) {
+        return state == ChargingState.PROTECTED ? "island_charge_protected"
+                : state == ChargingState.BYPASS ? "island_charge_bypass" : charging;
     }
 
     private IslandItem lowBatteryItem(int percent) {

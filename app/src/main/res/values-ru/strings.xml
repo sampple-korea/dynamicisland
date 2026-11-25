@@ -566,6 +566,8 @@
     <string name="hole_text_padding_desc">0dp сохраняет исходный интервал. Отступ ограничен выбранной шириной острова.</string>
     <string name="island_charge_full">Полностью заряжено</string>
     <string name="island_charge_connected">Зарядное устройство подключено</string>
+    <string name="island_charge_protected">Защита батареи</string>
+    <string name="island_charge_bypass">Питание телефона напрямую</string>
     <string name="island_charge_live">%1$s · %2$s · %3$s</string>
     <string name="island_charge_screen_on">Экран включён: %1$s · %2$s</string>
     <string name="island_charge_screen_off">Экран выключен: %1$s · %2$s</string>
@@ -580,6 +582,8 @@
     <string name="setting_stock_charging_animation_desc">Цветная анимация с расширением значка батареи в строке состояния при начале зарядки. По умолчанию выключена.</string>
     <string name="setting_wide_charging">Широкое окно зарядки</string>
     <string name="setting_wide_charging_desc">При подключении зарядки показывать окно зарядки длинной капсулой во всю строку состояния. Выключите, чтобы окно было обычного размера. Работает, только когда эффект зарядки Samsung выключен.</string>
+    <string name="setting_charging_number">Число в кольце зарядки</string>
+    <string name="setting_charging_number_desc">Во время зарядки показывать уровень заряда числом в кольце вместо молнии.</string>
     <string name="setting_silent_cards">Карточки для беззвучных уведомлений</string>
     <string name="setting_silent_cards_desc">Открывать карточку и для уведомлений без звука, как до версии 0.1.17. Если выключить, они остаются беззвучными: только значок в строке состояния и шторка уведомлений, как в системе. Работает только в режиме «Баннеры и беззвучные уведомления».</string>
     <string name="concurrent_recording_input">Параллельная запись для волны (эксперимент)</string>
@@ -620,6 +624,7 @@
     <string name="search_terms_charging_effect">Samsung стандартная системная зарядка анимация батарея молния мигание</string>
     <string name="search_terms_landscape">альбомная горизонтальная поворот игра игры полный экран видео</string>
     <string name="search_terms_wide_charging">широкое длинное большое маленькое размер зарядка окно капсула ширина</string>
+    <string name="search_terms_charging_number">число процент уровень заряд кольцо молния батарея</string>
     <string name="search_terms_silent_cards">беззвучные тихие без звука уведомления карточка все уведомления остров 0.1.16</string>
     <string name="search_terms_notifications">уведомление уведомления баннер всплывающее сообщения оповещение беззвучные карточка стандартный звук чат</string>
     <string name="search_terms_download">загрузка скачивание передача прогресс отправка файл</string>

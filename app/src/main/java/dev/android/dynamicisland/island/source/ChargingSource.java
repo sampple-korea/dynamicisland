@@ -25,6 +25,8 @@ public final class ChargingSource {
     private final Runnable onChange;
     private boolean enabled, statistics, registered, interactive;
     private int plug, status, level = -1;
+    /** A {@link ChargingState} value from the latest battery broadcast. */
+    private int chargingState = ChargingState.CHARGING;
     private double volts = Double.NaN, temperature = Double.NaN, currentMa = Double.NaN;
     private long connectedAt;
     private ChargingSession session;
@@ -104,6 +106,9 @@ public final class ChargingSource {
         int before = plug;
         plug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
         status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN);
+        int state = ChargingState.of(intent);
+        if (state != chargingState) dev.android.dynamicisland.xposed.Diagnostics.fact("charging state", ChargingState.describe(intent));
+        chargingState = state;
         int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
         int raw = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         level = raw >= 0 && scale > 0 ? Math.min(100, Math.round(raw * 100f / scale)) : -1;
@@ -208,15 +213,18 @@ public final class ChargingSource {
             item.batteryPercent = level;
             item.batteryCharging = status == BatteryManager.BATTERY_STATUS_CHARGING;
         }
-        item.title = text(status == BatteryManager.BATTERY_STATUS_FULL ? "island_charge_full"
-                : status == BatteryManager.BATTERY_STATUS_CHARGING ? "island_charging" : "island_charge_connected");
-        item.icon = ModuleSettings.hideBatteryIcon() || level < 0 ? null : BatteryIcon.load(ctx, level, true);
+        item.title = text(EventSource.stateTitle(chargingState, status == BatteryManager.BATTERY_STATUS_FULL ? "island_charge_full"
+                : status == BatteryManager.BATTERY_STATUS_CHARGING ? "island_charging" : "island_charge_connected"));
+        item.batteryMode = chargingState;
+        item.icon = ModuleSettings.hideBatteryIcon() || level < 0 ? null : BatteryIcon.load(ctx, level, true, chargingState);
         item.accent = 0xFF30D158;
         item.trailing = IslandItem.Trailing.TEXT;
         double power = volts * currentMa / 1000;
         if (power > 300) power = Double.NaN;
-        item.trailingText = Double.isFinite(power) ? number(power, 0) + "W" : level >= 0 ? percent(level) : null;
-        if (Double.isFinite(power) && level >= 0) item.compactLabel = item.trailingText;
+        // held by protection or bypassed, the battery takes (almost) nothing: the level says more than the watts
+        boolean resting = chargingState != ChargingState.CHARGING;
+        item.trailingText = Double.isFinite(power) && !resting ? number(power, 0) + "W" : level >= 0 ? percent(level) : null;
+        if (Double.isFinite(power) && level >= 0 && !resting) item.compactLabel = item.trailingText;
         String live = textLines ? nowLine(power) : text("island_charge_live", value(currentMa, "mA"), value(power, "W"), value(temperature, "°C"));
         item.subtitle = live;
         if (statistics && session != null) {

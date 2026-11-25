@@ -56,8 +56,10 @@ final class IconPainter {
     /** Leading icon of the compact pill: monochrome unless the icon is artwork. */
     void drawLeadingMono(Canvas c, IslandItem item, float left, float midY, float size, float alpha) {
         if (item.eventLayout == IslandItem.EventLayout.BATTERY && item.batteryPercent >= 0) {
-            batteryGauge.draw(c, left + size / 2, midY, size, item.batteryPercent, item.fillAccent(), alpha,
-                    false, item.batteryCharging && !ModuleSettings.hideBatteryIcon());
+            int centre = item.batteryCharging && !ModuleSettings.hideBatteryIcon()
+                    ? dev.android.dynamicisland.island.graphics.BatteryGauge.centreFor(item.batteryMode, ModuleSettings.chargingPercentInRing())
+                    : dev.android.dynamicisland.island.graphics.BatteryGauge.CENTRE_NONE;
+            batteryGauge.draw(c, left + size / 2, midY, size, item.batteryPercent, item.fillAccent(), alpha, centre);
             return;
         }
         if (item.voiceRecording && ModuleSettings.concurrentRecordingInput()) {

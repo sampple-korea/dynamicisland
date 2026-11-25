@@ -566,6 +566,8 @@
     <string name="hole_text_padding_desc">0dp는 기존 간격을 유지합니다. 추가 여백은 설정한 아일랜드 너비 안에 들어가는 만큼만 적용합니다.</string>
     <string name="island_charge_full">충전 완료</string>
     <string name="island_charge_connected">충전기 연결됨</string>
+    <string name="island_charge_protected">배터리 보호 중</string>
+    <string name="island_charge_bypass">휴대폰에 직접 전원 공급 중</string>
     <string name="island_charge_live">%1$s · %2$s · %3$s</string>
     <string name="island_charge_screen_on">화면 켜짐: %1$s · %2$s</string>
     <string name="island_charge_screen_off">화면 꺼짐: %1$s · %2$s</string>
@@ -580,6 +582,8 @@
     <string name="setting_stock_charging_animation_desc">충전 시작 시 상태표시줄 배터리가 커지며 색이 흐르는 효과를 표시합니다. 기본 꺼짐입니다.</string>
     <string name="setting_wide_charging">넓은 충전 팝업</string>
     <string name="setting_wide_charging_desc">충전기를 꽂으면 상태 표시줄 전체에 걸친 긴 알약으로 충전 팝업을 보여 줍니다. 끄면 보통 크기로 보여 줍니다. 삼성 충전 효과가 꺼져 있을 때만 적용됩니다.</string>
+    <string name="setting_charging_number">충전 링에 숫자 표시</string>
+    <string name="setting_charging_number_desc">충전 중에 링 안의 번개 대신 배터리 잔량을 숫자로 보여 줍니다.</string>
     <string name="setting_silent_cards">무음 알림에도 카드 표시</string>
     <string name="setting_silent_cards_desc">소리가 나지 않는 알림에도 0.1.17 이전처럼 카드를 엽니다. 끄면 시스템처럼 상태 표시줄 아이콘과 알림창에만 표시됩니다. “배너 알림과 무음 알림”에서만 적용됩니다.</string>
     <string name="concurrent_recording_input">동시 마이크 파형 (실험적)</string>
@@ -620,6 +624,7 @@
     <string name="search_terms_charging_effect">삼성 기본 원래 충전 애니메이션 효과 번개 번쩍 배터리</string>
     <string name="search_terms_landscape">가로 가로모드 옆으로 회전 게임 게이밍 전체화면 전체 화면 영상</string>
     <string name="search_terms_wide_charging">넓은 긴 큰 작은 크기 충전 팝업 알약 너비</string>
+    <string name="search_terms_charging_number">숫자 퍼센트 잔량 충전 링 번개 배터리</string>
     <string name="search_terms_silent_cards">무음 조용 소리 없는 알림 카드 모든 알림 아일랜드 0.1.16</string>
     <string name="search_terms_notifications">알림 팝업 배너 헤드업 메시지 통지 채팅 무음 기본 카드 소리</string>
     <string name="search_terms_download">다운로드 전송 업로드 진행률 파일 받기</string>

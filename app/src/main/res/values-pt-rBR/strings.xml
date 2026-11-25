@@ -564,6 +564,8 @@
     <string name="hole_text_padding_desc">0 dp mantém o espaçamento original. O espaço extra é limitado ao que couber na largura escolhida da ilha.</string>
     <string name="island_charge_full">Totalmente carregada</string>
     <string name="island_charge_connected">Carregador conectado</string>
+    <string name="island_charge_protected">Bateria protegida</string>
+    <string name="island_charge_bypass">Alimentando o telefone diretamente</string>
     <string name="island_charge_live">%1$s · %2$s · %3$s</string>
     <string name="island_charge_screen_on">Tela ligada: %1$s · %2$s</string>
     <string name="island_charge_screen_off">Tela desligada: %1$s · %2$s</string>
@@ -578,6 +580,8 @@
     <string name="setting_stock_charging_animation_desc">Exibir a animação colorida que expande a bateria da barra de status ao iniciar o carregamento. Desativado por padrão.</string>
     <string name="setting_wide_charging">Pop-up de carregamento largo</string>
     <string name="setting_wide_charging_desc">Ao conectar, exibir o pop-up de carregamento como uma pílula longa cruzando a barra de status. Desative para ter um pop-up de tamanho comum. Aplica-se apenas com o efeito de carregamento da Samsung desativado.</string>
+    <string name="setting_charging_number">Número no anel de carregamento</string>
+    <string name="setting_charging_number_desc">Durante o carregamento, mostra o nível da bateria como número dentro do anel em vez do raio.</string>
     <string name="setting_silent_cards">Cartões para notificações silenciosas</string>
     <string name="setting_silent_cards_desc">Abre um cartão também para notificações sem som, como antes da 0.1.17. Desativado, elas ficam silenciosas: só o ícone na barra de status e o painel de notificações, como no sistema. Só vale com “Banners e notificações silenciosas”.</string>
     <string name="concurrent_recording_input">Forma de onda de microfone concorrente (experimental)</string>
@@ -617,6 +621,7 @@
     <string name="search_terms_battery">carga carregando carregador bateria corrente voltagem watt energia temperatura porcentagem</string>
     <string name="search_terms_charging_effect">Samsung estoque original animação carregamento bateria raio flash</string>
     <string name="search_terms_wide_charging">largo comprido grande pequeno tamanho pop-up de carregamento pílula largura</string>
+    <string name="search_terms_charging_number">número porcentagem nível carregamento anel raio bateria</string>
     <string name="search_terms_silent_cards">silenciosa silencioso mudo sem som notificação cartão todas as notificações ilha 0.1.16</string>
     <string name="search_terms_notifications">notificação notificações banner banners heads-up alertas pop-up mensagens mensagem chat silencioso card cards som</string>
     <string name="search_terms_download">download baixar transferência progresso upload arquivo</string>

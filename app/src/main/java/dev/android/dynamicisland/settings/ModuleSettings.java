@@ -30,6 +30,8 @@ public final class ModuleSettings {
     public static final String KEY_EVENT_CHARGING = "event_charging";
     public static final String KEY_STOCK_CHARGING_ANIMATION = "stock_charging_animation";
     public static final String KEY_WIDE_CHARGING_POPUP = "wide_charging_popup";
+    /** The battery ring shows the level as a number instead of the lightning bolt while charging. */
+    public static final String KEY_CHARGING_PERCENT_RING = "charging_percent_ring";
     /** Experimental concurrent input; opt-in because vendor recording policies differ. */
     public static final String KEY_CONCURRENT_RECORDING_INPUT = "concurrent_recording_input";
     public static final String KEY_CHARGING_INFO = "charging_info";
@@ -206,6 +208,7 @@ public final class ModuleSettings {
     private static volatile boolean eventCharging = true;
     private static volatile boolean stockChargingAnimation;
     private static volatile boolean wideChargingPopup = true;
+    private static volatile boolean chargingPercentInRing;
     private static volatile boolean concurrentRecordingInput;
     private static volatile boolean chargingInfo;
     private static volatile boolean chargingStats;
@@ -848,6 +851,7 @@ public final class ModuleSettings {
     public static boolean chargingInfo() { ensureStarted(); return eventCharging && chargingInfo; }
     public static boolean stockChargingAnimation() { ensureStarted(); return stockChargingAnimation; }
     public static boolean wideChargingPopup() { ensureStarted(); return wideChargingPopup; }
+    public static boolean chargingPercentInRing() { ensureStarted(); return chargingPercentInRing; }
     public static boolean concurrentRecordingInput() { ensureStarted(); return concurrentRecordingInput && !lowPerformance; }
     public static boolean chargingStats() { return chargingInfo() && chargingStats; }
     public static boolean eventHeadset() { ensureStarted(); return eventHeadset; }
@@ -877,6 +881,7 @@ public final class ModuleSettings {
         cardCornerRadiusDp = Math.max(0, Math.min(48, source.getInt(KEY_CARD_CORNER_RADIUS_DP, 28)));
         stockChargingAnimation = source.getBoolean(KEY_STOCK_CHARGING_ANIMATION, false);
         wideChargingPopup = source.getBoolean(KEY_WIDE_CHARGING_POPUP, true);
+        chargingPercentInRing = source.getBoolean(KEY_CHARGING_PERCENT_RING, false);
         concurrentRecordingInput = source.getBoolean(KEY_CONCURRENT_RECORDING_INPUT, false);
         chargingInfo = source.getBoolean(KEY_CHARGING_INFO, false);
         chargingStats = source.getBoolean(KEY_CHARGING_STATS, false);
@@ -931,7 +936,7 @@ public final class ModuleSettings {
     private static String switchSignature() {
         return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/" + glowColour + lowPerformance + "/light=" + stillMusic + staticWaveform + limitFrameRate + stillIcons + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + "/system=" + accentSystem + systemAccent + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + silentNotificationCards + systemPopupStyle + progressNotifications + hideProgressOriginals
                 + smartRules + privacyIndicator + privacyLocation + privacyInApp + otpCard + otpAutoCopy + thirdPartyCalls + "/incomingCalls=" + incomingCallCards + "/screenRecording=" + screenRecordingCard + visualizer + colorIcons + shadeMedia + cardHeader
-                + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/" + headsetStay + "/hotspot=" + hotspotCard + "/unlock=" + unlockNotice + "/" + unlockIconOnly + "/peekProgress=" + peekProgress + "/peekPullButtons=" + peekPullButtons + "/progressForeground=" + progressForeground + "/progressAny=" + progressAny + "/stockCharging=" + stockChargingAnimation + "/recordingInput=" + concurrentRecordingInput
+                + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/" + headsetStay + "/hotspot=" + hotspotCard + "/unlock=" + unlockNotice + "/" + unlockIconOnly + "/peekProgress=" + peekProgress + "/peekPullButtons=" + peekPullButtons + "/progressForeground=" + progressForeground + "/progressAny=" + progressAny + "/stockCharging=" + stockChargingAnimation + "/" + chargingPercentInRing + "/recordingInput=" + concurrentRecordingInput
                 + "/alwaysVisible=" + alwaysVisible + "/notch=" + notchStyle + "/popup=" + popupSeconds + "/chargingText=" + chargingText + "/swipeUpHides=" + swipeUpHides + "/swipeDownOpens=" + swipeDownOpens + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/blur=" + transitionBlurMode + "/" + appFilter.onlyListed() + appFilter.size();
     }
 

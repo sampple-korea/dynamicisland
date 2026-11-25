@@ -68,6 +68,8 @@ public final class IslandItem {
     public EventLayout eventLayout = EventLayout.DEFAULT;
     public int batteryPercent = -1;
     public boolean batteryCharging;
+    /** A {@code ChargingState} value while {@link #batteryCharging}: charging, protected or pass-through. */
+    public int batteryMode;
     /** Third line of a card (ongoing-activity detail text). */
     public CharSequence detail;
     /** Accessibility/long description; replaces the secondary line when present (OngoingActivityData.mDescription). */

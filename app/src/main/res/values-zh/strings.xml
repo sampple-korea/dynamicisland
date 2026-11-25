@@ -566,6 +566,8 @@
     <string name="hole_text_padding_desc">0dp保留原有间距。额外间距仅在设置的灵动岛宽度允许范围内生效。</string>
     <string name="island_charge_full">充电完成</string>
     <string name="island_charge_connected">已连接充电器</string>
+    <string name="island_charge_protected">电池保护中</string>
+    <string name="island_charge_bypass">正在直接为手机供电</string>
     <string name="island_charge_live">%1$s · %2$s · %3$s</string>
     <string name="island_charge_screen_on">亮屏：%1$s · %2$s</string>
     <string name="island_charge_screen_off">息屏：%1$s · %2$s</string>
@@ -580,6 +582,8 @@
     <string name="setting_stock_charging_animation_desc">充电开始时，状态栏电池会展开并显示流动色彩。默认关闭。</string>
     <string name="setting_wide_charging">宽充电弹窗</string>
     <string name="setting_wide_charging_desc">接上充电器时，以横跨状态栏的长条胶囊显示充电弹窗。关闭后以普通大小显示。仅在三星充电效果关闭时生效。</string>
+    <string name="setting_charging_number">在充电环中显示数字</string>
+    <string name="setting_charging_number_desc">充电时在环中以数字显示电量，取代闪电图标。</string>
     <string name="setting_silent_cards">为静默通知显示卡片</string>
     <string name="setting_silent_cards_desc">像 0.1.17 之前一样，没有提示音的通知也会弹出卡片。关闭后与系统一致，只在状态栏图标和通知面板中显示。仅在“横幅通知和静默通知”下生效。</string>
     <string name="concurrent_recording_input">并发麦克风波形（实验性）</string>
@@ -620,6 +624,7 @@
     <string name="search_terms_charging_effect">三星 原生 默认 充电 动画 电池 闪电 闪烁</string>
     <string name="search_terms_landscape">横屏 横向 旋转 游戏 全屏 视频</string>
     <string name="search_terms_wide_charging">宽 长 大 小 尺寸 充电 弹窗 胶囊 宽度</string>
+    <string name="search_terms_charging_number">数字 百分比 电量 充电 环 闪电 电池</string>
     <string name="search_terms_silent_cards">静默 静音 安静 无声 通知 卡片 所有通知 灵动岛 0.1.16</string>
     <string name="search_terms_notifications">通知 横幅 弹窗 消息 提醒 静默 卡片 系统 声音 聊天</string>
     <string name="search_terms_download">下载 传输 进度 上传 文件</string>

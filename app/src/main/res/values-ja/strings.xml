@@ -566,6 +566,8 @@
     <string name="hole_text_padding_desc">0dpでは従来の間隔を維持します。設定したアイランド幅に収まる範囲で余白を追加します。</string>
     <string name="island_charge_full">充電完了</string>
     <string name="island_charge_connected">充電器に接続中</string>
+    <string name="island_charge_protected">バッテリー保護中</string>
+    <string name="island_charge_bypass">スマホに直接給電中</string>
     <string name="island_charge_live">%1$s · %2$s · %3$s</string>
     <string name="island_charge_screen_on">画面オン: %1$s · %2$s</string>
     <string name="island_charge_screen_off">画面オフ: %1$s · %2$s</string>
@@ -580,6 +582,8 @@
     <string name="setting_stock_charging_animation_desc">充電開始時にステータスバーのバッテリーが拡大し、色が流れる効果を表示します。初期値はオフです。</string>
     <string name="setting_wide_charging">ワイド充電ポップアップ</string>
     <string name="setting_wide_charging_desc">充電を始めるとステータスバー全体に広がる細長いカプセルで充電ポップアップを表示します。オフにすると通常サイズで表示します。Samsung の充電エフェクトがオフのときのみ有効です。</string>
+    <string name="setting_charging_number">充電リングに数字を表示</string>
+    <string name="setting_charging_number_desc">充電中、リングの中の稲妻の代わりにバッテリー残量を数字で表示します。</string>
     <string name="setting_silent_cards">サイレント通知にもカードを表示</string>
     <string name="setting_silent_cards_desc">音の鳴らない通知にも、0.1.17より前のようにカードを開きます。オフにすると、システムと同じくステータスバーのアイコンと通知パネルだけに表示します。「バナー通知とサイレント通知」のときだけ有効です。</string>
     <string name="concurrent_recording_input">同時マイク波形（実験的）</string>
@@ -620,6 +624,7 @@
     <string name="search_terms_charging_effect">Samsung サムスン 標準 充電 アニメーション 電池 稲妻 点滅</string>
     <string name="search_terms_landscape">横向き 横 回転 ゲーム 全画面 フルスクリーン 動画</string>
     <string name="search_terms_wide_charging">ワイド 長い 大きい 小さい サイズ 充電 ポップアップ カプセル 幅</string>
+    <string name="search_terms_charging_number">数字 パーセント 残量 充電 リング 稲妻 バッテリー</string>
     <string name="search_terms_silent_cards">サイレント 静か 無音 通知 カード すべての通知 アイランド 0.1.16</string>
     <string name="search_terms_notifications">通知 バナー ポップアップ ヘッドアップ メッセージ サイレント カード 標準 音 チャット</string>
     <string name="search_terms_download">ダウンロード 転送 進捗 アップロード ファイル</string>

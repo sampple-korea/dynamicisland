@@ -575,6 +575,8 @@
     <string name="hole_text_padding_desc">0 dp keeps the original spacing. Extra space is limited to what fits inside the chosen island width.</string>
     <string name="island_charge_full">Fully charged</string>
     <string name="island_charge_connected">Charger connected</string>
+    <string name="island_charge_protected">Battery protected</string>
+    <string name="island_charge_bypass">Powering the phone directly</string>
     <string name="island_charge_live">%1$s · %2$s · %3$s</string>
     <string name="island_charge_screen_on">Screen on: %1$s · %2$s</string>
     <string name="island_charge_screen_off">Screen off: %1$s · %2$s</string>
@@ -589,6 +591,8 @@
     <string name="setting_stock_charging_animation_desc">Show the coloured animation that expands the status bar battery when charging starts. Off by default.</string>
     <string name="setting_wide_charging">Wide charging popup</string>
     <string name="setting_wide_charging_desc">When plugged in, show the charging popup as a long pill across the status bar. Turn off for an ordinary-size popup. Only applies while Samsung\'s charging effect is off.</string>
+    <string name="setting_charging_number">Number in the charging ring</string>
+    <string name="setting_charging_number_desc">While charging, show the battery level as a number inside the ring instead of the lightning bolt.</string>
     <string name="setting_silent_cards">Cards for silent notifications</string>
     <string name="setting_silent_cards_desc">Also open a card for notifications that make no sound, as before 0.1.17. Off keeps them silent: only the status bar icon and the notification panel, as the system does. Only with “Banners and silent notifications”.</string>
     <string name="concurrent_recording_input">Concurrent microphone waveform (experimental)</string>
@@ -629,6 +633,7 @@
     <string name="search_terms_charging_effect">Samsung stock original charging animation battery lightning flash bolt</string>
     <string name="search_terms_landscape">landscape sideways horizontal rotate rotated game gaming full screen fullscreen video</string>
     <string name="search_terms_wide_charging">wide long big large small size charging popup pill width</string>
+    <string name="search_terms_charging_number">number percent percentage level digits charging ring bolt lightning battery</string>
     <string name="search_terms_silent_cards">silent quiet mute no sound notification card all notifications island 0.1.16</string>
     <string name="search_terms_notifications">notification notifications banner banners headsup alerts popup pop-up messages message chat silent stock card cards sound</string>
     <string name="search_terms_download">download transfer progress upload file</string>
