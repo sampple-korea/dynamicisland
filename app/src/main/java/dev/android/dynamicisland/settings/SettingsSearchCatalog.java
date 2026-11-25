@@ -165,6 +165,7 @@ final class SettingsSearchCatalog {
         add(Route.APPEARANCE,R.string.card_roundness,R.string.card_roundness_summary,R.string.search_terms_shape,R.string.card_roundness_custom);
         add(Route.POSITION,R.string.pos_where,R.string.pos_sum,R.string.search_terms_position,0,R.string.pos_auto,R.string.pos_center,R.string.pos_left,R.string.pos_right);
         add(Route.POSITION,R.string.pos_shift_x,0,R.string.search_terms_position,0);
+        add(Route.POSITION,R.string.setting_separate_unfolded,R.string.setting_separate_unfolded_desc,R.string.search_terms_unfolded,0);
         add(Route.POSITION,R.string.pos_shift_y,0,R.string.search_terms_position,0);
         add(Route.POSITION,R.string.size_height,R.string.size_note,R.string.search_terms_shape,0);
         add(Route.POSITION,R.string.size_min,0,R.string.search_terms_shape,0);

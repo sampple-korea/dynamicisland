@@ -296,6 +296,10 @@
     <string name="pos_reset_sum">Kaydırmayı kaldırıp kamera deliğinin üzerine döndürür</string>
     <string name="pos_note">Ada, kamera deliğinden uzaklaştırıldığında düz bir kapsül olarak çizilir. Kartlar yine ekranın yatayda ortasında açılır.</string>
     <string name="pos_live">Yukarıdaki gerçek durum çubuğuna bakın: ada bir örnek gösterir ve bu ayarları değiştirdiğinizde hareket eder.</string>
+    <string name="setting_separate_unfolded">Açıkken ayrı konum</string>
+    <string name="setting_separate_unfolded_desc">Katlanabilir telefonda açık ekran kendi konumunu ve kamera ayarını saklar. Bu sayfayı ayarlamak istediğiniz ekranda açın.</string>
+    <string name="pos_editing_unfolded">Açık ekran ayarlanıyor. Kapalı ekranı ayarlamak için telefonu katlayıp bu sayfayı yeniden açın.</string>
+    <string name="pos_editing_folded">Kapalı ekran ayarlanıyor. Açık ekranı ayarlamak için telefonu açıp bu sayfayı yeniden açın.</string>
     <string name="hole_title">Kamera deliği</string>
     <string name="hole_note">Ada kamera deliğinden genişler ve metnin deliğin üzerine gelmesini önler. Telefonunuzda yanlış konumlanıyorsa deliği elle ayarlayın. Gerçek ekrandaki mavi halka, adanın deliği nerede algıladığını gösterir; halkayı kamerayla hizalayın.</string>
     <string name="hole_auto">Otomatik bul</string>
@@ -631,6 +635,7 @@
     <string name="search_terms_colour">renk tema ton vurgu palet doygunluk</string>
     <string name="search_terms_glow">parıltı hale ışık çevresel aydınlatma parlaklık yoğunluk dalga hareket</string>
     <string name="search_terms_position">konum taşı hizalama kaydırma yatay dikey sol sağ yukarı aşağı</string>
+    <string name="search_terms_unfolded">katlanabilir katlama açık kapalı dış iç ekran konum ayrı</string>
     <string name="search_terms_camera">kamera delik çentik çap boşluk kalibrasyon</string>
     <string name="search_terms_compatibility">uyumluluk Samsung One UI kurtarma geçici çözüm eksik algılama deneysel</string>
     <string name="search_terms_recording">kayıt ses kaydedici mikrofon dalga genlik ses seviyesi eşzamanlı giriş</string>

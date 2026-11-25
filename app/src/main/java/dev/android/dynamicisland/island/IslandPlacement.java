@@ -42,7 +42,6 @@ final class IslandPlacement {
     /** Screens at least this wide (dp, short side) are treated as tablets. */
     /** How far in from the edge the island sits for the left and right positions, as a fraction of the screen width. */
     private static final float PILL_SIDE_FRACTION = 0.25f;
-    private static final float TABLET_MIN_WIDTH_DP = 600.0f;
     /** Phones in landscape (wider than this aspect ratio) hide the island. */
     private static final float LANDSCAPE_ASPECT = 1.2f;
     /** Extra window height (dp) below the status bar centre so the resting pill and its shadow fit. */
@@ -323,6 +322,8 @@ final class IslandPlacement {
             return;
         }
         portrait = height > width;
+        // a foldable's unfolded screen can keep its own position: say which screen this is before reading it
+        ModuleSettings.setLargeScreen(ModuleSettings.isLargeScreen(width, height, density));
         float centerX = pillCenterX(width);
         float centerY = pillCenterY();
         // where the camera hole is: found from the cutout, or set by hand (then the island grows from that spot)
@@ -340,7 +341,7 @@ final class IslandPlacement {
         } else {
             centerYPortrait = centerY;
         }
-        boolean tablet = Math.min(width, height) / density >= TABLET_MIN_WIDTH_DP;
+        boolean tablet = ModuleSettings.isLargeScreen(width, height, density);
         landscapeSuppressed = !tablet && width > height * LANDSCAPE_ASPECT;
         // the island hugs the camera hole only where it sits on it; moved anywhere else it is a plain pill
         float holeD = 0.0f;

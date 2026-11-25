@@ -314,6 +314,10 @@
     <string name="pos_reset_sum">Back to the camera hole with no shift</string>
     <string name="pos_note">Once it is moved off the camera hole it is drawn as a plain pill. The cards still open in the middle of the screen width.</string>
     <string name="pos_live">Look at the real status bar above: the island shows a sample and moves while you change these.</string>
+    <string name="setting_separate_unfolded">Separate position when unfolded</string>
+    <string name="setting_separate_unfolded_desc">On a foldable, the unfolded screen keeps its own position and camera calibration. Open this page on the screen you want to adjust.</string>
+    <string name="pos_editing_unfolded">Adjusting the unfolded screen. Fold the phone and open this page again to adjust the folded screen.</string>
+    <string name="pos_editing_folded">Adjusting the folded screen. Unfold the phone and open this page again to adjust the unfolded screen.</string>
     <string name="hole_title">Camera hole</string>
     <string name="hole_note">The island grows out of the camera hole and keeps its text away from it. If it sits wrong on your phone, set the hole by hand: a blue ring on the real screen shows where the island thinks the hole is, so line it up with the camera.</string>
     <string name="hole_auto">Find it automatically</string>
@@ -655,6 +659,7 @@
     <string name="search_terms_colour">color colour theme tint accent palette saturation</string>
     <string name="search_terms_glow">glow halo aura rim shine ambient light brightness intensity wave motion</string>
     <string name="search_terms_position">position move alignment offset horizontal vertical x y left right up down</string>
+    <string name="search_terms_unfolded">foldable fold unfold unfolded folded cover inner main screen position separate</string>
     <string name="search_terms_camera">camera punch hole cutout notch diameter padding calibration</string>
     <string name="search_terms_compatibility">compatibility Samsung One UI recovery workaround missed missing detection fix experimental</string>
     <string name="search_terms_recording">voice recorder recording microphone mic waveform amplitude volume concurrent simultaneous input</string>

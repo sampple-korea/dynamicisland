@@ -305,6 +305,10 @@
     <string name="pos_reset_sum">恢复至摄像头挖孔位置，不保留偏移</string>
     <string name="pos_note">移出摄像头挖孔后，将显示为普通胶囊。卡片仍在屏幕中央展开。</string>
     <string name="pos_live">请查看上方实际状态栏：调整时灵动岛会显示示例并实时移动。</string>
+    <string name="setting_separate_unfolded">展开时使用单独位置</string>
+    <string name="setting_separate_unfolded_desc">在折叠屏手机上，展开的屏幕使用自己的位置和摄像头校准。请在要调整的屏幕上打开此页面。</string>
+    <string name="pos_editing_unfolded">正在调整展开的屏幕。要调整折叠的屏幕，请合上手机后重新打开此页面。</string>
+    <string name="pos_editing_folded">正在调整折叠的屏幕。要调整展开的屏幕，请展开手机后重新打开此页面。</string>
     <string name="hole_title">摄像头挖孔</string>
     <string name="hole_note">灵动岛从摄像头挖孔处展开，并避免文字被遮挡。如位置不正确，请手动调整，将实际屏幕上的蓝色圆环对准摄像头。</string>
     <string name="hole_auto">自动检测</string>
@@ -646,6 +650,7 @@
     <string name="search_terms_colour">颜色 色彩 主题 强调色 色调 调色板 饱和度</string>
     <string name="search_terms_glow">辉光 光晕 发光 环境光 亮度 强度 流动 动态</string>
     <string name="search_terms_position">位置 移动 对齐 偏移 水平 垂直 左右 上下</string>
+    <string name="search_terms_unfolded">折叠屏 折叠 展开 外屏 内屏 主屏 位置 单独</string>
     <string name="search_terms_camera">相机 摄像头 打孔 刘海 孔洞 直径 边距 校准</string>
     <string name="search_terms_compatibility">兼容 兼容性 三星 恢复 变通 遗漏 检测 实验 One UI</string>
     <string name="search_terms_recording">录音 录音机 语音 麦克风 波形 音量 振幅 同时 输入</string>

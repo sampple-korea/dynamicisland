@@ -45,21 +45,41 @@ final class PositionScreen {
     }
 
     private int anchor() {
-        return prefs.getInt(ModuleSettings.KEY_PILL_ANCHOR, ModuleSettings.ANCHOR_AUTO);
+        return stored(ModuleSettings.KEY_PILL_ANCHOR, ModuleSettings.ANCHOR_AUTO);
     }
 
     private int value(String key, int def) {
         Integer now = live.get(key);
-        return now != null ? now : prefs.getInt(key, def);
+        return now != null ? now : stored(key, def);
+    }
+
+    /** True while this page edits the unfolded screen's own position: the option is on and the page is on that screen. */
+    boolean editsUnfolded() {
+        if (!prefs.getBoolean(ModuleSettings.KEY_SEPARATE_UNFOLDED_POSITION, false)) return false;
+        android.util.DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
+        return ModuleSettings.isLargeScreen(metrics.widthPixels, metrics.heightPixels, metrics.density);
+    }
+
+    /** The key this page saves {@code key} under: the unfolded screen's own one when that is being edited. */
+    String storedKey(String key) {
+        return editsUnfolded() && java.util.Arrays.asList(ModuleSettings.UNFOLDED_KEYS).contains(key)
+                ? key + ModuleSettings.UNFOLDED_SUFFIX : key;
+    }
+
+    /** The saved value; an unfolded value never set follows the shared one, as System UI reads it. */
+    private int stored(String key, int def) {
+        String own = storedKey(key);
+        return own.equals(key) ? prefs.getInt(key, def) : prefs.getInt(own, prefs.getInt(key, def));
     }
 
     void open() {
         calibrating = false;
         begin(R.string.pos_title);
         LinearLayout page = activity.page();
+        foldableRow(page);
         LinearLayout where = ui.card(page);
         activity.choice(where, R.string.pos_where, new int[]{R.string.pos_auto, R.string.pos_center, R.string.pos_left, R.string.pos_right},
-                Math.max(0, Math.min(3, anchor())), selected -> prefs.edit().putInt(ModuleSettings.KEY_PILL_ANCHOR, selected).apply());
+                Math.max(0, Math.min(3, anchor())), selected -> prefs.edit().putInt(storedKey(ModuleSettings.KEY_PILL_ANCHOR), selected).apply());
         slider(where, R.string.pos_shift_x, -ModuleSettings.PILL_X_MAX_DP, ModuleSettings.PILL_X_MAX_DP, ModuleSettings.KEY_PILL_X_DP, 0);
         slider(where, R.string.pos_shift_y, ModuleSettings.PILL_Y_MIN_DP, ModuleSettings.PILL_Y_MAX_DP, ModuleSettings.KEY_PILL_Y_DP, 0);
         ui.actionRow(where, activity.getString(R.string.pos_reset), activity.getString(R.string.ui_reset_position_summary), () -> { resetPosition(); rebuild(); });
@@ -82,10 +102,11 @@ final class PositionScreen {
         calibrating = true;
         begin(R.string.ui_camera_calibration);
         LinearLayout page = activity.page();
+        foldableRow(page);
         ui.note(page, activity.getString(R.string.hole_note));
         LinearLayout hole = ui.card(page);
         activity.choice(hole, R.string.hole_title, new int[]{R.string.hole_auto, R.string.hole_manual, R.string.hole_none},
-                Math.max(0, Math.min(2, holeMode())), selected -> prefs.edit().putInt(ModuleSettings.KEY_HOLE_MODE, selected).apply());
+                Math.max(0, Math.min(2, holeMode())), selected -> prefs.edit().putInt(storedKey(ModuleSettings.KEY_HOLE_MODE), selected).apply());
         if (holeMode() == ModuleSettings.HOLE_MANUAL) {
             slider(hole, R.string.hole_size, ModuleSettings.HOLE_D_MIN_DP, ModuleSettings.HOLE_D_MAX_DP, ModuleSettings.KEY_HOLE_D_DP, ModuleSettings.HOLE_D_DEFAULT_DP);
             slider(hole, R.string.hole_x, -ModuleSettings.HOLE_X_MAX_DP, ModuleSettings.HOLE_X_MAX_DP, ModuleSettings.KEY_HOLE_X_DP, 0);
@@ -97,6 +118,19 @@ final class PositionScreen {
             ui.note(page, activity.getString(R.string.hole_text_padding_desc));
         }
         ui.actionRow(hole, activity.getString(R.string.ui_reset_calibration), activity.getString(R.string.ui_reset_calibration_summary), () -> { resetCalibration(); rebuild(); });
+    }
+
+    /** The foldable switch, and while it is on, which screen this page adjusts. */
+    private void foldableRow(LinearLayout page) {
+        LinearLayout fold = ui.card(page);
+        ui.switchRow(fold, activity.getString(R.string.setting_separate_unfolded), activity.getString(R.string.setting_separate_unfolded_desc),
+                prefs.getBoolean(ModuleSettings.KEY_SEPARATE_UNFOLDED_POSITION, false), on -> {
+                    prefs.edit().putBoolean(ModuleSettings.KEY_SEPARATE_UNFOLDED_POSITION, on).apply();
+                    rebuild();
+                });
+        if (prefs.getBoolean(ModuleSettings.KEY_SEPARATE_UNFOLDED_POSITION, false)) {
+            ui.note(page, activity.getString(editsUnfolded() ? R.string.pos_editing_unfolded : R.string.pos_editing_folded));
+        }
     }
 
     private void begin(int title) {
@@ -128,20 +162,21 @@ final class PositionScreen {
     }
 
     void resetPosition() {
-        prefs.edit().remove(ModuleSettings.KEY_PILL_ANCHOR).remove(ModuleSettings.KEY_PILL_X_DP).remove(ModuleSettings.KEY_PILL_Y_DP).apply();
+        prefs.edit().remove(storedKey(ModuleSettings.KEY_PILL_ANCHOR)).remove(storedKey(ModuleSettings.KEY_PILL_X_DP))
+                .remove(storedKey(ModuleSettings.KEY_PILL_Y_DP)).apply();
     }
     void resetSize() {
         prefs.edit().remove(ModuleSettings.KEY_PILL_H_PCT).remove(ModuleSettings.KEY_PILL_MIN_W_DP)
                 .remove(ModuleSettings.KEY_PILL_MAX_W_DP).remove(ModuleSettings.KEY_PILL_KEEP_WIDTH).apply();
     }
     void resetCalibration() {
-        prefs.edit().remove(ModuleSettings.KEY_HOLE_MODE).remove(ModuleSettings.KEY_HOLE_D_DP)
-                .remove(ModuleSettings.KEY_HOLE_X_DP).remove(ModuleSettings.KEY_HOLE_Y_DP)
+        prefs.edit().remove(storedKey(ModuleSettings.KEY_HOLE_MODE)).remove(storedKey(ModuleSettings.KEY_HOLE_D_DP))
+                .remove(storedKey(ModuleSettings.KEY_HOLE_X_DP)).remove(storedKey(ModuleSettings.KEY_HOLE_Y_DP))
                 .remove(ModuleSettings.KEY_HOLE_TEXT_PADDING_DP).apply();
     }
 
     private int holeMode() {
-        return prefs.getInt(ModuleSettings.KEY_HOLE_MODE, ModuleSettings.HOLE_AUTO);
+        return stored(ModuleSettings.KEY_HOLE_MODE, ModuleSettings.HOLE_AUTO);
     }
 
     private void rebuild() {
@@ -178,6 +213,7 @@ final class PositionScreen {
             intent.putExtra(ModuleSettings.KEY_HOLE_Y_DP, value(ModuleSettings.KEY_HOLE_Y_DP, 0));
             intent.putExtra(ModuleSettings.KEY_HOLE_TEXT_PADDING_DP, value(ModuleSettings.KEY_HOLE_TEXT_PADDING_DP, 0));
             intent.putExtra(ModuleSettings.EXTRA_SAMPLE_LONG, sampleLong);
+            intent.putExtra(ModuleSettings.EXTRA_PREVIEW_UNFOLDED, editsUnfolded());
             intent.putExtra(ModuleSettings.EXTRA_ACTIVE, active);
             // System UI only accepts it from this app, so the sender has to let it see who sent it (API 34)
             android.app.BroadcastOptions options = android.app.BroadcastOptions.makeBasic();
@@ -190,7 +226,7 @@ final class PositionScreen {
 
     /** A title with the value on the right and a seek bar under it; saved when the finger lets go. */
     private void slider(LinearLayout group, int title, int min, int max, String key, int def) {
-        int value = Math.max(min, Math.min(max, prefs.getInt(key, def)));
+        int value = Math.max(min, Math.min(max, stored(key, def)));
         live.put(key, value);
         if (group.getChildCount() > 0) {
             View line = new View(activity);
@@ -242,7 +278,7 @@ final class PositionScreen {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                prefs.edit().putInt(key, seekBar.getProgress() + min).apply();
+                prefs.edit().putInt(storedKey(key), seekBar.getProgress() + min).apply();
             }
         });
         shown.setOnClickListener(v -> {
@@ -258,7 +294,7 @@ final class PositionScreen {
                     int number = Integer.parseInt(input.getText().toString().trim());
                     if (number < min || number > max || limitWidth(key, number) != number) throw new NumberFormatException();
                     bar.setProgress(number - min);
-                    prefs.edit().putInt(key, number).apply();
+                    prefs.edit().putInt(storedKey(key), number).apply();
                     dialog.dismiss();
                 } catch (NumberFormatException invalid) { input.setError(activity.getString(R.string.ui_input_range, min, max)); }
             }));
@@ -273,7 +309,7 @@ final class PositionScreen {
             step.setOnClickListener(v -> {
                 int next = Math.max(min, Math.min(max, limitWidth(key, bar.getProgress() + min + direction)));
                 bar.setProgress(next - min);
-                prefs.edit().putInt(key, next).apply();
+                prefs.edit().putInt(storedKey(key), next).apply();
             });
             adjustment.addView(step, new LinearLayout.LayoutParams(ui.dp(48), ui.dp(48)));
             if (direction < 0) adjustment.addView(bar, new LinearLayout.LayoutParams(0, ui.dp(48), 1));

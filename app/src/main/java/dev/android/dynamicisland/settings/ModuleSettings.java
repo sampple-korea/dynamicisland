@@ -87,6 +87,14 @@ public final class ModuleSettings {
     public static final int TRANSITION_BLUR_ALWAYS = 1;
     public static final int TRANSITION_BLUR_OFF = 2;
     public static final String KEY_PILL_X_DP = "pill_x_dp";
+    /** A foldable's unfolded (large) screen keeps its own position and camera calibration. */
+    public static final String KEY_SEPARATE_UNFOLDED_POSITION = "separate_unfolded_position";
+    /** Suffix of the keys that hold the unfolded screen's values; a missing one falls back to the shared value. */
+    public static final String UNFOLDED_SUFFIX = "_unfolded";
+    /** Preview intent extra: the values are those of the unfolded screen. */
+    public static final String EXTRA_PREVIEW_UNFOLDED = "preview_unfolded";
+    /** Screens whose shortest side is at least this wide (dp) are the large, unfolded profile. */
+    public static final float UNFOLDED_MIN_WIDTH_DP = 600.0f;
     public static final String KEY_PILL_Y_DP = "pill_y_dp";
     /** Wall-clock time until which the position page is open; a slower way (the settings file) to ask for the sample. */
     public static final String KEY_PILL_PREVIEW_UNTIL = "pill_preview_until";
@@ -275,6 +283,11 @@ public final class ModuleSettings {
     private static volatile int holeDDp = HOLE_D_DEFAULT_DP;
     private static volatile int holeXDp;
     private static volatile int holeYDp;
+    private static volatile boolean separateUnfolded;
+    /** The island is on a large (unfolded) screen now; set by System UI's placement from the window bounds. */
+    private static volatile boolean largeScreen;
+    /** The unfolded screen's anchor, x, y, hole mode, hole diameter, hole x and hole y; see {@link #UNFOLDED_KEYS}. */
+    private static volatile int[] unfolded;
     private static volatile int holeTextPaddingDp;
     private static volatile int pillHPct;
     private static volatile int pillMinWDp;
@@ -323,13 +336,21 @@ public final class ModuleSettings {
      */
     public static void applyPlacementPreview(android.content.Intent i) {
         holeTextPaddingDp = clampHoleTextPadding(i.getIntExtra(KEY_HOLE_TEXT_PADDING_DP, holeTextPaddingDp));
-        holeMode = Math.max(HOLE_AUTO, Math.min(HOLE_NONE, i.getIntExtra(KEY_HOLE_MODE, holeMode)));
-        holeDDp = Math.max(HOLE_D_MIN_DP, Math.min(HOLE_D_MAX_DP, i.getIntExtra(KEY_HOLE_D_DP, holeDDp)));
-        holeXDp = Math.max(-HOLE_X_MAX_DP, Math.min(HOLE_X_MAX_DP, i.getIntExtra(KEY_HOLE_X_DP, holeXDp)));
-        holeYDp = Math.max(HOLE_Y_MIN_DP, Math.min(HOLE_Y_MAX_DP, i.getIntExtra(KEY_HOLE_Y_DP, holeYDp)));
-        pillAnchor = Math.max(ANCHOR_AUTO, Math.min(ANCHOR_RIGHT, i.getIntExtra(KEY_PILL_ANCHOR, pillAnchor)));
-        pillXDp = Math.max(-PILL_X_MAX_DP, Math.min(PILL_X_MAX_DP, i.getIntExtra(KEY_PILL_X_DP, pillXDp)));
-        pillYDp = Math.max(PILL_Y_MIN_DP, Math.min(PILL_Y_MAX_DP, i.getIntExtra(KEY_PILL_Y_DP, pillYDp)));
+        if (i.getBooleanExtra(EXTRA_PREVIEW_UNFOLDED, false)) {
+            // the page is open on the unfolded screen: its own values move, the folded screen's stay
+            int[] base = unfolded != null ? unfolded : new int[] {pillAnchor, pillXDp, pillYDp, holeMode, holeDDp, holeXDp, holeYDp};
+            unfolded = clampedPlacement(i.getIntExtra(KEY_PILL_ANCHOR, base[0]), i.getIntExtra(KEY_PILL_X_DP, base[1]),
+                    i.getIntExtra(KEY_PILL_Y_DP, base[2]), i.getIntExtra(KEY_HOLE_MODE, base[3]), i.getIntExtra(KEY_HOLE_D_DP, base[4]),
+                    i.getIntExtra(KEY_HOLE_X_DP, base[5]), i.getIntExtra(KEY_HOLE_Y_DP, base[6]));
+        } else {
+            holeMode = Math.max(HOLE_AUTO, Math.min(HOLE_NONE, i.getIntExtra(KEY_HOLE_MODE, holeMode)));
+            holeDDp = Math.max(HOLE_D_MIN_DP, Math.min(HOLE_D_MAX_DP, i.getIntExtra(KEY_HOLE_D_DP, holeDDp)));
+            holeXDp = Math.max(-HOLE_X_MAX_DP, Math.min(HOLE_X_MAX_DP, i.getIntExtra(KEY_HOLE_X_DP, holeXDp)));
+            holeYDp = Math.max(HOLE_Y_MIN_DP, Math.min(HOLE_Y_MAX_DP, i.getIntExtra(KEY_HOLE_Y_DP, holeYDp)));
+            pillAnchor = Math.max(ANCHOR_AUTO, Math.min(ANCHOR_RIGHT, i.getIntExtra(KEY_PILL_ANCHOR, pillAnchor)));
+            pillXDp = Math.max(-PILL_X_MAX_DP, Math.min(PILL_X_MAX_DP, i.getIntExtra(KEY_PILL_X_DP, pillXDp)));
+            pillYDp = Math.max(PILL_Y_MIN_DP, Math.min(PILL_Y_MAX_DP, i.getIntExtra(KEY_PILL_Y_DP, pillYDp)));
+        }
         pillHPct = Math.max(PILL_H_MIN_PCT, Math.min(PILL_H_MAX_PCT, i.getIntExtra(KEY_PILL_H_PCT, pillHPct)));
         pillMinWDp = Math.max(0, Math.min(PILL_MIN_W_MAX_DP, i.getIntExtra(KEY_PILL_MIN_W_DP, pillMinWDp)));
         pillMaxWDp = clampMaxWidth(i.getIntExtra(KEY_PILL_MAX_W_DP, pillMaxWDp));
@@ -409,44 +430,81 @@ public final class ModuleSettings {
         return keepPillWidth;
     }
 
+    /** The keys a foldable's unfolded screen keeps separately, in the order of the values in {@link #unfolded}. */
+    public static final String[] UNFOLDED_KEYS = {KEY_PILL_ANCHOR, KEY_PILL_X_DP, KEY_PILL_Y_DP, KEY_HOLE_MODE, KEY_HOLE_D_DP,
+            KEY_HOLE_X_DP, KEY_HOLE_Y_DP};
+
+    /** Tells which screen the island is on now (System UI's placement, from its window bounds). */
+    public static void setLargeScreen(boolean large) {
+        largeScreen = large;
+    }
+
+    /** True when the shortest side of a screen of this size makes it the unfolded profile. */
+    public static boolean isLargeScreen(int widthPx, int heightPx, float density) {
+        return density > 0 && Math.min(widthPx, heightPx) / density >= UNFOLDED_MIN_WIDTH_DP;
+    }
+
+    public static boolean separateUnfoldedPosition() {
+        ensureStarted();
+        return separateUnfolded;
+    }
+
+    /** The unfolded screen's value at {@code index} of {@link #UNFOLDED_KEYS} when that profile applies now, else null. */
+    private static Integer unfoldedValue(int index) {
+        int[] values = unfolded;
+        return separateUnfolded && largeScreen && values != null ? values[index] : null;
+    }
+
+    private static int pick(int index, int shared) {
+        Integer own = unfoldedValue(index);
+        return own != null ? own : shared;
+    }
+
+    private static int[] clampedPlacement(int anchor, int x, int y, int mode, int d, int hx, int hy) {
+        return new int[] {Math.max(ANCHOR_AUTO, Math.min(ANCHOR_RIGHT, anchor)), Math.max(-PILL_X_MAX_DP, Math.min(PILL_X_MAX_DP, x)),
+                Math.max(PILL_Y_MIN_DP, Math.min(PILL_Y_MAX_DP, y)), Math.max(HOLE_AUTO, Math.min(HOLE_NONE, mode)),
+                Math.max(HOLE_D_MIN_DP, Math.min(HOLE_D_MAX_DP, d)), Math.max(-HOLE_X_MAX_DP, Math.min(HOLE_X_MAX_DP, hx)),
+                Math.max(HOLE_Y_MIN_DP, Math.min(HOLE_Y_MAX_DP, hy))};
+    }
+
     public static int holeMode() {
         ensureStarted();
-        return holeMode;
+        return pick(3, holeMode);
     }
 
     /** Diameter of the camera hole in dp when it is set by hand. */
     public static int holeDiameterDp() {
         ensureStarted();
-        return holeDDp;
+        return pick(4, holeDDp);
     }
 
     /** Sideways shift of the hole from the middle of the screen, in dp. */
     public static int holeXDp() {
         ensureStarted();
-        return holeXDp;
+        return pick(5, holeXDp);
     }
 
     /** Vertical shift of the hole from the middle of the status bar, in dp. */
     public static int holeYDp() {
         ensureStarted();
-        return holeYDp;
+        return pick(6, holeYDp);
     }
 
     public static int pillAnchor() {
         ensureStarted();
-        return pillAnchor;
+        return pick(0, pillAnchor);
     }
 
     /** Horizontal shift of the island in dp (positive = right). */
     public static int pillXDp() {
         ensureStarted();
-        return pillXDp;
+        return pick(1, pillXDp);
     }
 
     /** Vertical shift of the island in dp (positive = down). */
     public static int pillYDp() {
         ensureStarted();
-        return pillYDp;
+        return pick(2, pillYDp);
     }
 
     public static void setOnSwitchesChanged(Runnable listener) {
@@ -688,6 +746,8 @@ public final class ModuleSettings {
             int anchorBefore = pillAnchor;
             int xBefore = pillXDp;
             int yBefore = pillYDp;
+            int unfoldedBefore = java.util.Arrays.hashCode(unfolded) * 31 + (separateUnfolded ? 1 : 0);
+            separateUnfolded = source.getBoolean(KEY_SEPARATE_UNFOLDED_POSITION, false);
             int textPaddingBefore = holeTextPaddingDp;
             boolean fullscreenBefore = showInFullscreen;
             boolean landscapeBefore = showInLandscape;
@@ -708,11 +768,17 @@ public final class ModuleSettings {
                 holeXDp = Math.max(-HOLE_X_MAX_DP, Math.min(HOLE_X_MAX_DP, source.getInt(KEY_HOLE_X_DP, 0)));
                 holeYDp = Math.max(HOLE_Y_MIN_DP, Math.min(HOLE_Y_MAX_DP, source.getInt(KEY_HOLE_Y_DP, 0)));
                 holeTextPaddingDp = clampHoleTextPadding(source.getInt(KEY_HOLE_TEXT_PADDING_DP, 0));
+                // the unfolded screen's own values; one never set follows the shared value
+                unfolded = clampedPlacement(source.getInt(KEY_PILL_ANCHOR + UNFOLDED_SUFFIX, pillAnchor),
+                        source.getInt(KEY_PILL_X_DP + UNFOLDED_SUFFIX, pillXDp), source.getInt(KEY_PILL_Y_DP + UNFOLDED_SUFFIX, pillYDp),
+                        source.getInt(KEY_HOLE_MODE + UNFOLDED_SUFFIX, holeMode), source.getInt(KEY_HOLE_D_DP + UNFOLDED_SUFFIX, holeDDp),
+                        source.getInt(KEY_HOLE_X_DP + UNFOLDED_SUFFIX, holeXDp), source.getInt(KEY_HOLE_Y_DP + UNFOLDED_SUFFIX, holeYDp));
             }
             Runnable placementListener = onPlacementChanged;
             if (placementListener != null && (anchorBefore != pillAnchor || xBefore != pillXDp || yBefore != pillYDp
                     || fullscreenBefore != showInFullscreen || landscapeBefore != showInLandscape
                     || textPaddingBefore != holeTextPaddingDp
+                    || unfoldedBefore != java.util.Arrays.hashCode(unfolded) * 31 + (separateUnfolded ? 1 : 0)
                     || previewBefore != placementPreviewActive()
                     || sizeBefore != pillHPct * 1_000_000 + pillMinWDp * 1000 + pillMaxWDp + (keepPillWidth ? 1 : 0) * 100_000_000
                     || holeBefore != holeMode * 1_000_000 + holeDDp * 10_000 + holeXDp * 100 + holeYDp)) {

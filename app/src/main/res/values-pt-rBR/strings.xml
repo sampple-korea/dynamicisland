@@ -305,6 +305,10 @@
     <string name="pos_reset_sum">Retornar ao furo da câmera sem deslocamento</string>
     <string name="pos_note">Ao ser movida para fora do furo da câmera, ela é desenhada como pílula simples. Os cards ainda abrem no meio da tela.</string>
     <string name="pos_live">Observe a barra de status real acima: a ilha exibe uma amostra e se move enquanto você ajusta estes controles.</string>
+    <string name="setting_separate_unfolded">Posição separada quando aberto</string>
+    <string name="setting_separate_unfolded_desc">Em um dobrável, a tela aberta guarda sua própria posição e calibração da câmera. Abra esta página na tela que quer ajustar.</string>
+    <string name="pos_editing_unfolded">Ajustando a tela aberta. Para ajustar a tela fechada, dobre o telefone e abra esta página de novo.</string>
+    <string name="pos_editing_folded">Ajustando a tela fechada. Para ajustar a tela aberta, abra o telefone e abra esta página de novo.</string>
     <string name="hole_title">Furo da câmera</string>
     <string name="hole_note">A ilha cresce a partir do furo da câmera mantendo o texto afastado. Se ficar desalinhada no seu celular, defina manualmente: um anel azul na tela real indica onde a ilha detecta o furo, alinhe-o com a câmera.</string>
     <string name="hole_auto">Encontrar automaticamente</string>
@@ -643,6 +647,7 @@
     <string name="search_terms_colour">cor cor tema tom destaque paleta saturação</string>
     <string name="search_terms_glow">brilho halo aura brilho contorno luz ambiente intensidade onda movimento</string>
     <string name="search_terms_position">posição mover alinhamento deslocamento horizontal vertical x y esquerda direita cima baixo</string>
+    <string name="search_terms_unfolded">dobrável dobrar abrir aberta fechada tela externa interna posição separada</string>
     <string name="search_terms_camera">câmera furo recorte entalhe diâmetro espaçamento calibração</string>
     <string name="search_terms_compatibility">compatibilidade Samsung One UI recuperação contorno ausente detecção correção experimental</string>
     <string name="search_terms_recording">gravador de voz gravação microfone mic forma de onda amplitude volume concorrente simultâneo entrada</string>

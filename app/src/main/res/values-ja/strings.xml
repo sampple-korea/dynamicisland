@@ -305,6 +305,10 @@
     <string name="pos_reset_sum">ずれのないカメラ穴の位置に戻します</string>
     <string name="pos_note">カメラ穴から離すと通常のカプセルになります。カードは引き続き画面の中央に開きます。</string>
     <string name="pos_live">上のステータスバーで確認してください。調整中は実際のアイランドに見本を表示します。</string>
+    <string name="setting_separate_unfolded">展開時の位置を別に保存</string>
+    <string name="setting_separate_unfolded_desc">折りたたみ端末では、展開した画面が独自の位置とカメラ補正を持ちます。調整したい画面でこのページを開いてください。</string>
+    <string name="pos_editing_unfolded">展開した画面を調整しています。折りたたんだ画面を調整するには、端末を閉じてこのページを開き直してください。</string>
+    <string name="pos_editing_folded">折りたたんだ画面を調整しています。展開した画面を調整するには、端末を開いてこのページを開き直してください。</string>
     <string name="hole_title">カメラ穴</string>
     <string name="hole_note">アイランドはカメラ穴から広がり、テキストが穴に重ならないようにします。位置が合わない場合は、実画面の青いリングをカメラに合わせて手動調整してください。</string>
     <string name="hole_auto">自動で検出</string>
@@ -646,6 +650,7 @@
     <string name="search_terms_colour">色 カラー テーマ アクセント 色合い パレット 彩度</string>
     <string name="search_terms_glow">グロー 光 輝き ハロー 周辺光 明るさ 強さ 揺らぎ 動き</string>
     <string name="search_terms_position">位置 移動 配置 調整 横 縦 左 右 上 下</string>
+    <string name="search_terms_unfolded">折りたたみ 展開 カバー メイン 画面 位置 別</string>
     <string name="search_terms_camera">カメラ パンチホール ノッチ 穴 直径 余白 補正</string>
     <string name="search_terms_compatibility">互換性 Samsung One UI 復旧 回避 検出 漏れ 実験</string>
     <string name="search_terms_recording">録音 ボイスレコーダー マイク 波形 音量 振幅 同時 入力</string>

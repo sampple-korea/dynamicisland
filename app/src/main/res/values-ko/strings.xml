@@ -305,6 +305,10 @@
     <string name="pos_reset_sum">이동 없이 카메라 구멍 위로 되돌립니다</string>
     <string name="pos_note">카메라 구멍에서 벗어나면 일반 알약 모양으로 그려집니다. 카드는 화면 너비의 가운데에서 열립니다.</string>
     <string name="pos_live">위쪽의 실제 상태바를 보세요. 아일랜드가 샘플을 띄우고, 아래를 바꾸는 대로 움직입니다.</string>
+    <string name="setting_separate_unfolded">펼친 화면 위치 따로 저장</string>
+    <string name="setting_separate_unfolded_desc">폴더블에서 펼친 화면은 자기 위치와 카메라 보정을 따로 가집니다. 조정하려는 화면에서 이 페이지를 여세요.</string>
+    <string name="pos_editing_unfolded">펼친 화면을 조정하고 있습니다. 접은 화면을 조정하려면 휴대폰을 접고 이 페이지를 다시 여세요.</string>
+    <string name="pos_editing_folded">접은 화면을 조정하고 있습니다. 펼친 화면을 조정하려면 휴대폰을 펼치고 이 페이지를 다시 여세요.</string>
     <string name="hole_title">카메라 구멍</string>
     <string name="hole_note">아일랜드는 카메라 구멍에서 자라나고, 글씨는 구멍을 피해서 씁니다. 폰에서 위치가 어긋나면 구멍을 직접 설정하세요. 실제 화면에 나타나는 파란 원이 아일랜드가 생각하는 구멍 위치이니, 카메라에 맞춰 보세요.</string>
     <string name="hole_auto">자동으로 찾기</string>
@@ -646,6 +650,7 @@
     <string name="search_terms_colour">색 색상 색감 컬러 테마 강조색 틴트 팔레트 채도</string>
     <string name="search_terms_glow">글로우 광채 후광 빛 테두리 주변광 발광 밝기 강도 일렁임 움직임</string>
     <string name="search_terms_position">위치 이동 정렬 오프셋 가로 세로 좌우 상하 옮기기</string>
+    <string name="search_terms_unfolded">폴더블 접기 펼치기 펼친 접은 커버 메인 화면 위치 따로</string>
     <string name="search_terms_camera">카메라 홀 펀치홀 노치 구멍 직경 지름 여백 보정 캘리브레이션</string>
     <string name="search_terms_compatibility">호환 호환성 삼성 복구 우회 누락 감지 수정중 실험 One UI</string>
     <string name="search_terms_recording">녹음 녹음기 음성 마이크 파형 음량 진폭 동시 입력</string>
