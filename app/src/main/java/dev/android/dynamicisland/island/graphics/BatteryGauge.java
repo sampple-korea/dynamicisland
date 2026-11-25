@@ -25,6 +25,8 @@ public final class BatteryGauge {
     private final Paint text = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF bounds = new RectF();
     private final Path path = new Path();
+    private static final android.graphics.PorterDuffXfermode CUT_OUT =
+            new android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.DST_OUT);
 
     public void setColorFilter(ColorFilter filter) { stroke.setColorFilter(filter); text.setColorFilter(filter); }
 
@@ -112,7 +114,7 @@ public final class BatteryGauge {
         Paint cut = stroke;
         int keepColour = cut.getColor();
         float keepWidth = cut.getStrokeWidth();
-        cut.setXfermode(new android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.DST_OUT));
+        cut.setXfermode(CUT_OUT);
         cut.setStyle(Paint.Style.STROKE);
         cut.setStrokeWidth(size * .13f);
         cut.setColor(0xFF000000);

@@ -21,6 +21,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
+@org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
 @Config(sdk = 35)
 public class ChargingSourceTest {
     @Test public void sleepAndCoarseSignedCounterChangesKeepMeasuredTimeAndNetCharge() throws Exception {
@@ -192,5 +193,53 @@ public class ChargingSourceTest {
         assertEquals("59m 59s", ChargingSource.shortDuration(3_599_000));
         assertEquals("1h 5m", ChargingSource.shortDuration(3_900_000));
         assertEquals("26h 3m", ChargingSource.shortDuration(93_800_000));
+    }
+
+    @Test public void theDetailsPillShowsTheShieldWhileProtectionHoldsTheCharge() throws Exception {
+        Application app = RuntimeEnvironment.getApplication();
+        SharedPreferences prefs = ModuleSettings.openStore(app);
+        prefs.edit().putBoolean(ModuleSettings.KEY_CHARGING_INFO, true).apply();
+        ModuleSettings.configurePreview(prefs);
+        shadowOf(app.getSystemService(PowerManager.class)).setIsInteractive(true);
+        ChargingSource source = new ChargingSource(app, new Handler(Looper.getMainLooper()), () -> { });
+        boolean hidden = ModuleSettings.hideBatteryIcon();
+        org.robolectric.util.ReflectionHelpers.setStaticField(ModuleSettings.class, "hideBatteryIcon", false);
+        try {
+            source.syncSettings();
+            app.sendBroadcast(new Intent(Intent.ACTION_BATTERY_CHANGED)
+                    .putExtra(BatteryManager.EXTRA_PLUGGED, BatteryManager.BATTERY_PLUGGED_AC)
+                    .putExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_NOT_CHARGING)
+                    .putExtra(BatteryManager.EXTRA_LEVEL, 80).putExtra(BatteryManager.EXTRA_SCALE, 100)
+                    .putExtra(BatteryManager.EXTRA_VOLTAGE, 4300).putExtra("protection", 1));
+            shadowOf(Looper.getMainLooper()).idle();
+            ArrayList<IslandItem> cards = new ArrayList<>();
+            source.collect(cards);
+            IslandItem item = cards.get(0);
+            assertEquals(ChargingState.PROTECTED, item.batteryMode);
+            assertEquals("the level, not the watts", "80%", String.valueOf(item.trailingText).replace("\u00a0", "").replace(" ", ""));
+
+            dev.android.dynamicisland.island.view.IslandView view =
+                    new dev.android.dynamicisland.island.view.IslandView(app, dev.android.dynamicisland.island.view.IslandHost.NONE);
+            view.setGeometry(360, 180, 35, 0, false);
+            android.graphics.Bitmap shot = android.graphics.Bitmap.createBitmap(120, 120, android.graphics.Bitmap.Config.ARGB_8888);
+            android.graphics.Canvas canvas = new android.graphics.Canvas(shot);
+            canvas.drawColor(android.graphics.Color.BLACK);
+            dev.android.dynamicisland.island.view.IconProbe.drawLeading(view, canvas, item, 10, 60, 100);
+            int lit = 0;
+            for (int y = 45; y < 75; y++) {
+                for (int x = 45; x < 75; x++) {
+                    if (android.graphics.Color.green(shot.getPixel(x, y)) > 120) lit++;
+                }
+            }
+            int any = 0;
+            for (int y = 0; y < 120; y++) for (int x = 0; x < 120; x++) if (shot.getPixel(x, y) != android.graphics.Color.BLACK) any++;
+            assertTrue("the shield in the middle of the ring: " + lit + " drawn=" + any + " layout=" + item.eventLayout
+                    + " pct=" + item.batteryPercent + " hide=" + ModuleSettings.hideBatteryIcon() + " charging=" + item.batteryCharging + " mode=" + item.batteryMode, lit > 60);
+        } finally {
+            org.robolectric.util.ReflectionHelpers.setStaticField(ModuleSettings.class, "hideBatteryIcon", hidden);
+            prefs.edit().putBoolean(ModuleSettings.KEY_CHARGING_INFO, false).apply();
+            ModuleSettings.configurePreview(prefs);
+            source.syncSettings();
+        }
     }
 }
