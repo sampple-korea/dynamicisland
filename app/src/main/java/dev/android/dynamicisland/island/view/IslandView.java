@@ -1028,7 +1028,9 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
     /** An animated pictogram (battery, ringer, camera ...) is still playing, so frames must keep coming. */
     private static boolean iconPlaying(IslandItem item) {
         return (item.icon instanceof GlyphIcon && ((GlyphIcon) item.icon).animating())
-                || (item.mediaOutputIcon instanceof GlyphIcon && ((GlyphIcon) item.mediaOutputIcon).animating());
+                || (item.mediaOutputIcon instanceof GlyphIcon && ((GlyphIcon) item.mediaOutputIcon).animating())
+                || (item.trailing == IslandItem.Trailing.ICON && item.trailingIcon instanceof GlyphIcon
+                        && ((GlyphIcon) item.trailingIcon).animating());
     }
 
     private static boolean runningStopwatch(IslandItem item) {

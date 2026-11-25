@@ -32,6 +32,8 @@
     <string name="setting_hotspot_card_desc">热点开启期间显示连接设备、已用流量和时长。</string>
     <string name="setting_unlock_notice">解锁提示</string>
     <string name="setting_unlock_notice_desc">短暂显示解锁方式（指纹、人脸或 PIN）。</string>
+    <string name="setting_unlock_icon_only">仅用图标显示解锁提示</string>
+    <string name="setting_unlock_icon_only_desc">只显示解锁方式图标和打开的挂锁，让胶囊保持小巧。</string>
     <string name="setting_torch_pill">手电筒卡片</string>
     <string name="setting_torch_pill_desc">手电筒开启时显示卡片及关闭按钮。仅支持单档亮度的设备也可使用。</string>
     <string name="setting_progress">下载与传输</string>
@@ -627,6 +629,7 @@
     <string name="search_terms_bluetooth">蓝牙 耳机 扬声器 音箱 有线</string>
     <string name="search_terms_hotspot">热点 共享 网络 wifi 设备 流量 数据</string>
     <string name="search_terms_unlock">解锁 指纹 人脸 PIN 图案 密码 生物识别 信任 锁屏</string>
+    <string name="search_terms_unlock_icon_only">解锁 仅图标 无文字 小巧 挂锁 动画</string>
     <string name="search_terms_privacy">隐私 麦克风 相机 摄像头 录音 权限 使用中</string>
     <string name="search_terms_location">位置 定位 GPS 导航 地图</string>
     <string name="search_terms_apps">应用 程序 黑名单 白名单 排除 允许 屏蔽 过滤</string>

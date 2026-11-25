@@ -38,6 +38,8 @@ public final class ModuleSettings {
     public static final String KEY_HEADSET_STAY = "headset_card_stay";
     public static final String KEY_HOTSPOT_CARD = "hotspot_card";
     public static final String KEY_UNLOCK_NOTICE = "unlock_notice";
+    /** The unlock pill shows the method glyph and an opening padlock, without words. */
+    public static final String KEY_UNLOCK_ICON_ONLY = "unlock_icon_only";
     public static final String KEY_PEEK_PROGRESS = "peek_progress";
     public static final String KEY_PEEK_PULL_BUTTONS = "peek_pull_buttons";
     public static final String KEY_PROGRESS_FOREGROUND = "progress_foreground";
@@ -211,6 +213,7 @@ public final class ModuleSettings {
     private static volatile boolean headsetStay;
     private static volatile boolean hotspotCard;
     private static volatile boolean unlockNotice;
+    private static volatile boolean unlockIconOnly;
     private static volatile boolean peekProgress;
     private static volatile boolean peekPullButtons;
     private static volatile boolean progressForeground;
@@ -851,6 +854,7 @@ public final class ModuleSettings {
     /** The headset card stays while a wired/USB headset is plugged in (needs the headset events). */
     public static boolean hotspotCard() { ensureStarted(); return hotspotCard; }
     public static boolean unlockNotice() { ensureStarted(); return unlockNotice; }
+    public static boolean unlockIconOnly() { ensureStarted(); return unlockIconOnly; }
     /** A notification card shows the notification's own progress bar. */
     public static boolean peekProgress() { ensureStarted(); return peekProgress; }
     /** A notification card shows its buttons only once it is pulled down. */
@@ -880,6 +884,7 @@ public final class ModuleSettings {
         headsetStay = source.getBoolean(KEY_HEADSET_STAY, false);
         hotspotCard = source.getBoolean(KEY_HOTSPOT_CARD, false);
         unlockNotice = source.getBoolean(KEY_UNLOCK_NOTICE, false);
+        unlockIconOnly = source.getBoolean(KEY_UNLOCK_ICON_ONLY, false);
         peekProgress = source.getBoolean(KEY_PEEK_PROGRESS, false);
         peekPullButtons = source.getBoolean(KEY_PEEK_PULL_BUTTONS, false);
         progressForeground = source.getBoolean(KEY_PROGRESS_FOREGROUND, false);
@@ -926,7 +931,7 @@ public final class ModuleSettings {
     private static String switchSignature() {
         return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/" + glowColour + lowPerformance + "/light=" + stillMusic + staticWaveform + limitFrameRate + stillIcons + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + "/system=" + accentSystem + systemAccent + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + silentNotificationCards + systemPopupStyle + progressNotifications + hideProgressOriginals
                 + smartRules + privacyIndicator + privacyLocation + privacyInApp + otpCard + otpAutoCopy + thirdPartyCalls + "/incomingCalls=" + incomingCallCards + "/screenRecording=" + screenRecordingCard + visualizer + colorIcons + shadeMedia + cardHeader
-                + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/" + headsetStay + "/hotspot=" + hotspotCard + "/unlock=" + unlockNotice + "/peekProgress=" + peekProgress + "/peekPullButtons=" + peekPullButtons + "/progressForeground=" + progressForeground + "/progressAny=" + progressAny + "/stockCharging=" + stockChargingAnimation + "/recordingInput=" + concurrentRecordingInput
+                + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/" + headsetStay + "/hotspot=" + hotspotCard + "/unlock=" + unlockNotice + "/" + unlockIconOnly + "/peekProgress=" + peekProgress + "/peekPullButtons=" + peekPullButtons + "/progressForeground=" + progressForeground + "/progressAny=" + progressAny + "/stockCharging=" + stockChargingAnimation + "/recordingInput=" + concurrentRecordingInput
                 + "/alwaysVisible=" + alwaysVisible + "/notch=" + notchStyle + "/popup=" + popupSeconds + "/chargingText=" + chargingText + "/swipeUpHides=" + swipeUpHides + "/swipeDownOpens=" + swipeDownOpens + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/blur=" + transitionBlurMode + "/" + appFilter.onlyListed() + appFilter.size();
     }
 

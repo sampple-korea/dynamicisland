@@ -132,6 +132,11 @@ public final class UnlockSource {
         item.title = IslandText.get(ctx, titleKey(method));
         item.trailing = IslandItem.Trailing.TEXT; // the right half of the pill says how
         item.trailingText = IslandText.get(ctx, labelKey(method));
+        if (ModuleSettings.unlockIconOnly()) {
+            // the method's own glyph on the left already says how: an opening padlock on the right instead of a word
+            item.trailing = IslandItem.Trailing.ICON;
+            item.trailingIcon = GlyphIcon.of(GlyphIcon.Kind.LOCK_OPEN);
+        }
         item.icon = GlyphIcon.of(method == Method.FACE ? GlyphIcon.Kind.FACE
                 : method == Method.FINGERPRINT ? GlyphIcon.Kind.FINGERPRINT : GlyphIcon.Kind.PIN);
         item.accent = 0xFF30D158;

@@ -32,6 +32,8 @@
     <string name="setting_hotspot_card_desc">핫스팟이 켜져 있는 동안 연결 기기, 사용량, 시간을 보여 줍니다.</string>
     <string name="setting_unlock_notice">잠금 해제 알림</string>
     <string name="setting_unlock_notice_desc">잠금을 푼 방법(지문, 얼굴, PIN)을 잠깐 보여 줍니다.</string>
+    <string name="setting_unlock_icon_only">잠금 해제 알림을 아이콘으로만</string>
+    <string name="setting_unlock_icon_only_desc">잠금 해제 방법 아이콘과 열리는 자물쇠만 보여 줘서 알약이 작게 유지됩니다.</string>
     <string name="setting_torch_pill">손전등 카드</string>
     <string name="setting_torch_pill_desc">손전등이 켜져 있는 동안 아일랜드에 끄기 버튼과 함께 보여줍니다. 밝기 단계가 하나뿐인 폰에서도 동작합니다.</string>
     <string name="setting_progress">다운로드·전송 진행</string>
@@ -627,6 +629,7 @@
     <string name="search_terms_bluetooth">블루투스 블투 이어폰 헤드폰 헤드셋 스피커 버즈 유선</string>
     <string name="search_terms_hotspot">핫스팟 테더링 와이파이 공유 인터넷 기기 데이터 사용량</string>
     <string name="search_terms_unlock">잠금 해제 지문 얼굴 핀 패턴 비밀번호 생체 인증 신뢰 잠금화면</string>
+    <string name="search_terms_unlock_icon_only">잠금 해제 아이콘만 글자 없이 작게 자물쇠 애니메이션</string>
     <string name="search_terms_privacy">개인정보 프라이버시 마이크 카메라 녹음 권한 사용중</string>
     <string name="search_terms_location">위치 GPS 내비게이션 내비 지도 추적</string>
     <string name="search_terms_apps">앱 어플 애플리케이션 블랙리스트 화이트리스트 차단 허용 제외 필터</string>

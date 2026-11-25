@@ -105,6 +105,45 @@ public class UnlockSourceTest {
         ModuleSettings.configurePreview(prefs);
     }
 
+    @Test public void withoutWordsThePillHasThePadlockInsteadOfTheLabelAndIsNarrower() {
+        Application app = RuntimeEnvironment.getApplication();
+        SharedPreferences prefs = ModuleSettings.openStore(app);
+        UnlockSource source = new UnlockSource(app, new Handler(Looper.getMainLooper()), () -> { });
+        shadowOf(app.getSystemService(KeyguardManager.class)).setIsDeviceSecure(true);
+        FakeMonitor monitor = new FakeMonitor();
+        monitor.biometric = true;
+        UnlockSource.rememberMonitor(monitor);
+        try {
+            prefs.edit().putBoolean(ModuleSettings.KEY_UNLOCK_NOTICE, true).putBoolean(ModuleSettings.KEY_UNLOCK_ICON_ONLY, false).apply();
+            ModuleSettings.configurePreview(prefs);
+            source.onUnlocked();
+            ArrayList<IslandItem> cards = new ArrayList<>();
+            source.collect(cards);
+            IslandItem words = cards.get(0);
+
+            prefs.edit().putBoolean(ModuleSettings.KEY_UNLOCK_ICON_ONLY, true).apply();
+            ModuleSettings.configurePreview(prefs);
+            source.onUnlocked();
+            cards.clear();
+            source.collect(cards);
+            IslandItem icons = cards.get(0);
+            assertEquals(IslandItem.Trailing.ICON, icons.trailing);
+            assertTrue(icons.trailingIcon instanceof GlyphIcon);
+            assertNotNull("the expanded card keeps its title", icons.title);
+
+            dev.android.dynamicisland.island.view.IslandView view =
+                    new dev.android.dynamicisland.island.view.IslandView(app, dev.android.dynamicisland.island.view.IslandHost.NONE);
+            view.setGeometry(360, 180, 35, 0, false);
+            view.setPillSize(0, 0, 0);
+            float withWords = dev.android.dynamicisland.island.view.CompactWidthProbe.width(view, words);
+            float withIcon = dev.android.dynamicisland.island.view.CompactWidthProbe.width(view, icons);
+            assertTrue("narrower: " + withIcon + " < " + withWords, withIcon < withWords);
+        } finally {
+            prefs.edit().putBoolean(ModuleSettings.KEY_UNLOCK_NOTICE, false).putBoolean(ModuleSettings.KEY_UNLOCK_ICON_ONLY, false).apply();
+            ModuleSettings.configurePreview(prefs);
+        }
+    }
+
     @Test public void theNewGlyphsDrawSomething() {
         for (GlyphIcon.Kind kind : new GlyphIcon.Kind[] {GlyphIcon.Kind.FINGERPRINT, GlyphIcon.Kind.FACE, GlyphIcon.Kind.PIN}) {
             Bitmap bitmap = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888);

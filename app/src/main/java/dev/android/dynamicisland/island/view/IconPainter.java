@@ -179,6 +179,8 @@ final class IconPainter {
                 return m.ringSize;
             case WAVEFORM:
                 return waveform.width();
+            case ICON:
+                return item.trailingIcon == null ? 0.0f : trailingIconSize();
             default:
                 return 0.0f;
         }
@@ -213,6 +215,12 @@ final class IconPainter {
             case PROGRESS_RING:
                 drawRing(c, right - (m.ringSize / 2.0f), midY, m.ringSize / 2.0f, item.progress, -1, alpha);
                 break;
+            case ICON:
+                if (item.trailingIcon != null) {
+                    float size = Math.min(trailingIconSize(), w > 0 ? w : trailingIconSize());
+                    drawDrawable(c, item.trailingIcon, false, item.accent, right - size, midY - size / 2.0f, size, alpha, 0.0f);
+                }
+                break;
             case WAVEFORM:
                 if (item.isMedia) {
                     waveform.draw(c, scratch, right - w, midY, mediaFx.obtain(item), alpha, IslandView.now());
@@ -223,6 +231,11 @@ final class IconPainter {
             default:
                 break;
         }
+    }
+
+    /** A trailing pictogram is a little larger than the progress ring, so its details read at pill size. */
+    float trailingIconSize() {
+        return m.ringSize * 1.32f;
     }
 
     /** A ring that fills clockwise with {@code progress}, or a spinning arc when the progress is negative. */

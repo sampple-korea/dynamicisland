@@ -89,6 +89,8 @@ public final class IslandItem {
 
     /** Icon of the compact pill. */
     public Drawable icon;
+    /** The pictogram at the trailing edge of the compact pill when {@link #trailing} is {@link Trailing#ICON}. */
+    public Drawable trailingIcon;
     /** The icon is a full-colour image and must not be tinted. */
     public boolean iconIsImage;
     /** Small glyph shown before the secondary line (OngoingActivityData.mSecondaryInfoIcon). */
@@ -230,7 +232,9 @@ public final class IslandItem {
         TEXT,
         CHRONOMETER,
         PROGRESS_RING,
-        WAVEFORM
+        WAVEFORM,
+        /** {@link #trailingIcon}, tinted with the accent. */
+        ICON
     }
 
     /** Category of an item; its priority decides which item wins the island. Higher wins. */

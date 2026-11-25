@@ -157,8 +157,19 @@ def download(c):
             s={"f":[(0,[100,100,100]),(12,[100,100,100]),(16,[96,106,100]),(26,[100,100,100])]}),
       layer("tray",[tray],pivot=(36,58),s={"f":[(10,[100,100,100]),(16,[100,84,100]),(28,[100,100,100])]}),
     ]
+def lockopen(c):
+    """A padlock that unlocks: the shackle lifts out of the body and swings open on its left leg."""
+    body=grp("lk",rect(19,34,34,29,8),ell(36,46,3.6),rect(34.2,46,3.6,8,1.8),CUT,fill(c))
+    shackle=S("s",[bez([((26.5,36),(0,0),(0,-7.5)),((36,25.5),(-6.2,0),(6.2,0)),((45.5,36),(0,-7.5),(0,0))],False)],c,5)
+    return [
+      layer("shackle",[shackle],pivot=(26.5,36),
+            p={"f":[(0,[26.5,36,0]),(8,[26.5,36,0]),(16,[26.5,30,0])]},
+            r={"f":[(14,0),(26,-28),(32,-24)]},o={"f":[(0,0),(3,100)]}),
+      layer("body",[body],pivot=(36,48),s={"f":[(0,[100,100,100]),(8,[100,100,100]),(13,[92,92,100]),(22,[104,104,100]),(30,[100,100,100])]},
+            o={"f":[(0,0),(3,100)]}),
+    ]
 ICONS={"battery":battery,"battery_charging":charging,"power_save":powersave,"camera":camera,"mic":mic,"location":location,
-       "airplane":airplane,"flashlight":flashlight_rays,"hotspot":hotspot,"rotate_lock":rotatelock,"download":download}
+       "airplane":airplane,"flashlight":flashlight_rays,"hotspot":hotspot,"rotate_lock":rotatelock,"lock_open":lockopen,"download":download}
 def build(outdir,c):
     os.makedirs(outdir,exist_ok=True)
     for n,fn in ICONS.items():

@@ -32,6 +32,8 @@
     <string name="setting_hotspot_card_desc">Exibir dispositivos, dados usados e tempo enquanto o ponto de acesso estiver ativado.</string>
     <string name="setting_unlock_notice">Aviso de desbloqueio</string>
     <string name="setting_unlock_notice_desc">Exibir brevemente como o telefone foi desbloqueado (impressão digital, rosto ou PIN).</string>
+    <string name="setting_unlock_icon_only">Aviso de desbloqueio só com ícones</string>
+    <string name="setting_unlock_icon_only_desc">Mostra só o ícone do método de desbloqueio e um cadeado se abrindo, para a pílula ficar pequena.</string>
     <string name="setting_torch_pill">Card da lanterna</string>
     <string name="setting_torch_pill_desc">Com a lanterna ligada, exibi-la na ilha com um botão para desligar. Funciona também em celulares com apenas um nível de brilho.</string>
     <string name="setting_progress">Downloads e transferências</string>
@@ -624,6 +626,7 @@
     <string name="search_terms_bluetooth">bluetooth fones ouvido alto-falante headset sem fio</string>
     <string name="search_terms_hotspot">ponto de acesso tethering wifi compartilhar internet dados tráfego</string>
     <string name="search_terms_unlock">desbloquear desbloqueado impressão digital rosto pin padrão senha biométrico confiável tela de bloqueio</string>
+    <string name="search_terms_unlock_icon_only">desbloqueio só ícone sem texto pequeno cadeado animação</string>
     <string name="search_terms_privacy">privacidade microfone mic câmera gravação permissão</string>
     <string name="search_terms_location">localização GPS navegação posicionamento</string>
     <string name="search_terms_apps">app apps aplicativo lista negra lista branca excluir permitir bloquear filtrar</string>

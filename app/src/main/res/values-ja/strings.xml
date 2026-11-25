@@ -32,6 +32,8 @@
     <string name="setting_hotspot_card_desc">テザリング中、接続機器・使用量・時間を表示します。</string>
     <string name="setting_unlock_notice">ロック解除の通知</string>
     <string name="setting_unlock_notice_desc">ロックを解除した方法（指紋・顔・PIN）を短く表示します。</string>
+    <string name="setting_unlock_icon_only">ロック解除通知をアイコンだけで</string>
+    <string name="setting_unlock_icon_only_desc">解除方法のアイコンと開く南京錠だけを表示し、カプセルを小さく保ちます。</string>
     <string name="setting_torch_pill">ライトカード</string>
     <string name="setting_torch_pill_desc">ライトがオンの間、オフにするボタン付きで表示します。明るさが1段階だけの端末でも使えます。</string>
     <string name="setting_progress">ダウンロードと転送</string>
@@ -627,6 +629,7 @@
     <string name="search_terms_bluetooth">Bluetooth ブルートゥース イヤホン ヘッドホン スピーカー 有線</string>
     <string name="search_terms_hotspot">テザリング ホットスポット Wi-Fi 共有 インターネット 機器 データ通信量</string>
     <string name="search_terms_unlock">ロック解除 指紋 顔 PIN パターン パスワード 生体認証 信頼 ロック画面</string>
+    <string name="search_terms_unlock_icon_only">ロック解除 アイコンのみ 文字なし 小さい 南京錠 アニメーション</string>
     <string name="search_terms_privacy">プライバシー マイク カメラ 録音 権限 使用中</string>
     <string name="search_terms_location">位置 GPS ナビ 地図 測位</string>
     <string name="search_terms_apps">アプリ ブラックリスト ホワイトリスト 除外 許可 ブロック</string>

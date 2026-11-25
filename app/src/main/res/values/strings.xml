@@ -38,6 +38,8 @@
     <string name="setting_hotspot_card_desc">Show devices, data used and time while the hotspot is on.</string>
     <string name="setting_unlock_notice">Unlock notice</string>
     <string name="setting_unlock_notice_desc">Briefly show how the phone was unlocked (fingerprint, face or PIN).</string>
+    <string name="setting_unlock_icon_only">Unlock notice without words</string>
+    <string name="setting_unlock_icon_only_desc">Show only the unlock method’s icon and an opening padlock, so the pill stays small.</string>
     <string name="setting_torch_pill">Flashlight card</string>
     <string name="setting_torch_pill_desc">While the flashlight is on, show it on the island with a button to turn it off. Works on phones whose flashlight has a single brightness level too.</string>
     <string name="setting_progress">Downloads &amp; transfers</string>
@@ -636,6 +638,7 @@
     <string name="search_terms_bluetooth">bluetooth headphones earbuds speaker headset wired buds</string>
     <string name="search_terms_hotspot">hotspot tethering wifi share internet devices data traffic</string>
     <string name="search_terms_unlock">unlock unlocked fingerprint face pin pattern password biometric trusted lock screen</string>
+    <string name="search_terms_unlock_icon_only">unlock icon only no text small compact padlock lock animation</string>
     <string name="search_terms_privacy">privacy microphone mic camera recording permission</string>
     <string name="search_terms_location">location GPS navigation positioning</string>
     <string name="search_terms_apps">app apps application blacklist whitelist exclude allow block filter</string>

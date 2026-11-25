@@ -30,6 +30,8 @@
     <string name="setting_hotspot_card_desc">Açıkken cihazları, veriyi ve süreyi gösterir.</string>
     <string name="setting_unlock_notice">Kilit açma bildirimi</string>
     <string name="setting_unlock_notice_desc">Kilidin nasıl açıldığını kısaca gösterir.</string>
+    <string name="setting_unlock_icon_only">Kilit açma bildirimi yalnızca simgeyle</string>
+    <string name="setting_unlock_icon_only_desc">Yalnızca kilit açma yönteminin simgesini ve açılan bir asma kilidi gösterir; hap küçük kalır.</string>
     <string name="setting_torch_pill">El feneri kartı</string>
     <string name="setting_torch_pill_desc">El feneri açıkken adada kapatma düğmesiyle birlikte gösterir. El fenerinin tek parlaklık düzeyi olduğu telefonlarda da çalışır.</string>
     <string name="setting_progress">İndirmeler ve aktarımlar</string>
@@ -612,6 +614,7 @@
     <string name="search_terms_bluetooth">Bluetooth kulaklık hoparlör kablolu buds</string>
     <string name="search_terms_hotspot">erişim noktası hotspot paylaşım wifi internet cihaz veri trafik</string>
     <string name="search_terms_unlock">kilit açma parmak izi yüz pin desen parola biyometrik güvenilir kilit ekranı</string>
+    <string name="search_terms_unlock_icon_only">kilit açma yalnızca simge yazısız küçük asma kilit animasyon</string>
     <string name="search_terms_privacy">gizlilik mikrofon kamera kayıt izin kullanım</string>
     <string name="search_terms_location">konum GPS navigasyon harita takip</string>
     <string name="search_terms_apps">uygulama uygulamalar kara beyaz liste hariç izin engelle filtre</string>
