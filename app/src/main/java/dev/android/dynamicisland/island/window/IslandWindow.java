@@ -55,6 +55,7 @@ public final class IslandWindow {
     private final Root root;
     /** Holds the island's layers; turned a quarter when the island sits at a camera on the side (see {@link #setSideways}). */
     private final Turner turner;
+    private final BlurLayer blur;
     /** {@link #SIDE_NONE}, or the edge of the screen the camera is on while the island is drawn turned there. */
     private int side = SIDE_NONE;
     public static final int SIDE_NONE = 0;
@@ -90,7 +91,7 @@ public final class IslandWindow {
 
         view = new IslandView(context, host);
         view.setMaterialCaptureRefresh(()->{if(materialCapture!=null)materialCapture.refresh();});
-        BlurLayer blur = new BlurLayer(context);
+        blur = new BlurLayer(context);
         view.setBlurSink(blur);
         FrameLayout remoteLayer = new ActivityRemoteLayer(context,view);
         remoteLayer.setClipChildren(false);
@@ -230,6 +231,7 @@ public final class IslandWindow {
         }
         side = edge;
         turner.setSide(edge);
+        blur.setSuspended(edge != SIDE_NONE);
         applyShape();
         if (edge != SIDE_NONE) {
             // the pixels behind a turned island are not where these read them: plain pill and cards there

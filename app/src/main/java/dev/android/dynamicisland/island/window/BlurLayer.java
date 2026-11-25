@@ -81,9 +81,16 @@ public final class BlurLayer extends FrameLayout implements BlurSink {
         return SemBlur.isSupported();
     }
 
+    /** Off while the island is drawn turned at a camera on the side: a background blur is not known to follow the turn. */
+    private boolean suspended;
+
+    void setSuspended(boolean value) {
+        suspended = value;
+    }
+
     @Override
     public boolean available() {
-        return !ModuleSettings.lowPerformance() && backend.available();
+        return !suspended && !ModuleSettings.lowPerformance() && backend.available();
     }
 
     @Override

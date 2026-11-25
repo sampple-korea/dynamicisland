@@ -852,11 +852,14 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
             return false;
         }
         // through the view's whole transform to the screen, so a turned island (a camera on the side) maps right too
+        // (whether the global matrix already holds the window's offset or not: its origin is pinned to the screen's)
         android.graphics.Matrix toScreen = new android.graphics.Matrix();
         transformMatrixToGlobal(toScreen);
-        int[] window = new int[2];
-        getRootView().getLocationOnScreen(window);
-        toScreen.postTranslate(window[0], window[1]);
+        float[] origin = {0, 0};
+        toScreen.mapPoints(origin);
+        int[] at = new int[2];
+        getLocationOnScreen(at);
+        toScreen.postTranslate(at[0] - origin[0], at[1] - origin[1]);
         android.graphics.Matrix toView = new android.graphics.Matrix();
         if (!toScreen.invert(toView)) return false;
         float[] p = {screenX, screenY};
