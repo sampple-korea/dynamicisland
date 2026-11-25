@@ -56,8 +56,10 @@ final class PositionScreen {
     /** True while this page edits the unfolded screen's own position: the option is on and the page is on that screen. */
     boolean editsUnfolded() {
         if (!prefs.getBoolean(ModuleSettings.KEY_SEPARATE_UNFOLDED_POSITION, false)) return false;
-        android.util.DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
-        return ModuleSettings.isLargeScreen(metrics.widthPixels, metrics.heightPixels, metrics.density);
+        // the whole screen, as System UI sees it: in a pop-up or split window the page's own size is smaller
+        android.graphics.Rect screen = activity.getWindowManager().getMaximumWindowMetrics().getBounds();
+        float density = activity.getResources().getDisplayMetrics().density;
+        return ModuleSettings.isLargeScreen(screen.width(), screen.height(), density);
     }
 
     /** The key this page saves {@code key} under: the unfolded screen's own one when that is being edited. */
