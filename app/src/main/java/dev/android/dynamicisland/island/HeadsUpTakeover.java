@@ -237,7 +237,7 @@ final class HeadsUpTakeover {
             if (age > ALL_FRESH_MS || age < -OTP_CLOCK_SKEW_MS || !allChecked.add(sbn.getKey() + "@" + sbn.getPostTime())) {
                 continue;
             }
-            if (alreadyHadCard(sbn) || recentlyShown(sbn) || quietUpdate(sbn) || blocked.contains(sbn.getKey()) || silent(importance.get(sbn.getKey())) || !PeekSource.eligible(sbn) || !ModuleSettings.appAllowed(sbn.getPackageName())
+            if (alreadyHadCard(sbn) || recentlyShown(sbn) || quietUpdate(sbn) || blocked.contains(sbn.getKey()) || (silent(importance.get(sbn.getKey())) && !ModuleSettings.silentNotificationCards()) || !PeekSource.eligible(sbn) || !ModuleSettings.appAllowed(sbn.getPackageName())
                     || (!ModuleSettings.experimentalRecovery()
                     && (foregroundBlocked(sbn) || !PeekSource.preferred(sbn, snapshot)))) {
                 continue;

@@ -578,6 +578,8 @@
     <string name="setting_stock_charging_animation_desc">充電開始時にステータスバーのバッテリーが拡大し、色が流れる効果を表示します。初期値はオフです。</string>
     <string name="setting_wide_charging">ワイド充電ポップアップ</string>
     <string name="setting_wide_charging_desc">充電を始めるとステータスバー全体に広がる細長いカプセルで充電ポップアップを表示します。オフにすると通常サイズで表示します。Samsung の充電エフェクトがオフのときのみ有効です。</string>
+    <string name="setting_silent_cards">サイレント通知にもカードを表示</string>
+    <string name="setting_silent_cards_desc">音の鳴らない通知にも、0.1.17より前のようにカードを開きます。オフにすると、システムと同じくステータスバーのアイコンと通知パネルだけに表示します。「バナー通知とサイレント通知」のときだけ有効です。</string>
     <string name="concurrent_recording_input">同時マイク波形（実験的）</string>
     <string name="concurrent_recording_input_desc">録音アプリをLSPosedの対象に追加せず、Samsungボイスレコーダーの実際の音量を表示します。初期値はオフです。対応は端末によって異なります。録音に影響がある場合はオフにしてください。</string>
     <string name="card_roundness">カードの角</string>
@@ -616,6 +618,7 @@
     <string name="search_terms_charging_effect">Samsung サムスン 標準 充電 アニメーション 電池 稲妻 点滅</string>
     <string name="search_terms_landscape">横向き 横 回転 ゲーム 全画面 フルスクリーン 動画</string>
     <string name="search_terms_wide_charging">ワイド 長い 大きい 小さい サイズ 充電 ポップアップ カプセル 幅</string>
+    <string name="search_terms_silent_cards">サイレント 静か 無音 通知 カード すべての通知 アイランド 0.1.16</string>
     <string name="search_terms_notifications">通知 バナー ポップアップ ヘッドアップ メッセージ サイレント カード 標準 音 チャット</string>
     <string name="search_terms_download">ダウンロード 転送 進捗 アップロード ファイル</string>
     <string name="search_terms_calls">電話 通話 ダイヤル 音声 VoIP</string>

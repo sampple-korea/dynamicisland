@@ -533,6 +533,8 @@ public final class SettingsActivity extends Activity {
                         .putBoolean(ModuleSettings.KEY_ALL_NOTIFICATIONS, selected == 2).apply());
         if (mode == 3) ui.note(page, getString(R.string.ui_notification_system_style_desc));
         Switch foreground = toggle(banners, R.string.foreground_notifications, R.string.foreground_notifications_desc, ModuleSettings.KEY_FOREGROUND_NOTIFICATIONS, false);
+        Switch silentCards = toggle(banners, R.string.setting_silent_cards, R.string.setting_silent_cards_desc, ModuleSettings.KEY_SILENT_NOTIFICATION_CARDS, false);
+        OneUi.setDependentsEnabled(mode == 2, OneUi.rowOf(silentCards));
         toggle(banners, R.string.setting_peek_progress, R.string.setting_peek_progress_desc, ModuleSettings.KEY_PEEK_PROGRESS, false);
         toggle(banners, R.string.setting_peek_pull_buttons, R.string.setting_peek_pull_buttons_desc, ModuleSettings.KEY_PEEK_PULL_BUTTONS, false);
         OneUi.setDependentsEnabled(mode != 3 && (mode > 0 || flag(ModuleSettings.KEY_OTP_CARD, true)), OneUi.rowOf(foreground));

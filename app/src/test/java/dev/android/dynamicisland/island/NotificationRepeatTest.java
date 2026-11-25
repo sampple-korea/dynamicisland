@@ -29,6 +29,7 @@ public class NotificationRepeatTest {
 
     @After public void reset() {
         ReflectionHelpers.setStaticField(ModuleSettings.class, "allNotifications", false);
+        ReflectionHelpers.setStaticField(ModuleSettings.class, "silentNotificationCards", false);
         ReflectionHelpers.setStaticField(HeadsUpHooks.class, "manager", null);
     }
 
@@ -160,6 +161,46 @@ public class NotificationRepeatTest {
             takeover.scanAll(List.of(sbn));
             assertEquals("importance " + c[0], c[1] == 1, sources[0].peeks.showing() != null);
         }
+    }
+
+    @Test public void withTheSilentCardsOptionASilentNotificationGetsACardToo() {
+        ReflectionHelpers.setStaticField(ModuleSettings.class, "allNotifications", true);
+        ReflectionHelpers.setStaticField(ModuleSettings.class, "silentNotificationCards", true);
+        long now = System.currentTimeMillis();
+        for (int importance : new int[] {android.app.NotificationManager.IMPORTANCE_MIN,
+                android.app.NotificationManager.IMPORTANCE_LOW, android.app.NotificationManager.IMPORTANCE_DEFAULT}) {
+            IslandSources[] sources = new IslandSources[1];
+            HeadsUpTakeover takeover = takeover(sources);
+            StatusBarNotification sbn = note(70 + importance, chat("Hello " + importance), now);
+            takeover.setImportance(java.util.Map.of(sbn.getKey(), importance));
+            takeover.setSnapshot(List.of(sbn));
+            takeover.scanAll(List.of(sbn));
+            assertNotNull("importance " + importance, sources[0].peeks.showing());
+        }
+    }
+
+    @Test public void theSilentCardsOptionDoesNotOverrideDoNotDisturbOrTheModeItself() {
+        long now = System.currentTimeMillis();
+        ReflectionHelpers.setStaticField(ModuleSettings.class, "silentNotificationCards", true);
+        // Do Not Disturb still keeps a silent notification from getting a card
+        ReflectionHelpers.setStaticField(ModuleSettings.class, "allNotifications", true);
+        IslandSources[] sources = new IslandSources[1];
+        HeadsUpTakeover takeover = takeover(sources);
+        StatusBarNotification blocked = note(80, chat("Blocked"), now);
+        takeover.setImportance(java.util.Map.of(blocked.getKey(), android.app.NotificationManager.IMPORTANCE_LOW));
+        takeover.setBlocked(java.util.Set.of(blocked.getKey()));
+        takeover.setSnapshot(List.of(blocked));
+        takeover.scanAll(List.of(blocked));
+        assertNull(sources[0].peeks.showing());
+        // and without the all notifications mode the option alone does nothing
+        ReflectionHelpers.setStaticField(ModuleSettings.class, "allNotifications", false);
+        IslandSources[] other = new IslandSources[1];
+        HeadsUpTakeover plain = takeover(other);
+        StatusBarNotification quiet = note(81, chat("Quiet"), now);
+        plain.setImportance(java.util.Map.of(quiet.getKey(), android.app.NotificationManager.IMPORTANCE_LOW));
+        plain.setSnapshot(List.of(quiet));
+        plain.scanAll(List.of(quiet));
+        assertNull(other[0].peeks.showing());
     }
 
     @Test public void theIslandClaimsWhatItWillTakeFromTheStockBannerAndNothingElse() {

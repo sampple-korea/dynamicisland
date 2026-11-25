@@ -149,6 +149,8 @@ public final class ModuleSettings {
     public static final int DEFAULT_GLOW_STRENGTH = 45;
     public static final int DEFAULT_GLOW_MOTION = 50;
     public static final String KEY_ALL_NOTIFICATIONS = "all_notifications_island";
+    /** With all notifications: also a card for notifications the system rates as silent (as before 0.1.17). */
+    public static final String KEY_SILENT_NOTIFICATION_CARDS = "silent_notification_cards";
     public static final String KEY_SYSTEM_POPUP_STYLE = "system_popup_style";
     public static final String KEY_PROGRESS_NOTIFICATIONS = "progress_notifications";
     public static final String KEY_HIDE_PROGRESS_ORIGINALS = "hide_progress_originals";
@@ -231,6 +233,7 @@ public final class ModuleSettings {
     private static volatile boolean swipeDownOpens = true;
     private static volatile boolean headsUpIsland = true;
     private static volatile boolean allNotifications;
+    private static volatile boolean silentNotificationCards;
     private static volatile boolean systemPopupStyle;
     private static volatile boolean foregroundNotifications;
     private static volatile boolean autoOpenCards;
@@ -670,6 +673,7 @@ public final class ModuleSettings {
             headsUpIsland = source.getBoolean(KEY_HEADS_UP_ISLAND, true);
             progressNotifications = source.getBoolean(KEY_PROGRESS_NOTIFICATIONS, true);
             allNotifications = source.getBoolean(KEY_ALL_NOTIFICATIONS, false);
+            silentNotificationCards = source.getBoolean(KEY_SILENT_NOTIFICATION_CARDS, false);
             systemPopupStyle = source.getBoolean(KEY_SYSTEM_POPUP_STYLE, false);
             hideProgressOriginals = source.getBoolean(KEY_HIDE_PROGRESS_ORIGINALS, true);
             smartRules = source.getBoolean(KEY_SMART_RULES, true);
@@ -920,7 +924,7 @@ public final class ModuleSettings {
     private static String lastSwitches;
 
     private static String switchSignature() {
-        return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/" + glowColour + lowPerformance + "/light=" + stillMusic + staticWaveform + limitFrameRate + stillIcons + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + "/system=" + accentSystem + systemAccent + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + systemPopupStyle + progressNotifications + hideProgressOriginals
+        return "" + ambientGlow + glowAlbum + glowFollowTheme + glowStrength + "/motion=" + glowMotion + "/musicOnly=" + glowMusicOnly + "/" + glowColour + lowPerformance + "/light=" + stillMusic + staticWaveform + limitFrameRate + stillIcons + foregroundNotifications + autoOpenCards + autoOpenS + experimentalRecovery + compactEventIcons + hideBatteryIcon + accentCustom + accentColor + "/system=" + accentSystem + systemAccent + eventCharging + eventRinger + eventBluetooth + eventToggles + torchPill + "/torchStyle=" + torchStyle + headsUpIsland + allNotifications + silentNotificationCards + systemPopupStyle + progressNotifications + hideProgressOriginals
                 + smartRules + privacyIndicator + privacyLocation + privacyInApp + otpCard + otpAutoCopy + thirdPartyCalls + "/incomingCalls=" + incomingCallCards + "/screenRecording=" + screenRecordingCard + visualizer + colorIcons + shadeMedia + cardHeader
                 + "/devices=" + chargingInfo + "/" + chargingStats + "/" + eventHeadset + "/" + headsetStay + "/hotspot=" + hotspotCard + "/unlock=" + unlockNotice + "/peekProgress=" + peekProgress + "/peekPullButtons=" + peekPullButtons + "/progressForeground=" + progressForeground + "/progressAny=" + progressAny + "/stockCharging=" + stockChargingAnimation + "/recordingInput=" + concurrentRecordingInput
                 + "/alwaysVisible=" + alwaysVisible + "/notch=" + notchStyle + "/popup=" + popupSeconds + "/chargingText=" + chargingText + "/swipeUpHides=" + swipeUpHides + "/swipeDownOpens=" + swipeDownOpens + "/iMotion=" + iMode + "/material=" + materialStyle + "/roundness=" + customCardRoundness + "/" + cardCornerRadiusDp + "/outline=" + pillOutlineMode + "/blur=" + transitionBlurMode + "/" + appFilter.onlyListed() + appFilter.size();
@@ -1086,6 +1090,12 @@ public final class ModuleSettings {
     public static boolean allNotifications() {
         ensureStarted();
         return allNotifications;
+    }
+
+    /** With {@link #allNotifications}: notifications the system rates as silent get a card too. */
+    public static boolean silentNotificationCards() {
+        ensureStarted();
+        return silentNotificationCards;
     }
 
     public static boolean eventToggles() {
