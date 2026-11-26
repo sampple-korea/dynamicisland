@@ -340,6 +340,8 @@ public final class ModuleSettings {
     public static void applyPlacementPreview(android.content.Intent i) {
         holeTextPaddingDp = clampHoleTextPadding(i.getIntExtra(KEY_HOLE_TEXT_PADDING_DP, holeTextPaddingDp));
         if (i.getBooleanExtra(EXTRA_PREVIEW_UNFOLDED, false)) {
+            // the page sends this only while the switch is on: System UI may not have read the switch from the file yet
+            separateUnfolded = true;
             // the page is open on the unfolded screen: its own values move, the folded screen's stay
             int[] base = unfolded != null ? unfolded : new int[] {pillAnchor, pillXDp, pillYDp, holeMode, holeDDp, holeXDp, holeYDp};
             unfolded = clampedPlacement(i.getIntExtra(KEY_PILL_ANCHOR, base[0]), i.getIntExtra(KEY_PILL_X_DP, base[1]),

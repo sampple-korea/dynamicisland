@@ -86,6 +86,16 @@ public class UnfoldedPositionTest {
         assertEquals("and the unfolded one keeps its own", 55, ModuleSettings.pillXDp());
     }
 
+    @Test public void aPreviewRightAfterTheSwitchIsTurnedOnMovesTheIslandAtOnce() {
+        load(false); // System UI has not read the switch from the file yet
+        ModuleSettings.setLargeScreen(true);
+        ModuleSettings.applyPlacementPreview(new Intent(ModuleSettings.ACTION_PILL_PREVIEW)
+                .putExtra(ModuleSettings.KEY_PILL_X_DP, 70).putExtra(ModuleSettings.EXTRA_PREVIEW_UNFOLDED, true));
+        assertEquals(70, ModuleSettings.pillXDp());
+        ModuleSettings.setLargeScreen(false);
+        assertEquals(10, ModuleSettings.pillXDp());
+    }
+
     @Test public void theLargeScreenThresholdIsTheShortestSide() {
         assertTrue(ModuleSettings.isLargeScreen(1812, 2176, 2.625f)); // an unfolded inner screen, about 690 dp
         assertFalse(ModuleSettings.isLargeScreen(904, 2316, 2.625f)); // its cover screen, about 344 dp
