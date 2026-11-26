@@ -33,11 +33,14 @@ public final class ChargingState {
 
     public static int of(Intent battery) {
         if (battery == null) return CHARGING;
-        return of(battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0),
+        int state = of(battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0),
                 battery.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN),
                 battery.getIntExtra(BatteryManager.EXTRA_HEALTH, BatteryManager.BATTERY_HEALTH_GOOD),
                 battery.getIntExtra("online", 1), battery.getIntExtra("protection", 0),
                 battery.getIntExtra("misc_event", 0), battery.getIntExtra("current_event", 0));
+        // pass-through is only told apart on Samsung's battery service (it reports these events); elsewhere a
+        // paused charge has other reasons the island cannot see, so it stays an ordinary charge
+        return state == BYPASS && !battery.hasExtra("misc_event") ? CHARGING : state;
     }
 
     /**

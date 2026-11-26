@@ -43,6 +43,13 @@ public class ChargingStateTest {
         assertEquals(ChargingState.BYPASS, ChargingState.of(battery(USB, NOT_CHARGING, 0, 0)));
     }
 
+    @Test public void withoutSamsungsBatteryEventsAPausedChargeIsNotPassThrough() {
+        Intent aosp = battery(USB, NOT_CHARGING, 0, 0);
+        aosp.removeExtra("misc_event");
+        aosp.removeExtra("protection");
+        assertEquals(ChargingState.CHARGING, ChargingState.of(aosp));
+    }
+
     @Test public void aFaultIsNeverPassThrough() {
         for (int fault : new int[] {ChargingState.MISC_WATER, ChargingState.MISC_HICCUP, ChargingState.MISC_WIRELESS_FOD,
                 ChargingState.MISC_TEMP_HICCUP, ChargingState.MISC_WIRELESS_OVERHEAT, ChargingState.MISC_WIRELESS_MISALIGN}) {

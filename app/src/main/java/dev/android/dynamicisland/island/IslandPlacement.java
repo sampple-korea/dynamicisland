@@ -414,7 +414,6 @@ final class IslandPlacement {
                 break;
         }
         landscapeSuppressed = false; // the option exists because the island is wanted here
-        centerYLandscape = centre[1];
         view.setPillSize(ModuleSettings.pillHeightPercent(), ModuleSettings.pillMinWidthDp(), ModuleSettings.pillMaxWidthDp());
         view.setHoleTextPadding(ModuleSettings.holeTextPaddingDp());
         view.setGeometry(height, centre[0], centre[1], holeD, false);
