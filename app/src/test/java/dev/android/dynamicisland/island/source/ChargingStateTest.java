@@ -48,6 +48,7 @@ public class ChargingStateTest {
         aosp.removeExtra("misc_event");
         aosp.removeExtra("protection");
         assertEquals(ChargingState.CHARGING, ChargingState.of(aosp));
+        assertTrue(ChargingState.describe(aosp).contains("misc_event=absent"));
     }
 
     @Test public void aFaultIsNeverPassThrough() {

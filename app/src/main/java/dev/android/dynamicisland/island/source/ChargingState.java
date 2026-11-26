@@ -66,7 +66,7 @@ public final class ChargingState {
                 + " health=" + battery.getIntExtra(BatteryManager.EXTRA_HEALTH, -1)
                 + " online=" + battery.getIntExtra("online", -1)
                 + " protection=" + battery.getIntExtra("protection", -1)
-                + " misc_event=0x" + Integer.toHexString(battery.getIntExtra("misc_event", 0))
+                + " misc_event=" + (battery.hasExtra("misc_event") ? "0x" + Integer.toHexString(battery.getIntExtra("misc_event", 0)) : "absent")
                 + " current_event=0x" + Integer.toHexString(battery.getIntExtra("current_event", 0))
                 + " -> " + name(of(battery));
     }

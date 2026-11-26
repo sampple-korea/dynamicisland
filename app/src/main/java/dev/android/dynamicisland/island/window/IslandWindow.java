@@ -236,6 +236,7 @@ public final class IslandWindow {
         if (edge != SIDE_NONE) {
             // the pixels behind a turned island are not where these read them: plain pill and cards there
             stopBackdropSampling();
+            view.setPillBackgroundLuma(null); // no outline decision left over from the last upright sample
         }
         invalidateTouchRegion();
     }

@@ -126,7 +126,22 @@ public class SidewaysIslandTest {
     }
 
     @Test public void aRenderShowsThePillTurnedAtTheCamera() throws Exception {
+        renderTurned("sideways-island", false, false);
+    }
+
+    @Test public void theFrostedStyleStillDrawsThePillWhileTurned() throws Exception {
+        renderTurned("sideways-island-frosted", true, false);
+    }
+
+    @Test public void iMotionStillDrawsThePillWhileTurned() throws Exception {
+        renderTurned("sideways-island-imotion", false, true);
+    }
+
+    private void renderTurned(String name, boolean frosted, boolean iMotion) throws Exception {
         GlyphIcon.setPlaybackFrozen(true);
+        android.content.SharedPreferences prefs = ModuleSettings.openStore(RuntimeEnvironment.getApplication());
+        prefs.edit().putInt(ModuleSettings.KEY_MATERIAL_STYLE, frosted ? ModuleSettings.MATERIAL_FROSTED : ModuleSettings.MATERIAL_CLASSIC)
+                .putBoolean(ModuleSettings.KEY_I_MODE, iMotion).commit();
         try {
             IslandWindow window = window();
             window.view.setGeometry(SCREEN_H, SCREEN_H - 175, 35, 22, false);
@@ -148,7 +163,7 @@ public class SidewaysIslandTest {
             Canvas canvas = new Canvas(shot);
             canvas.drawColor(0xFF4A78C8);
             root(window).draw(canvas);
-            RenderCapture.write(shot, new File("build/renders/sideways-island.png"));
+            RenderCapture.write(shot, new File("build/renders/" + name + ".png"));
             // the pill is a dark, upright-tall shape near the left edge around the hole's height
             int dark = 0;
             for (int y = 100; y < 260; y++) {
@@ -157,9 +172,11 @@ public class SidewaysIslandTest {
                     if (Color.red(c) < 40 && Color.green(c) < 40 && Color.blue(c) < 40) dark++;
                 }
             }
-            assertTrue("a black pill along the left edge at the camera: " + dark, dark > 400);
+            assertTrue(name + ": a black pill along the left edge at the camera: " + dark, dark > 400);
         } finally {
             GlyphIcon.setPlaybackFrozen(false);
+            prefs.edit().remove(ModuleSettings.KEY_MATERIAL_STYLE).remove(ModuleSettings.KEY_I_MODE).commit();
+            ModuleSettings.configurePreview(prefs);
         }
     }
 }
