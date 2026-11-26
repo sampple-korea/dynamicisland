@@ -475,11 +475,11 @@ public final class SettingsActivity extends Activity {
                 ModuleSettings.KEY_SWIPE_DOWN_OPENS, true);
         toggle(visibility, R.string.show_in_fullscreen, R.string.show_in_fullscreen_desc,
                 ModuleSettings.KEY_SHOW_IN_FULLSCREEN, false);
-        Switch landscape = toggle(visibility, R.string.show_in_landscape, R.string.show_in_landscape_desc,
-                ModuleSettings.KEY_SHOW_IN_LANDSCAPE, false);
-        Switch atCamera = toggle(visibility, R.string.setting_landscape_at_camera, R.string.setting_landscape_at_camera_desc,
-                ModuleSettings.KEY_LANDSCAPE_AT_CAMERA, false);
-        dependent(landscape, OneUi.rowOf(atCamera));
+        int landscape = !flag(ModuleSettings.KEY_SHOW_IN_LANDSCAPE, false) ? 0 : flag(ModuleSettings.KEY_LANDSCAPE_AT_CAMERA, false) ? 2 : 1;
+        choice(visibility, R.string.show_in_landscape, new int[]{R.string.landscape_hidden, R.string.landscape_top, R.string.landscape_camera},
+                landscape, selected -> prefs.edit().putBoolean(ModuleSettings.KEY_SHOW_IN_LANDSCAPE, selected > 0)
+                        .putBoolean(ModuleSettings.KEY_LANDSCAPE_AT_CAMERA, selected == 2).apply());
+        ui.note(page, getString(landscape == 2 ? R.string.setting_landscape_at_camera_desc : R.string.show_in_landscape_desc));
         boolean still = flag(ModuleSettings.KEY_LOW_PERFORMANCE, false) || flag(ModuleSettings.KEY_STATIC_WAVEFORM, false);
         LinearLayout motion = ui.card(page);
         toggle(motion, R.string.setting_haptics, R.string.setting_haptics_desc, ModuleSettings.KEY_HAPTICS, true);
@@ -529,18 +529,21 @@ public final class SettingsActivity extends Activity {
     private void notificationsPage() {
         subPage(getString(R.string.ui_notifications));
         LinearLayout banners = ui.card(page);
-        int mode = flag(ModuleSettings.KEY_SYSTEM_POPUP_STYLE, false) ? 3 : flag(ModuleSettings.KEY_ALL_NOTIFICATIONS, false) ? 2 : flag(ModuleSettings.KEY_HEADS_UP_ISLAND, true) ? 1 : 0;
-        choice(banners, R.string.ui_notification_mode, new int[]{R.string.ui_notification_off, R.string.ui_notification_banners, R.string.ui_notification_all, R.string.ui_notification_system_style}, mode,
-                selected -> prefs.edit().putBoolean(ModuleSettings.KEY_SYSTEM_POPUP_STYLE, selected == 3)
-                        .putBoolean(ModuleSettings.KEY_HEADS_UP_ISLAND, selected == 1 || selected == 2)
-                        .putBoolean(ModuleSettings.KEY_ALL_NOTIFICATIONS, selected == 2).apply());
-        if (mode == 3) ui.note(page, getString(R.string.ui_notification_system_style_desc));
+        // 0 off, 1 banners, 2 all with sound, 3 all with silent ones too, 4 system pop-ups with island styling
+        int mode = flag(ModuleSettings.KEY_SYSTEM_POPUP_STYLE, false) ? 4
+                : flag(ModuleSettings.KEY_ALL_NOTIFICATIONS, false) ? (flag(ModuleSettings.KEY_SILENT_NOTIFICATION_CARDS, false) ? 3 : 2)
+                : flag(ModuleSettings.KEY_HEADS_UP_ISLAND, true) ? 1 : 0;
+        choice(banners, R.string.ui_notification_mode, new int[]{R.string.ui_notification_off, R.string.ui_notification_banners,
+                        R.string.ui_notification_all, R.string.ui_notification_all_silent, R.string.ui_notification_system_style}, mode,
+                selected -> prefs.edit().putBoolean(ModuleSettings.KEY_SYSTEM_POPUP_STYLE, selected == 4)
+                        .putBoolean(ModuleSettings.KEY_HEADS_UP_ISLAND, selected >= 1 && selected <= 3)
+                        .putBoolean(ModuleSettings.KEY_ALL_NOTIFICATIONS, selected == 2 || selected == 3)
+                        .putBoolean(ModuleSettings.KEY_SILENT_NOTIFICATION_CARDS, selected == 3).apply());
+        if (mode == 4) ui.note(page, getString(R.string.ui_notification_system_style_desc));
         Switch foreground = toggle(banners, R.string.foreground_notifications, R.string.foreground_notifications_desc, ModuleSettings.KEY_FOREGROUND_NOTIFICATIONS, false);
-        Switch silentCards = toggle(banners, R.string.setting_silent_cards, R.string.setting_silent_cards_desc, ModuleSettings.KEY_SILENT_NOTIFICATION_CARDS, false);
-        OneUi.setDependentsEnabled(mode == 2, OneUi.rowOf(silentCards));
         toggle(banners, R.string.setting_peek_progress, R.string.setting_peek_progress_desc, ModuleSettings.KEY_PEEK_PROGRESS, false);
         toggle(banners, R.string.setting_peek_pull_buttons, R.string.setting_peek_pull_buttons_desc, ModuleSettings.KEY_PEEK_PULL_BUTTONS, false);
-        OneUi.setDependentsEnabled(mode != 3 && (mode > 0 || flag(ModuleSettings.KEY_OTP_CARD, true)), OneUi.rowOf(foreground));
+        OneUi.setDependentsEnabled(mode != 4 && (mode > 0 || flag(ModuleSettings.KEY_OTP_CARD, true)), OneUi.rowOf(foreground));
         ui.linkRow(banners, getString(R.string.apps_title), appsSummary(), () -> open(this::appsPage));
         ui.note(page, getString(R.string.ui_notification_scope));
         ui.category(page, getString(R.string.ui_activity_types), getString(R.string.desc_activity_types));
@@ -583,7 +586,9 @@ public final class SettingsActivity extends Activity {
         chargingDependencies.run();
         toggle(device, R.string.setting_stock_charging_animation, R.string.setting_stock_charging_animation_desc, ModuleSettings.KEY_STOCK_CHARGING_ANIMATION, false);
         toggle(device, R.string.setting_wide_charging, R.string.setting_wide_charging_desc, ModuleSettings.KEY_WIDE_CHARGING_POPUP, true);
-        toggle(device, R.string.setting_charging_number, R.string.setting_charging_number_desc, ModuleSettings.KEY_CHARGING_PERCENT_RING, false);
+        choice(device, R.string.setting_charging_number, new int[]{R.string.charging_ring_bolt, R.string.charging_ring_level},
+                flag(ModuleSettings.KEY_CHARGING_PERCENT_RING, false) ? 1 : 0,
+                selected -> prefs.edit().putBoolean(ModuleSettings.KEY_CHARGING_PERCENT_RING, selected == 1).apply());
         ui.details(page, getString(R.string.ui_details), getString(R.string.charging_statistics_note));
         ui.category(page, getString(R.string.group_events_audio), getString(R.string.desc_events_audio));
         device = ui.card(page);
@@ -596,9 +601,10 @@ public final class SettingsActivity extends Activity {
         device = ui.card(page);
         toggle(device, R.string.setting_event_toggles, R.string.setting_event_toggles_desc, ModuleSettings.KEY_EVENT_TOGGLES, true);
         toggle(device, R.string.setting_hotspot_card, R.string.setting_hotspot_card_desc, ModuleSettings.KEY_HOTSPOT_CARD, false);
-        Switch unlock = toggle(device, R.string.setting_unlock_notice, R.string.setting_unlock_notice_desc, ModuleSettings.KEY_UNLOCK_NOTICE, false);
-        Switch unlockIcons = toggle(device, R.string.setting_unlock_icon_only, R.string.setting_unlock_icon_only_desc, ModuleSettings.KEY_UNLOCK_ICON_ONLY, false);
-        dependent(unlock, OneUi.rowOf(unlockIcons));
+        choice(device, R.string.setting_unlock_notice, new int[]{R.string.unlock_notice_off, R.string.unlock_notice_words, R.string.unlock_notice_icons},
+                !flag(ModuleSettings.KEY_UNLOCK_NOTICE, false) ? 0 : flag(ModuleSettings.KEY_UNLOCK_ICON_ONLY, false) ? 2 : 1,
+                selected -> prefs.edit().putBoolean(ModuleSettings.KEY_UNLOCK_NOTICE, selected > 0)
+                        .putBoolean(ModuleSettings.KEY_UNLOCK_ICON_ONLY, selected == 2).apply());
         toggle(device, R.string.setting_torch_pill, R.string.setting_torch_pill_desc, ModuleSettings.KEY_TORCH_PILL, true);
         ui.category(page, getString(R.string.group_privacy), getString(R.string.desc_privacy));
         LinearLayout privacy = ui.card(page);

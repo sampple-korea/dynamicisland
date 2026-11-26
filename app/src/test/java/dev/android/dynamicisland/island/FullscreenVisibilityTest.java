@@ -84,9 +84,7 @@ public class FullscreenVisibilityTest {
         SharedPreferences prefs = ModuleSettings.openStore(activity);
         ModuleSettings.configurePreview(prefs);
         ReflectionHelpers.callInstanceMethod(activity, "behaviorPage");
-        Switch option = findSwitch(activity.findViewById(android.R.id.content), activity.getString(R.string.show_in_landscape));
-        assertNotNull(option);
-        assertFalse(option.isChecked());
+        assertFalse(prefs.getBoolean(ModuleSettings.KEY_SHOW_IN_LANDSCAPE, false));
 
         IslandPlacement placement = new IslandPlacement(activity, new Handler(Looper.getMainLooper()),
                 getClass().getClassLoader(), IslandHost.NONE, new IslandWindow.Listener() {
@@ -99,7 +97,7 @@ public class FullscreenVisibilityTest {
         placement.updateGeometry();
         assertTrue("hidden in landscape by default", view.isSuppressedNow());
 
-        option.performClick();
+        chooseLandscape(activity, 1); // show at the top
         assertTrue(prefs.getBoolean(ModuleSettings.KEY_SHOW_IN_LANDSCAPE, false));
         ModuleSettings.configurePreview(prefs);
         placement.updateGeometry();
@@ -113,6 +111,27 @@ public class FullscreenVisibilityTest {
         RuntimeEnvironment.setQualifiers("w360dp-h800dp-port-mdpi");
         placement.updateGeometry();
         assertTrue("portrait full screen still follows its own option", view.isSuppressedNow());
+    }
+
+    /** Opens the landscape choice row on the behavior page and picks {@code selection}. */
+    private static void chooseLandscape(SettingsActivity activity, int selection) {
+        View label = findText(activity.findViewById(android.R.id.content), activity.getString(R.string.show_in_landscape));
+        assertNotNull(label);
+        ((View) label.getParent().getParent()).performClick();
+        android.app.AlertDialog dialog = org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+        dialog.getListView().performItemClick(null, selection, selection);
+    }
+
+    private static View findText(View view, String text) {
+        if (view instanceof android.widget.TextView && text.contentEquals(((android.widget.TextView) view).getText())) return view;
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View found = findText(group.getChildAt(i), text);
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     private Switch findSwitch(View view, String title) {

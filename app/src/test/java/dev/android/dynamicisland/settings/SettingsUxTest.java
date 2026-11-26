@@ -91,11 +91,39 @@ public class SettingsUxTest {
         choose(a,R.string.ui_notification_mode,1);
         assertTrue(p.getBoolean(ModuleSettings.KEY_HEADS_UP_ISLAND,false));
         assertFalse(p.getBoolean(ModuleSettings.KEY_ALL_NOTIFICATIONS,true));
+        choose(a,R.string.ui_notification_mode,3);
+        assertTrue("all notifications, silent ones too",p.getBoolean(ModuleSettings.KEY_ALL_NOTIFICATIONS,false));
+        assertTrue(p.getBoolean(ModuleSettings.KEY_SILENT_NOTIFICATION_CARDS,false));
+        choose(a,R.string.ui_notification_mode,2);
+        assertTrue(p.getBoolean(ModuleSettings.KEY_ALL_NOTIFICATIONS,false));
+        assertFalse("with sound only",p.getBoolean(ModuleSettings.KEY_SILENT_NOTIFICATION_CARDS,true));
+    }
+
+    @Test public void unlockChargingRingAndLandscapeAreChoicesOverTheirExistingSettings() {
+        SettingsActivity a=activity();SharedPreferences p=prefs(a);open(a,"eventsPage");
+        choose(a,R.string.setting_unlock_notice,2);
+        assertTrue(p.getBoolean(ModuleSettings.KEY_UNLOCK_NOTICE,false));
+        assertTrue(p.getBoolean(ModuleSettings.KEY_UNLOCK_ICON_ONLY,false));
+        choose(a,R.string.setting_unlock_notice,0);
+        assertFalse(p.getBoolean(ModuleSettings.KEY_UNLOCK_NOTICE,true));
+        assertFalse(p.getBoolean(ModuleSettings.KEY_UNLOCK_ICON_ONLY,true));
+        choose(a,R.string.setting_charging_number,1);
+        assertTrue(p.getBoolean(ModuleSettings.KEY_CHARGING_PERCENT_RING,false));
+        open(a,"behaviorPage");
+        choose(a,R.string.show_in_landscape,2);
+        assertTrue(p.getBoolean(ModuleSettings.KEY_SHOW_IN_LANDSCAPE,false));
+        assertTrue(p.getBoolean(ModuleSettings.KEY_LANDSCAPE_AT_CAMERA,false));
+        assertNotNull(find(a.page(),a.getString(R.string.setting_landscape_at_camera_desc)));
+        choose(a,R.string.show_in_landscape,1);
+        assertTrue(p.getBoolean(ModuleSettings.KEY_SHOW_IN_LANDSCAPE,false));
+        assertFalse(p.getBoolean(ModuleSettings.KEY_LANDSCAPE_AT_CAMERA,true));
+        choose(a,R.string.show_in_landscape,0);
+        assertFalse(p.getBoolean(ModuleSettings.KEY_SHOW_IN_LANDSCAPE,true));
     }
 
     @Test public void systemPopupStyleIsOptionalExclusiveAndIndependentOfIslandForegroundSettings() {
         SettingsActivity a=activity();SharedPreferences p=prefs(a);open(a,"notificationsPage");
-        choose(a,R.string.ui_notification_mode,3);
+        choose(a,R.string.ui_notification_mode,4);
         assertTrue(p.getBoolean(ModuleSettings.KEY_SYSTEM_POPUP_STYLE,false));
         assertFalse(p.getBoolean(ModuleSettings.KEY_HEADS_UP_ISLAND,true));
         assertFalse(p.getBoolean(ModuleSettings.KEY_ALL_NOTIFICATIONS,true));

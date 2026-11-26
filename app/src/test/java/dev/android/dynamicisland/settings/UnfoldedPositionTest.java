@@ -117,6 +117,19 @@ public class UnfoldedPositionTest {
         assertEquals("resetting the unfolded screen keeps the folded one", 10, p.getInt(ModuleSettings.KEY_PILL_X_DP, 0));
     }
 
+    @Test public void theFoldableChoiceIsOfferedOnlyWithAHingeOrWhenAlreadyOn() {
+        android.content.Context app = RuntimeEnvironment.getApplication();
+        prefs.edit().clear().commit();
+        assertFalse(PositionScreen.offersFoldable(app, prefs));
+        org.robolectric.Shadows.shadowOf(app.getPackageManager())
+                .setSystemFeature(android.content.pm.PackageManager.FEATURE_SENSOR_HINGE_ANGLE, true);
+        assertTrue(PositionScreen.offersFoldable(app, prefs));
+        org.robolectric.Shadows.shadowOf(app.getPackageManager())
+                .setSystemFeature(android.content.pm.PackageManager.FEATURE_SENSOR_HINGE_ANGLE, false);
+        prefs.edit().putBoolean(ModuleSettings.KEY_SEPARATE_UNFOLDED_POSITION, true).commit();
+        assertTrue("already on: still offered, to turn it off", PositionScreen.offersFoldable(app, prefs));
+    }
+
     @Test @Config(qualifiers = "w360dp-h800dp")
     public void thePageOpenOnTheFoldedScreenSavesTheSharedKeys() {
         prefs.edit().clear().putBoolean(ModuleSettings.KEY_SEPARATE_UNFOLDED_POSITION, true).commit();

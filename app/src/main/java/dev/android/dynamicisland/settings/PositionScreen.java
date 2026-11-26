@@ -123,16 +123,22 @@ final class PositionScreen {
     }
 
     /** The foldable switch, and while it is on, which screen this page adjusts. */
+    /** Only a phone with a hinge has a second screen to set apart (or one where it already was): the row and its search entry. */
+    static boolean offersFoldable(android.content.Context context, SharedPreferences settings) {
+        return settings.getBoolean(ModuleSettings.KEY_SEPARATE_UNFOLDED_POSITION, false)
+                || context.getPackageManager().hasSystemFeature(android.content.pm.PackageManager.FEATURE_SENSOR_HINGE_ANGLE);
+    }
+
     private void foldableRow(LinearLayout page) {
-        LinearLayout fold = ui.card(page);
-        ui.switchRow(fold, activity.getString(R.string.setting_separate_unfolded), activity.getString(R.string.setting_separate_unfolded_desc),
-                prefs.getBoolean(ModuleSettings.KEY_SEPARATE_UNFOLDED_POSITION, false), on -> {
-                    prefs.edit().putBoolean(ModuleSettings.KEY_SEPARATE_UNFOLDED_POSITION, on).apply();
-                    rebuild();
-                });
-        if (prefs.getBoolean(ModuleSettings.KEY_SEPARATE_UNFOLDED_POSITION, false)) {
-            ui.note(page, activity.getString(editsUnfolded() ? R.string.pos_editing_unfolded : R.string.pos_editing_folded));
+        boolean separate = prefs.getBoolean(ModuleSettings.KEY_SEPARATE_UNFOLDED_POSITION, false);
+        if (!offersFoldable(activity, prefs)) {
+            return;
         }
+        LinearLayout fold = ui.card(page);
+        activity.choice(fold, R.string.setting_separate_unfolded, new int[]{R.string.fold_shared, R.string.fold_separate},
+                separate ? 1 : 0, selected -> prefs.edit().putBoolean(ModuleSettings.KEY_SEPARATE_UNFOLDED_POSITION, selected == 1).apply());
+        ui.note(page, activity.getString(!separate ? R.string.setting_separate_unfolded_desc
+                : editsUnfolded() ? R.string.pos_editing_unfolded : R.string.pos_editing_folded));
     }
 
     private void begin(int title) {
