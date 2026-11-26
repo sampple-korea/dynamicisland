@@ -366,6 +366,7 @@ final class IMode {
         selected=key;
         scene.mode=Mode.EXPANDED;
         Card incoming=scene.findCard(key);
+        boolean fresh=incoming==null;
         if(incoming==null) {
             incoming=new Card(node.item,bodies.create(node.item,m.cardWidth(),false));
             incoming.iMode=true;
@@ -396,6 +397,14 @@ final class IMode {
         trimDepartures(); resizeWindow();
         director.scheduleAutoCollapse(ModuleSettings.autoCollapseMs());
         if(!wasExpanded) host.onExpandedChanged(true);
+        if(fresh && scene.pillTransform!=null) {
+            // the island rests at a side camera and its cards open upright beside it: the card grows out of the pill
+            // where that pill is drawn, the same morph as in portrait
+            RectF drawn=new RectF(source); scene.pillTransform.mapRect(drawn);
+            incoming.cx.snapTo(drawn.centerX()); incoming.cy.snapTo(drawn.centerY());
+            incoming.w.snapTo(drawn.width()); incoming.h.snapTo(drawn.height());
+            targetExpanded(incoming); // snapping set the springs' targets too: aim them at the card again
+        }
         if(manual) Haptics.perform(view,HapticFeedbackConstants.CONTEXT_CLICK);
         changed();
     }
@@ -559,10 +568,30 @@ final class IMode {
         // The reference's height settles with a small rebound while its width barely overshoots.
         c.h.animateTo(c.targetH,.39f,.76f);
     }
+    private final RectF compactTarget=new RectF();
+    /**
+     * The island at a side camera now draws upright for its open card: each card keeps the place it has on the screen
+     * (its rectangle through {@code toUpright}) and goes on growing into the upright card from there.
+     */
+    void moveCardsInto(android.graphics.Matrix toUpright) {
+        RectF r=new RectF();
+        for(Card c:scene.cards) {
+            if(!c.iMode || c.leaving) continue;
+            float w=c.w.value(),h=c.h.value();
+            r.set(c.cx.value()-w/2,c.cy.value()-h/2,c.cx.value()+w/2,c.cy.value()+h/2);
+            toUpright.mapRect(r);
+            c.cx.snapTo(r.centerX()); c.cy.snapTo(r.centerY()); c.w.snapTo(r.width()); c.h.snapTo(r.height());
+            targetExpanded(c);
+        }
+    }
     private void targetCompact(Card c) {
         Node n=nodes.get(c.item.key);
         if(n==null) return;
         RectF end=n.target;
+        if(scene.pillTransform!=null) {
+            // folding back into a pill drawn at a side camera: into that pill as it is drawn
+            compactTarget.set(end); scene.pillTransform.mapRect(compactTarget); end=compactTarget;
+        }
         c.targetW=end.width(); c.targetH=end.height(); c.targetCy=end.centerY();
         c.cx.animateTo(end.centerX(),.36f,.90f); c.cy.animateTo(end.centerY(),.36f,.90f);
         c.w.animateTo(end.width(),.36f,.90f); c.h.animateTo(end.height(),.34f,.86f);
@@ -1026,7 +1055,16 @@ final class IMode {
         float blur=Math.max(motionBlur(card,m.dp(1000)),
                 (float)Math.min(1,1.5*Math.sqrt(card.handoff.compactBlur(time))));
         Canvas target=card.iModeCompactBlur.begin(canvas,r,blur,m.dp(ContentBlur.RADIUS_DP));
-        try { final Canvas into=target; view.drawUnturned(()->drawCompact(into,n,r,IslandView.clamp01(card.iModeRole.value()),compact)); }
+        try {
+            if(scene.pillTransform!=null) {
+                // the pill inside a card that grows out of (or folds into) a pill at a side camera is that pill, drawn
+                // as it is there: through the same transform, in the island's own coordinates
+                RectF own=new RectF(r); scene.pillInverse.mapRect(own);
+                int save=target.save(); target.concat(scene.pillTransform);
+                try { drawCompact(target,n,own,IslandView.clamp01(card.iModeRole.value()),compact); }
+                finally { target.restoreToCount(save); }
+            } else drawCompact(target,n,r,IslandView.clamp01(card.iModeRole.value()),compact);
+        }
         finally { card.iModeCompactBlur.end(canvas,target); }
     }
     static float motionBlur(Card card,float fullSpeed) {

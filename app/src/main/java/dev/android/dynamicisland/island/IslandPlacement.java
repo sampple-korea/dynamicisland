@@ -462,10 +462,17 @@ final class IslandPlacement {
             window.setUprightWhileOpen(true);
             placeOpenCards();
             applyWindowHeight();
-            if (fresh) moveAtCamera(true); // they grow out of the camera, like the island they come from
+            // iMotion's cards morph out of the pill at the camera themselves; the stack's grow out of the camera
+            if (fresh && !view.usesIMotion()) moveAtCamera(true);
             else stopMotionAtCamera();
         } else if (window.isUprightWhileOpen()) {
-            moveAtCamera(false); // and shrink back into it; the pill turns back once they are gone
+            if (view.usesIMotion()) {
+                // the cards fold back into the pills at the camera; the pill turns back once they are gone
+                main.removeCallbacks(turnBack);
+                main.postDelayed(turnBack, IMOTION_TURN_BACK_MS);
+            } else {
+                moveAtCamera(false); // the stack shrinks back into the camera; the pill turns back once it is gone
+            }
         }
     }
 
@@ -501,6 +508,10 @@ final class IslandPlacement {
         openMotion = motion;
         motion.start();
     }
+
+    /** At most this long after iMotion's cards start folding back the pill turns back at the camera. */
+    private static final long IMOTION_TURN_BACK_MS = 900;
+    private final Runnable turnBack = this::turnBackAfterShrink;
 
     /** At most this long after shrinking into the camera the pill turns back there, cards gone or not. */
     private static final long TURN_BACK_GRACE_MS = 250;

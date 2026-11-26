@@ -102,6 +102,7 @@ public final class IslandWindow {
         view.setRemoteLayer(remoteLayer);
 
         root = new Root(context, listener);
+        root.laidOut = this::onRootLaidOut;
         root.setClipChildren(false);
         turner = new Turner(context);
         turner.setClipChildren(false);
@@ -263,7 +264,43 @@ public final class IslandWindow {
         return side != SIDE_NONE && uprightWhileOpen;
     }
 
+    /**
+     * The window's new shape reaches the screen a frame or two after it is asked for. Drawing the island the new way
+     * inside the old window cut it (an upright card in the narrow window at the edge showed as a tall empty strip),
+     * so the island turns only once the window has its new size.
+     */
+    private boolean turnPending;
+    /** True once the island is drawn upright for open cards at a side camera (not only asked to be). */
+    private boolean uprightApplied;
+
     private void applyTurn() {
+        applyShape();
+        if (!added || shapeReached()) {
+            applyTurnNow();
+        } else {
+            turnPending = true;
+        }
+    }
+
+    /** True when the window is as wide as its shape asks: the island can be drawn the new way in it. */
+    private boolean shapeReached() {
+        int width = root.getWidth();
+        if (width <= 0) return false;
+        Rect screen = windowBounds();
+        int wanted = params.width == ViewGroup.LayoutParams.MATCH_PARENT ? screen.width() : params.width;
+        return Math.abs(width - wanted) <= 1;
+    }
+
+    /** Called after every layout of the root: a turn waiting for the window's new shape happens now. */
+    void onRootLaidOut() {
+        if (turnPending && shapeReached()) {
+            applyTurnNow();
+        }
+    }
+
+    private void applyTurnNow() {
+        turnPending = false;
+        uprightApplied = isUprightWhileOpen();
         int edge = turned() ? side : SIDE_NONE;
         turner.setSide(edge);
         if (!isUprightWhileOpen()) {
@@ -277,7 +314,6 @@ public final class IslandWindow {
         // the cards are open upright and the pills stay there)
         view.setContentTurn(side == SIDE_LEFT ? 90 : side == SIDE_RIGHT ? -90 : 0);
         blur.setSuspended(edge != SIDE_NONE);
-        applyShape();
         if (edge != SIDE_NONE) {
             // the pixels behind a turned island are not where these read them: plain pill and cards there
             stopBackdropSampling();
@@ -305,7 +341,7 @@ public final class IslandWindow {
 
     /** The pills stay where the turned island has them while its cards are open upright beside the camera. */
     private void updatePillTransform() {
-        if (!isUprightWhileOpen()) {
+        if (!isUprightWhileOpen() || !uprightApplied) {
             view.setPillTransform(null);
             return;
         }
@@ -630,6 +666,14 @@ public final class IslandWindow {
             super(context);
             this.listener = listener;
         }
+
+        @Override
+        protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+            super.onLayout(changed, left, top, right, bottom);
+            if (laidOut != null) laidOut.run();
+        }
+
+        Runnable laidOut;
 
         @Override
         protected void onConfigurationChanged(Configuration newConfig) {

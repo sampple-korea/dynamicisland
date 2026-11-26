@@ -504,21 +504,6 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         return icons.turn();
     }
 
-    /** Runs {@code drawing} with the pill elements upright: for compact content shown inside an upright card. */
-    void drawUnturned(Runnable drawing) {
-        int turn = icons.turn();
-        if (turn == 0 || scene.pillTransform == null) {
-            drawing.run();
-            return;
-        }
-        icons.setTurn(0);
-        try {
-            drawing.run();
-        } finally {
-            icons.setTurn(turn);
-        }
-    }
-
     /**
      * While cards are open upright beside a side camera, the pills are drawn through {@code toTurned} (from this view's
      * own coordinates to where the turned island has them), so they stay at the camera; null draws them as usual.
@@ -529,8 +514,11 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
             scene.pillTransform = null;
         } else {
             if (scene.pillTransform != null && scene.pillTransform.equals(toTurned)) return;
+            boolean turningUpright = scene.pillTransform == null;
             scene.pillTransform = new android.graphics.Matrix(toTurned);
             scene.pillTransform.invert(scene.pillInverse);
+            // iMotion's card was already growing on the turned island: it goes on from where it is on the screen
+            if (turningUpright && scene.iMode != null) scene.iMode.moveCardsInto(scene.pillTransform);
         }
         invalidate();
         scheduleFrame();
@@ -588,6 +576,11 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         out[2] = metrics.cx - width / 2f;
         out[3] = metrics.cx + width / 2f;
         return true;
+    }
+
+    /** True with iMotion, whose cards morph out of the pills themselves. */
+    public boolean usesIMotion() {
+        return scene.iMode != null;
     }
 
     /** True while any card is on screen, also one that is still folding away. */
