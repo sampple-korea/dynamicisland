@@ -433,6 +433,14 @@ final class IslandPlacement {
         return new float[] {hole.exactCenterY(), screenWidth - hole.exactCenterX()};
     }
 
+    /** Cards opening on the island at a side camera are drawn upright; called before their first frame. */
+    void onExpandedChanged(boolean expanded) {
+        if (window != null && expanded && window.sideways() != IslandWindow.SIDE_NONE) {
+            window.setUprightWhileOpen(true);
+            applyWindowHeight();
+        }
+    }
+
     /** Where the island's centre is horizontally: the middle, a quarter in from either side, plus the user's shift. */
     private float pillCenterX(int width) {
         float base;
@@ -490,8 +498,9 @@ final class IslandPlacement {
         if (window == null) {
             return;
         }
-        boolean sideways = window.sideways() != IslandWindow.SIDE_NONE;
-        float centreY = sideways ? sidewaysCentreY : pillCenterY();
+        boolean sideways = window.turned();
+        // the island at a side camera keeps its geometry while its cards are open upright
+        float centreY = window.sideways() != IslandWindow.SIDE_NONE ? sidewaysCentreY : pillCenterY();
         int height = Math.max(neededHeight, Math.round(centreY + density * WINDOW_EXTRA_HEIGHT_DP));
         if (view != null && view.isExpanded()) {
             // turned, the island's height runs across the screen's long side
@@ -555,6 +564,11 @@ final class IslandPlacement {
         if (!ready()) {
             return;
         }
+        if (window.isUprightWhileOpen() && !view.isExpanded() && !view.hasCards()) {
+            // the last card has folded away: the pill goes back to the camera on the side
+            window.setUprightWhileOpen(false);
+            applyWindowHeight();
+        }
         window.invalidateTouchRegion();
         boolean hidden = view.isFullyHidden();
         if (sleeping && hidden) window.stopBackdropSampling();
@@ -562,7 +576,7 @@ final class IslandPlacement {
         if (!view.shadePulled()) {
             view.getCoverageBounds(scratch);
             // turned at a camera on the side, the island is nowhere near the status bar icons
-            boolean upright = window.sideways() == IslandWindow.SIDE_NONE;
+            boolean upright = !window.turned();
             fader.update(scratch, upright && !hidden && view.visibleAlpha() > 0.3f, upright && view.takesWholeStatusBar());
         }
         audio.setActive(view.needsAudio());

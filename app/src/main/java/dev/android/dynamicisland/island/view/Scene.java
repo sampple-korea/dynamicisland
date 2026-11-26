@@ -70,6 +70,9 @@ final class Scene {
     }
 
     /** Nothing to show, yet the user asked for an empty pill around the camera (not while they hid the island by hand). */
+    /** The island rests at a side camera and its cards are drawn upright elsewhere: no pill while they are open. */
+    boolean pillAwayWhileOpen;
+
     boolean restingShown() {
         return mode == Mode.HIDDEN && ModuleSettings.alwaysVisible() && !(iMode != null && iMode.hiddenByGesture());
     }

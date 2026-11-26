@@ -80,8 +80,11 @@ final class PillPainter {
         float contentAlpha = clamp01((gate - SHADE_CONTENT_GONE_BY) / SHADE_CONTENT_RANGE);
         float split = sp.split.value() * clamp01((gate - SHADE_MERGED_BY) / (1.0f - SHADE_MERGED_BY));
         float r = pill.height() / 2.0f;
+        // cards drawn upright for an island that rests at a side camera: the shrunken pill would be a dot far from
+        // that camera, so only the cards show until they have folded away
+        boolean pillAway = scene.pillAwayWhileOpen && scene.mode != Mode.COMPACT;
         // the bubble also stays while a stack opens: it merges back into the pill instead of vanishing in one frame
-        boolean hasBubble = split > 0.003f && (scene.mode != Mode.EXPANDED || !legacyMerge());
+        boolean hasBubble = !pillAway && split > 0.003f && (scene.mode != Mode.EXPANDED || !legacyMerge());
         boolean hasNeck = false;
         float neckAlpha = 0.0f;
         float bubbleX = 0.0f;
@@ -104,8 +107,8 @@ final class PillPainter {
             neckAlpha = spread > 0.01f ? stack.neckAlpha(Metaball.neck(pillX, pillY, r, bubbleX, bubbleY, bubbleRadius, spread, neck)) : 0.0f;
             hasNeck = neckAlpha > 0.0f;
         }
-        LiquidBridge cardBridge = bridge.update(t, pill, r);
-        boolean pillVisible = pill.width() > IslandView.MIN_VISIBLE_SIZE && pill.height() > IslandView.MIN_VISIBLE_SIZE;
+        LiquidBridge cardBridge = pillAway ? null : bridge.update(t, pill, r);
+        boolean pillVisible = !pillAway && pill.width() > IslandView.MIN_VISIBLE_SIZE && pill.height() > IslandView.MIN_VISIBLE_SIZE;
         // the notch shape only holds while the pill rests as the pill: while it merges with a bubble, a card or the
         // shade it is the usual capsule, which those transitions are built on
         boolean notch = pillVisible && !hasBubble && !hasNeck && cardBridge == null && gate >= 0.999f

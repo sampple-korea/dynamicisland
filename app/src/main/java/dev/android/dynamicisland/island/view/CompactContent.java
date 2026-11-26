@@ -32,7 +32,8 @@ public final class CompactContent extends Content {
 
     CompactContent(IslandView owner, IslandItem item) {
         super(owner, item);
-        teams = item.hasTeams();
+        // turned at a camera on the side, the logos and the score would lie on their sides: icons only there
+        teams = item.hasTeams() && owner.contentTurn() == 0;
         remeasure();
     }
 
@@ -49,7 +50,7 @@ public final class CompactContent extends Content {
         }
         leadingLabel = null;
         leadingLabelW = 0;
-        if (item.compactLabel != null && item.trailing == IslandItem.Trailing.TEXT
+        if (!turned() && item.compactLabel != null && item.trailing == IslandItem.Trailing.TEXT
                 && !item.compactLabel.toString().equals(text)) {
             float lead = wideBattery() ? 0 : owner.leadSize + owner.innerGap;
             float room = owner.holeD > 0 ? (widthCap() - owner.holeD) / 2 - owner.holeGap - owner.padding
@@ -85,6 +86,19 @@ public final class CompactContent extends Content {
                 text = TextUtils.ellipsize(text, owner.trailPaint, maxTrail, TextUtils.TruncateAt.END).toString();
             }
             width = Math.min(owner.trailingWidth(item, text), maxTrail);
+            if (turned() && width > 0.0f) {
+                // upright across the turned pill: as long along it as an icon, shrunk to fit across it; text that would
+                // be too small to read is left out
+                float natural = owner.trailingWidth(item, text);
+                float scale = Math.min(1.0f, owner.turnedRoom() / natural);
+                boolean words = item.trailing == IslandItem.Trailing.TEXT || item.trailing == IslandItem.Trailing.CHRONOMETER;
+                if (words && scale < IconPainter.MIN_TURNED_TEXT_SCALE) {
+                    text = null;
+                    width = 0.0f;
+                } else {
+                    width = owner.leadSize;
+                }
+            }
             if (wideBattery()) {
                 // the percentage stays beside a battery glyph on the far right
                 width += barW() + (text != null ? owner.innerGap : 0.0f);
@@ -114,7 +128,7 @@ public final class CompactContent extends Content {
 
     /** The widest this pill may be: the status bar's width for a full-width popup, else the user's widest pill. */
     private float widthCap() {
-        return item.fullWidth ? owner.fullPillW : owner.maxPillW;
+        return fullWidth() ? owner.fullPillW : owner.maxPillW;
     }
 
     private float maxTrailingWidth() {
@@ -142,7 +156,7 @@ public final class CompactContent extends Content {
         } else {
             width = (trailW > 0.0f ? owner.innerGap + trailW : 0.0f) + (owner.padding * 2.0f) + leadingWidth();
         }
-        if (item.fullWidth) {
+        if (fullWidth()) {
             width = widthCap();
         }
         return Math.max(owner.minPillW, Math.min(width, widthCap()));
@@ -150,7 +164,17 @@ public final class CompactContent extends Content {
 
     /** The wide charging pill: the word on the left, the percentage and a battery glyph on the right, no gauge. */
     private boolean wideBattery() {
-        return item.fullWidth && item.eventLayout == IslandItem.EventLayout.BATTERY && item.batteryPercent >= 0;
+        return fullWidth() && item.eventLayout == IslandItem.EventLayout.BATTERY && item.batteryPercent >= 0;
+    }
+
+    /** The island is drawn turned at a camera on the side: icons stand upright, there is no room for words beside them. */
+    private boolean turned() {
+        return owner.contentTurn() != 0;
+    }
+
+    /** A full-width popup, except on a turned island, where it would run along the side of the screen. */
+    private boolean fullWidth() {
+        return item.fullWidth && !turned();
     }
 
     private float barH() {
@@ -163,7 +187,7 @@ public final class CompactContent extends Content {
 
     private float leadingWidth() {
         if (wideBattery()) return leadingLabelW;
-        if (!owner.hasRecordingWaveform(item)) return owner.leadSize + (leadingLabel == null ? 0 : owner.innerGap + leadingLabelW);
+        if (!owner.hasRecordingWaveform(item) || turned()) return owner.leadSize + (leadingLabel == null ? 0 : owner.innerGap + leadingLabelW);
         float available = owner.holeD > 0 ? (widthCap() - owner.holeD) / 2f - owner.holeGap - owner.padding
                 : widthCap() - owner.padding * 2f - owner.innerGap - owner.dp(MIN_TRAILING_DP);
         return Math.max(owner.leadSize, Math.min(owner.dp(42), available));
@@ -180,7 +204,7 @@ public final class CompactContent extends Content {
             drawTeams(c, shape, midY, lead, alpha);
             return;
         }
-        if (owner.hasRecordingWaveform(item)) {
+        if (owner.hasRecordingWaveform(item) && !turned()) {
             float room = owner.holeD > 0 ? shape.width() / 2f - owner.holeD / 2f - owner.holeGap - owner.padding
                     : shape.width() - owner.padding * 2f - (trailW > 0 ? trailW + owner.innerGap : 0);
             owner.drawRecordingWaveform(c, item, shape.left + owner.padding, midY,

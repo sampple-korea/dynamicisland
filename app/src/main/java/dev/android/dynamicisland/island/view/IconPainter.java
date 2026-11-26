@@ -35,6 +35,13 @@ final class IconPainter {
     private final RectF scratch;
     private final Path barClip;
     private final Path imageClip = new Path();
+    /**
+     * Degrees each element of the compact pill is turned about its own centre: the island itself is drawn turned at a
+     * camera on the side, and this turns the icons and text back so they read upright. 0 everywhere else.
+     */
+    private int turn;
+    /** Turned text smaller than this share of its size is left out: too small to read. */
+    static final float MIN_TURNED_TEXT_SCALE = 0.6f;
 
     IconPainter(Metrics m, Paints paints, Waveform waveform, RecordingWaveform recordingWaveform, DigitClock clock, MediaFxCache mediaFx, RectF scratch, Path barClip) {
         this.m = m;
@@ -53,8 +60,35 @@ final class IconPainter {
         return new ColorMatrixColorFilter(matrix);
     }
 
+    void setTurn(int degrees) {
+        turn = degrees;
+    }
+
+    int turn() {
+        return turn;
+    }
+
+    /** Room across a turned pill for an upright trailing element. */
+    float turnedRoom() {
+        return m.pillH * 0.8f;
+    }
+
     /** Leading icon of the compact pill: monochrome unless the icon is artwork. */
     void drawLeadingMono(Canvas c, IslandItem item, float left, float midY, float size, float alpha) {
+        if (turn != 0) {
+            int save = c.save();
+            c.rotate(turn, left + size / 2.0f, midY);
+            try {
+                drawLeadingMonoUpright(c, item, left, midY, size, alpha);
+            } finally {
+                c.restoreToCount(save);
+            }
+            return;
+        }
+        drawLeadingMonoUpright(c, item, left, midY, size, alpha);
+    }
+
+    private void drawLeadingMonoUpright(Canvas c, IslandItem item, float left, float midY, float size, float alpha) {
         if (item.eventLayout == IslandItem.EventLayout.BATTERY && item.batteryPercent >= 0) {
             // held by protection or bypassed, the battery reports "not charging": the state still has its glyph
             boolean state = item.batteryCharging || item.batteryMode != 0;
@@ -200,6 +234,27 @@ final class IconPainter {
     }
 
     void drawTrailing(Canvas c, IslandItem item, String text, float right, float midY, float w, float alpha) {
+        if (turn != 0) {
+            // the slot along the turned pill is w long; the element stands upright in its middle, as wide as it is,
+            // shrunk to fit across the pill
+            float natural = trailingWidth(item, text);
+            if (natural <= 0.0f) return;
+            float scale = Math.min(1.0f, turnedRoom() / natural);
+            float cx = right - (w / 2.0f);
+            int save = c.save();
+            c.rotate(turn, cx, midY);
+            c.scale(scale, scale, cx, midY);
+            try {
+                drawTrailingUpright(c, item, text, cx + (natural / 2.0f), midY, natural, alpha);
+            } finally {
+                c.restoreToCount(save);
+            }
+            return;
+        }
+        drawTrailingUpright(c, item, text, right, midY, w, alpha);
+    }
+
+    private void drawTrailingUpright(Canvas c, IslandItem item, String text, float right, float midY, float w, float alpha) {
         switch (item.trailing) {
             case TEXT:
             case CHRONOMETER:

@@ -478,6 +478,49 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         notifyHost();
     }
 
+    /**
+     * The island is drawn turned at a camera on the side (see the window): each icon and text of the compact pill is
+     * turned back by {@code degrees} about its own centre so it reads upright. 0 restores the usual drawing.
+     */
+    public void setContentTurn(int degrees) {
+        if (icons.turn() == degrees) {
+            return;
+        }
+        icons.setTurn(degrees);
+        if (scene.mode == Mode.COMPACT && scene.primary != null) {
+            director.refreshMain();
+        }
+        if (scene.secondary != null) {
+            director.refreshBubble();
+        }
+        if (scene.iMode != null) {
+            scene.iMode.remeasure();
+        }
+        invalidate();
+        scheduleFrame();
+    }
+
+    int contentTurn() {
+        return icons.turn();
+    }
+
+    /** While cards are open upright for an island that rests at a side camera, the pill is not drawn among them. */
+    public void setPillAwayWhileOpen(boolean away) {
+        if (scene.pillAwayWhileOpen != away) {
+            scene.pillAwayWhileOpen = away;
+            invalidate();
+        }
+    }
+
+    float turnedRoom() {
+        return icons.turnedRoom();
+    }
+
+    /** True while any card is on screen, also one that is still folding away. */
+    public boolean hasCards() {
+        return !scene.cards.isEmpty();
+    }
+
     /** The ring that shows where the camera hole is set to while the settings page is open; {@code x < 0} = none. */
     public void setHoleMarker(float x, float y, float diameter) {
         if (markerX == x && markerY == y && markerD == diameter) {

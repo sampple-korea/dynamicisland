@@ -58,6 +58,8 @@ public final class IslandWindow {
     private final BlurLayer blur;
     /** {@link #SIDE_NONE}, or the edge of the screen the camera is on while the island is drawn turned there. */
     private int side = SIDE_NONE;
+    /** While cards are open the island at a side camera is drawn upright, so they read the right way (see below). */
+    private boolean uprightWhileOpen;
     public static final int SIDE_NONE = 0;
     public static final int SIDE_LEFT = 1;
     public static final int SIDE_RIGHT = 2;
@@ -230,7 +232,41 @@ public final class IslandWindow {
             return;
         }
         side = edge;
+        uprightWhileOpen = false;
+        applyTurn();
+    }
+
+    public int sideways() {
+        return side;
+    }
+
+    /** True while the island is drawn turned at a camera on the side (not while its cards are open upright). */
+    public boolean turned() {
+        return side != SIDE_NONE && !uprightWhileOpen;
+    }
+
+    /**
+     * While the island at a side camera has cards open they are drawn upright, in the window across the top, so they
+     * read the right way; the pill turns back to the camera once the last card is gone. No effect without a side camera.
+     */
+    public void setUprightWhileOpen(boolean upright) {
+        if (side == SIDE_NONE || upright == uprightWhileOpen) {
+            return;
+        }
+        uprightWhileOpen = upright;
+        applyTurn();
+    }
+
+    public boolean isUprightWhileOpen() {
+        return side != SIDE_NONE && uprightWhileOpen;
+    }
+
+    private void applyTurn() {
+        int edge = turned() ? side : SIDE_NONE;
         turner.setSide(edge);
+        view.setPillAwayWhileOpen(side != SIDE_NONE && uprightWhileOpen);
+        // each icon and text of the pill turns back the other way, so it reads upright on the turned island
+        view.setContentTurn(edge == SIDE_LEFT ? 90 : edge == SIDE_RIGHT ? -90 : 0);
         blur.setSuspended(edge != SIDE_NONE);
         applyShape();
         if (edge != SIDE_NONE) {
@@ -241,13 +277,9 @@ public final class IslandWindow {
         invalidateTouchRegion();
     }
 
-    public int sideways() {
-        return side;
-    }
-
     private void applyShape() {
         int extent = Math.max(1, requestedHeight);
-        if (side == SIDE_NONE) {
+        if (!turned()) {
             params.width = ViewGroup.LayoutParams.MATCH_PARENT;
             params.height = extent;
             params.gravity = Gravity.TOP | Gravity.LEFT;
@@ -275,7 +307,7 @@ public final class IslandWindow {
     /** Call when the island's shape changed; re-reads the touchable region on the next frame. */
     public void invalidateTouchRegion() {
         view.getTouchRegion(latestRegion);
-        if (side != SIDE_NONE) toWindow(latestRegion);
+        if (turned()) toWindow(latestRegion);
         if (!latestRegion.equals(touchRegion)) {
             touchRegion.set(latestRegion);
             root.invalidate();
@@ -367,7 +399,7 @@ public final class IslandWindow {
     }
 
     public boolean setSurfaceFade(float alpha, float scale, float px, float py) {
-        if (side != SIDE_NONE) {
+        if (turned()) {
             // the pivot comes in the island's own (upright) coordinates
             point[0] = px;
             point[1] = py;
@@ -389,7 +421,7 @@ public final class IslandWindow {
 
     /** Re-applies the surface fade before each frame: the surface can be recreated and lose it. */
     public boolean onPreDraw() {
-        if (side != SIDE_NONE) {
+        if (turned()) {
             if (!surfaceFader.isNeutral()) applySurfaceFade();
             return true;
         }

@@ -561,7 +561,7 @@
     <string name="show_in_fullscreen_desc">在相机等隐藏状态栏的应用中继续显示正在进行的活动。锁屏、息屏显示或没有活动内容时仍会隐藏。</string>
     <string name="show_in_landscape">横屏和游戏中也显示</string>
     <string name="show_in_landscape_desc">手机横置时以及在游戏等全屏应用中仍显示灵动岛。在锁屏和息屏显示上仍会隐藏。横屏布局不如竖屏精细。</string>
-    <string name="setting_landscape_at_camera_desc">横屏时，灵动岛保持竖屏时的样子，随手机一起旋转，停在屏幕侧边的摄像头处。仅适用于摄像头在屏幕挖孔中的手机。</string>
+    <string name="setting_landscape_at_camera_desc">横屏时，灵动岛像竖屏时一样停在屏幕侧边的摄像头处。图标和简短数值保持正向显示，展开的卡片在顶部正向显示。仅适用于摄像头在屏幕挖孔中的手机。</string>
     <string name="landscape_hidden">隐藏</string>
     <string name="landscape_top">在顶部显示</string>
     <string name="landscape_camera">在侧边摄像头处显示</string>

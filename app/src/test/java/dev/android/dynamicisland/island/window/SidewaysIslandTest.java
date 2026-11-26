@@ -179,4 +179,152 @@ public class SidewaysIslandTest {
             ModuleSettings.configurePreview(prefs);
         }
     }
+
+    @Test public void openCardsAreDrawnUprightAndThePillTurnsBackAfterwards() {
+        IslandWindow window = window();
+        window.setSideways(IslandWindow.SIDE_LEFT);
+        assertTrue(window.turned());
+        window.setUprightWhileOpen(true);
+        assertFalse(window.turned());
+        WindowManager.LayoutParams params = ReflectionHelpers.getField(window, "params");
+        assertEquals("across the top while cards are open", ViewGroup.LayoutParams.MATCH_PARENT, params.width);
+        assertEquals(0f, turner(window).getRotation(), 0f);
+        assertEquals(0, (int) ReflectionHelpers.callInstanceMethod(window.view, "contentTurn"));
+        window.setUprightWhileOpen(false);
+        assertTrue(window.turned());
+        assertEquals(-90f, turner(window).getRotation(), 0f);
+        assertEquals("each element turns back the other way", 90, (int) ReflectionHelpers.callInstanceMethod(window.view, "contentTurn"));
+        window.setSideways(IslandWindow.SIDE_NONE);
+        window.setUprightWhileOpen(true);
+        assertFalse("no effect without a side camera", window.isUprightWhileOpen());
+    }
+
+    private static IslandItem percentItem() {
+        return percentItem("event:battery");
+    }
+
+    private static IslandItem percentItem(String key) {
+        IslandItem item = new IslandItem(key);
+        item.kind = IslandItem.Kind.EVENT;
+        item.title = "Battery";
+        item.icon = GlyphIcon.of(GlyphIcon.Kind.BELL_OFF);
+        item.accent = 0xFF30D158;
+        item.trailing = IslandItem.Trailing.TEXT;
+        item.trailingText = "80%";
+        return item;
+    }
+
+    /** The turned island with {@code items}, settled and drawn; the pixels of the window. */
+    private Bitmap renderTurnedItems(String name, List<IslandItem> items) throws Exception {
+        IslandWindow window = window();
+        window.view.setGeometry(SCREEN_H, SCREEN_H - 175, 35, 22, false);
+        window.setSideways(IslandWindow.SIDE_LEFT);
+        window.view.setItems(items);
+        if (items.size() > 1) {
+            // the bubble splits off on a delayed post the detached test window never runs
+            ReflectionHelpers.callInstanceMethod(ReflectionHelpers.getField(window.view, "director"), "startSplitNow");
+        }
+        layout(window, EXTENT, SCREEN_H);
+        for (int i = 0; i < 60; i++) {
+            Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(16));
+        }
+        layout(window, EXTENT, SCREEN_H);
+        Bitmap shot = Bitmap.createBitmap(EXTENT, SCREEN_H, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(shot);
+        canvas.drawColor(0xFF4A78C8);
+        root(window).draw(canvas);
+        RenderCapture.write(shot, new File("build/renders/" + name + ".png"));
+        return shot;
+    }
+
+    @Test public void theTextOfATurnedPillReadsUpright() throws Exception {
+        GlyphIcon.setPlaybackFrozen(true);
+        try {
+            Bitmap shot = renderTurnedItems("sideways-upright-text", List.of(percentItem()));
+            // the trailing end of the pill is towards the top of the screen (upright x runs up the left edge)
+            int left = Integer.MAX_VALUE, right = -1, top = Integer.MAX_VALUE, bottom = -1;
+            for (int y = 60; y < 175; y++) {
+                for (int x = 0; x < 80; x++) {
+                    int c = shot.getPixel(x, y);
+                    if (Color.red(c) > 200 && Color.green(c) > 200 && Color.blue(c) > 200) {
+                        left = Math.min(left, x); right = Math.max(right, x); top = Math.min(top, y); bottom = Math.max(bottom, y);
+                    }
+                }
+            }
+            assertTrue("the text is drawn", right > left);
+            int width = right - left + 1, height = bottom - top + 1;
+            assertTrue("\"80%\" stands upright: wider than tall on the screen (" + width + "x" + height + ")", width > height);
+        } finally {
+            GlyphIcon.setPlaybackFrozen(false);
+        }
+    }
+
+    @Test public void wordsTooLongToFitAcrossATurnedPillAreLeftOutAndThePillIsShorter() {
+        IslandWindow window = window();
+        window.view.setGeometry(SCREEN_H, SCREEN_H - 175, 35, 0, false);
+        IslandItem item = percentItem();
+        item.trailingText = "Fingerprint";
+        float flat = dev.android.dynamicisland.island.view.CompactWidthProbe.width(window.view, item);
+        window.setSideways(IslandWindow.SIDE_LEFT);
+        float turned = dev.android.dynamicisland.island.view.CompactWidthProbe.width(window.view, item);
+        assertTrue("shorter: " + turned + " < " + flat, turned < flat);
+        item.trailingText = "80%";
+        float percent = dev.android.dynamicisland.island.view.CompactWidthProbe.width(window.view, item);
+        assertTrue("a short value keeps a slot", percent > turned);
+    }
+
+    @Test public void aRenderOfTheTurnedPillWithASecondActivity() throws Exception {
+        GlyphIcon.setPlaybackFrozen(true);
+        try {
+            IslandItem second = percentItem("event:second");
+            second.icon = GlyphIcon.of(GlyphIcon.Kind.TORCH);
+            second.trailing = IslandItem.Trailing.NONE;
+            Bitmap shot = renderTurnedItems("sideways-two-activities", List.of(percentItem(), second));
+            int dark = 0;
+            for (int y = 0; y < SCREEN_H; y++) for (int x = 0; x < EXTENT; x++) {
+                int c = shot.getPixel(x, y);
+                if (Color.red(c) < 40 && Color.green(c) < 40 && Color.blue(c) < 40) dark++;
+            }
+            assertTrue(dark > 400);
+        } finally {
+            GlyphIcon.setPlaybackFrozen(false);
+        }
+    }
+
+    @Test public void aRenderOfAnOpenCardWhileTheIslandSitsAtASideCamera() throws Exception {
+        GlyphIcon.setPlaybackFrozen(true);
+        try {
+            IslandWindow window = window();
+            window.view.setGeometry(SCREEN_H, SCREEN_H - 175, 35, 22, false);
+            window.setSideways(IslandWindow.SIDE_LEFT);
+            IslandItem item = percentItem();
+            item.subtitle = "Charging";
+            window.view.setItems(List.of(item));
+            window.view.peek(item, 5000);
+            window.setUprightWhileOpen(true); // what the placement does when the island reports it opened
+            for (int i = 0; i < 60; i++) {
+                layout(window, SCREEN_W, SCREEN_H);
+                Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(16));
+                window.view.doFrame(android.os.SystemClock.uptimeMillis() * 1_000_000L);
+            }
+            layout(window, SCREEN_W, SCREEN_H);
+            assertTrue(window.view.isExpanded());
+            Bitmap shot = Bitmap.createBitmap(SCREEN_W, SCREEN_H, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(shot);
+            canvas.drawColor(0xFF4A78C8);
+            root(window).draw(canvas);
+            RenderCapture.write(shot, new File("build/renders/sideways-open-card.png"));
+            int left = Integer.MAX_VALUE, right = -1, top = Integer.MAX_VALUE, bottom = -1;
+            for (int y = 0; y < SCREEN_H; y++) for (int x = 0; x < SCREEN_W; x++) {
+                int c = shot.getPixel(x, y);
+                if (Color.red(c) < 60 && Color.green(c) < 60 && Color.blue(c) < 60) {
+                    left = Math.min(left, x); right = Math.max(right, x); top = Math.min(top, y); bottom = Math.max(bottom, y);
+                }
+            }
+            assertTrue("an upright card: wider than tall (" + (right - left) + "x" + (bottom - top) + ")", right - left > 2 * (bottom - top));
+            assertFalse("no turned window while it is open", window.turned());
+        } finally {
+            GlyphIcon.setPlaybackFrozen(false);
+        }
+    }
 }
