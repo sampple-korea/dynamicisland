@@ -839,6 +839,8 @@ final class IMode {
     }
 
     void draw(Canvas canvas,long time) {
+        // cards opened upright at a side camera: the activity pills would float over them far from that camera
+        if(scene.pillAwayWhileOpen) return;
         if(scene.restingShown()) drawIdle(canvas);
         drawMovingGlows(canvas);
         drawMovingOutlines(canvas);

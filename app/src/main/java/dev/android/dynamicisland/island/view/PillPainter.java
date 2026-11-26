@@ -82,7 +82,7 @@ final class PillPainter {
         float r = pill.height() / 2.0f;
         // cards drawn upright for an island that rests at a side camera: the shrunken pill would be a dot far from
         // that camera, so only the cards show until they have folded away
-        boolean pillAway = scene.pillAwayWhileOpen && scene.mode != Mode.COMPACT;
+        boolean pillAway = scene.pillAwayWhileOpen;
         // the bubble also stays while a stack opens: it merges back into the pill instead of vanishing in one frame
         boolean hasBubble = !pillAway && split > 0.003f && (scene.mode != Mode.EXPANDED || !legacyMerge());
         boolean hasNeck = false;

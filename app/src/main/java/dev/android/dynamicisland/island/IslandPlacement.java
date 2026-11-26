@@ -90,6 +90,14 @@ final class IslandPlacement {
     private float sideHoleX, sideHoleY, sideHoleR;
     private int sideScreenW, sideScreenH;
     private final float[] cardSpan = new float[4];
+    /** Where the upright island sits while its cards are open at the side camera. */
+    private float openOffsetX, openOffsetY;
+    /** The cards growing out of the side camera, or shrinking back into it. */
+    private android.animation.ValueAnimator openMotion;
+    private static final long GROW_FROM_CAMERA_MS = 260;
+    private static final long SHRINK_TO_CAMERA_MS = 200;
+    /** How small the cards are at the camera, at the start of growing and the end of shrinking. */
+    private static final float AT_CAMERA_SCALE = 0.3f;
     /** Room kept between open cards and the screen's top or bottom edge. */
     private static final float OPEN_CARD_MARGIN_DP = 8.0f;
     /** Packages whose chips the launcher animates into the island, from the last refresh. */
@@ -446,11 +454,76 @@ final class IslandPlacement {
 
     /** Cards opening on the island at a side camera are drawn upright; called before their first frame. */
     void onExpandedChanged(boolean expanded) {
-        if (window != null && expanded && window.sideways() != IslandWindow.SIDE_NONE) {
+        if (window == null || window.sideways() == IslandWindow.SIDE_NONE) {
+            return;
+        }
+        if (expanded) {
+            boolean fresh = !window.isUprightWhileOpen();
             window.setUprightWhileOpen(true);
             placeOpenCards();
             applyWindowHeight();
+            if (fresh) moveAtCamera(true); // they grow out of the camera, like the island they come from
+            else stopMotionAtCamera();
+        } else if (window.isUprightWhileOpen()) {
+            moveAtCamera(false); // and shrink back into it; the pill turns back once they are gone
         }
+    }
+
+    /** The whole window grows out of (or shrinks into) the side camera while it fades in (or out). */
+    private void moveAtCamera(boolean growing) {
+        stopMotionAtCamera();
+        // the pivot in the island's own coordinates: the window maps it through its offset
+        float px = sideHoleX - openOffsetX;
+        float py = sideHoleY - openOffsetY;
+        android.animation.ValueAnimator motion = android.animation.ValueAnimator.ofFloat(0f, 1f);
+        motion.setDuration(growing ? GROW_FROM_CAMERA_MS : SHRINK_TO_CAMERA_MS);
+        motion.setInterpolator(growing ? new android.view.animation.DecelerateInterpolator(1.6f)
+                : new android.view.animation.AccelerateInterpolator(1.4f));
+        motion.addUpdateListener(animation -> {
+            float t = (float) animation.getAnimatedValue();
+            float shown = growing ? t : 1f - t;
+            if (window != null) window.setSurfaceFade(shown, AT_CAMERA_SCALE + (1f - AT_CAMERA_SCALE) * shown, px, py);
+        });
+        if (window != null) {
+            float start = growing ? 0f : 1f;
+            window.setSurfaceFade(start, AT_CAMERA_SCALE + (1f - AT_CAMERA_SCALE) * start, px, py);
+        }
+        if (!growing) {
+            motion.addListener(new android.animation.AnimatorListenerAdapter() {
+                private boolean cancelled;
+
+                @Override public void onAnimationCancel(android.animation.Animator animation) {
+                    cancelled = true;
+                }
+
+                @Override public void onAnimationEnd(android.animation.Animator animation) {
+                    // shrunk away: the pill goes back to the camera even if a card is still folding out of sight
+                    if (!cancelled) main.postDelayed(IslandPlacement.this::turnBackAfterShrink, TURN_BACK_GRACE_MS);
+                }
+            });
+        }
+        openMotion = motion;
+        motion.start();
+    }
+
+    /** At most this long after shrinking into the camera the pill turns back there, cards gone or not. */
+    private static final long TURN_BACK_GRACE_MS = 250;
+
+    private void turnBackAfterShrink() {
+        if (window != null && view != null && window.isUprightWhileOpen() && !view.isExpanded()) {
+            window.setUprightWhileOpen(false);
+            stopMotionAtCamera();
+            applyWindowHeight();
+        }
+    }
+
+    /** Ends a grow or shrink at the camera and shows the window as it is. */
+    private void stopMotionAtCamera() {
+        if (openMotion != null) {
+            openMotion.cancel();
+            openMotion = null;
+        }
+        if (window != null) window.setSurfaceFade(1f, 1f, 0f, 0f);
     }
 
     /**
@@ -463,6 +536,8 @@ final class IslandPlacement {
         }
         float[] offset = openCardsOffset(window.sideways(), sideHoleX, sideHoleY, sideHoleR, sideScreenW, sideScreenH,
                 cardSpan, density * OPEN_CARD_MARGIN_DP);
+        openOffsetX = offset[0];
+        openOffsetY = offset[1];
         window.setOpenOffset(offset[0], offset[1]);
     }
 
@@ -608,8 +683,9 @@ final class IslandPlacement {
         if (window.isUprightWhileOpen() && !view.isExpanded() && !view.hasCards()) {
             // the last card has folded away: the pill goes back to the camera on the side
             window.setUprightWhileOpen(false);
+            stopMotionAtCamera();
             applyWindowHeight();
-        } else if (window.isUprightWhileOpen()) {
+        } else if (window.isUprightWhileOpen() && view.isExpanded()) {
             placeOpenCards(); // cards come and go, and grow: stay centred on the camera
         }
         window.invalidateTouchRegion();

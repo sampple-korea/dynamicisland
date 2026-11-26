@@ -53,6 +53,9 @@ final class Footprint {
     }
 
     /** The part of the window that should receive touches; everything else lets them through. */
+    /** Reach of the touch region of cards opened at a side camera: past every screen edge, the window clips it. */
+    private static final int OPEN_AT_SIDE_REACH = 100_000;
+
     void touchRegion(Region out) {
         out.setEmpty();
         if (scene.sleeping) return;
@@ -71,6 +74,11 @@ final class Footprint {
         }
         if (scene.mode == Mode.EXPANDED && !scene.peekOpen) {
             // an opened stack takes the touches of the whole screen: a touch beside it closes it
+            if (scene.pillAwayWhileOpen) {
+                // cards opened upright at a side camera: the window is the whole screen, wider than this view's frame
+                out.set(-OPEN_AT_SIDE_REACH, -OPEN_AT_SIDE_REACH, OPEN_AT_SIDE_REACH, OPEN_AT_SIDE_REACH);
+                return;
+            }
             out.set(0, 0, m.screenW, Math.max(view.getHeight(), m.screenW * 3));
             return;
         }
