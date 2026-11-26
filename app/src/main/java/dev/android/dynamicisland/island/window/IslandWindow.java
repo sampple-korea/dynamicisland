@@ -56,6 +56,8 @@ public final class IslandWindow {
     /** Holds the island's layers; turned a quarter when the island sits at a camera on the side (see {@link #setSideways}). */
     private final Turner turner;
     private final BlurLayer blur;
+    private final FrameLayout remoteLayer;
+    private float openDx, openDy;
     /** {@link #SIDE_NONE}, or the edge of the screen the camera is on while the island is drawn turned there. */
     private int side = SIDE_NONE;
     /** While cards are open the island at a side camera is drawn upright, so they read the right way (see below). */
@@ -95,7 +97,7 @@ public final class IslandWindow {
         view.setMaterialCaptureRefresh(()->{if(materialCapture!=null)materialCapture.refresh();});
         blur = new BlurLayer(context);
         view.setBlurSink(blur);
-        FrameLayout remoteLayer = new ActivityRemoteLayer(context,view);
+        remoteLayer = new ActivityRemoteLayer(context,view);
         remoteLayer.setClipChildren(false);
         view.setRemoteLayer(remoteLayer);
 
@@ -264,10 +266,16 @@ public final class IslandWindow {
     private void applyTurn() {
         int edge = turned() ? side : SIDE_NONE;
         turner.setSide(edge);
-        if (!isUprightWhileOpen()) turner.setOffset(0f, 0f);
-        view.setPillAwayWhileOpen(side != SIDE_NONE && uprightWhileOpen);
-        // each icon and text of the pill turns back the other way, so it reads upright on the turned island
-        view.setContentTurn(edge == SIDE_LEFT ? 90 : edge == SIDE_RIGHT ? -90 : 0);
+        if (!isUprightWhileOpen()) {
+            turner.setOffset(0f, 0f);
+            openDx = 0f;
+            openDy = 0f;
+            setCardsMotion(1f, 1f, 0f, 0f);
+        }
+        updatePillTransform();
+        // each icon and text of the pill turns back the other way, so it reads upright at the side camera (also while
+        // the cards are open upright and the pills stay there)
+        view.setContentTurn(side == SIDE_LEFT ? 90 : side == SIDE_RIGHT ? -90 : 0);
         blur.setSuspended(edge != SIDE_NONE);
         applyShape();
         if (edge != SIDE_NONE) {
@@ -287,8 +295,45 @@ public final class IslandWindow {
             dx = 0f;
             dy = 0f;
         }
+        openDx = dx;
+        openDy = dy;
         if (turner.setOffset(dx, dy)) {
             invalidateTouchRegion();
+        }
+        updatePillTransform();
+    }
+
+    /** The pills stay where the turned island has them while its cards are open upright beside the camera. */
+    private void updatePillTransform() {
+        if (!isUprightWhileOpen()) {
+            view.setPillTransform(null);
+            return;
+        }
+        Rect screen = windowBounds();
+        Matrix toTurned = new Matrix();
+        if (side == SIDE_LEFT) {
+            toTurned.setRotate(-90f);
+            toTurned.postTranslate(0f, Math.min(screen.width(), screen.height()));
+        } else {
+            toTurned.setRotate(90f);
+            toTurned.postTranslate(Math.max(screen.width(), screen.height()), 0f);
+        }
+        toTurned.postTranslate(-openDx, -openDy); // into the moved view's own coordinates
+        view.setPillTransform(toTurned);
+    }
+
+    /**
+     * The open cards only (not the pills) grow out of or shrink into a point, (px, py) in the island's own coordinates:
+     * {@code shown} 0 is gone at that point, 1 is in place.
+     */
+    public void setCardsMotion(float shown, float minScale, float px, float py) {
+        float scale = minScale + (1f - minScale) * shown;
+        for (View layer : new View[] {blur, remoteLayer}) {
+            layer.setPivotX(px);
+            layer.setPivotY(py);
+            layer.setScaleX(scale);
+            layer.setScaleY(scale);
+            layer.setAlpha(shown);
         }
     }
 

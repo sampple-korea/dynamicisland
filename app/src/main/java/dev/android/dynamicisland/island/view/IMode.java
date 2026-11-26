@@ -839,12 +839,10 @@ final class IMode {
     }
 
     void draw(Canvas canvas,long time) {
-        // cards opened upright at a side camera: the activity pills would float over them far from that camera
-        if(scene.pillAwayWhileOpen) return;
         if(scene.restingShown()) drawIdle(canvas);
         drawMovingGlows(canvas);
         drawMovingOutlines(canvas);
-        if(activities.size()>3 && scene.mode==Mode.EXPANDED && selected!=null) {
+        if(activities.size()>3 && scene.mode==Mode.EXPANDED && selected!=null && scene.pillTransform==null) {
             Card card=scene.findCard(selected);
             if(card!=null) {
                 float a=card.handoff==null ? 1 : card.handoff.expanded(time);
@@ -1028,7 +1026,7 @@ final class IMode {
         float blur=Math.max(motionBlur(card,m.dp(1000)),
                 (float)Math.min(1,1.5*Math.sqrt(card.handoff.compactBlur(time))));
         Canvas target=card.iModeCompactBlur.begin(canvas,r,blur,m.dp(ContentBlur.RADIUS_DP));
-        try { drawCompact(target,n,r,IslandView.clamp01(card.iModeRole.value()),compact); }
+        try { final Canvas into=target; view.drawUnturned(()->drawCompact(into,n,r,IslandView.clamp01(card.iModeRole.value()),compact)); }
         finally { card.iModeCompactBlur.end(canvas,target); }
     }
     static float motionBlur(Card card,float fullSpeed) {

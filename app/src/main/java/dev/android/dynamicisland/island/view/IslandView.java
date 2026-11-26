@@ -504,13 +504,65 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         return icons.turn();
     }
 
-    /** While cards are open upright for an island that rests at a side camera, the pill is not drawn among them. */
-    public void setPillAwayWhileOpen(boolean away) {
-        if (scene.pillAwayWhileOpen != away) {
-            scene.pillAwayWhileOpen = away;
-            invalidate();
+    /** Runs {@code drawing} with the pill elements upright: for compact content shown inside an upright card. */
+    void drawUnturned(Runnable drawing) {
+        int turn = icons.turn();
+        if (turn == 0 || scene.pillTransform == null) {
+            drawing.run();
+            return;
+        }
+        icons.setTurn(0);
+        try {
+            drawing.run();
+        } finally {
+            icons.setTurn(turn);
         }
     }
+
+    /**
+     * While cards are open upright beside a side camera, the pills are drawn through {@code toTurned} (from this view's
+     * own coordinates to where the turned island has them), so they stay at the camera; null draws them as usual.
+     */
+    public void setPillTransform(android.graphics.Matrix toTurned) {
+        if (toTurned == null) {
+            if (scene.pillTransform == null) return;
+            scene.pillTransform = null;
+        } else {
+            if (scene.pillTransform != null && scene.pillTransform.equals(toTurned)) return;
+            scene.pillTransform = new android.graphics.Matrix(toTurned);
+            scene.pillTransform.invert(scene.pillInverse);
+        }
+        invalidate();
+        scheduleFrame();
+    }
+
+    /** True when a point (view coordinates) is on a pill drawn at the side camera and not on an open card. */
+    private boolean onMovedPill(float x, float y) {
+        if (scene.pillTransform == null) return false;
+        RectF card = new RectF();
+        for (Card c : scene.cards) {
+            if (c.leaving) continue;
+            shapes.card(c, card);
+            if (card.contains(x, y)) return false;
+        }
+        float[] p = {x, y};
+        scene.pillInverse.mapPoints(p);
+        float pad = dp(6);
+        if (scene.iMode != null) return scene.iMode.hit(p[0], p[1], pad) != null;
+        RectF pill = new RectF();
+        shapes.paintedMain(pill);
+        pill.inset(-pad, -pad);
+        if (pill.contains(p[0], p[1])) return true;
+        if (springs.split.value() > 0.6f) {
+            shapes.bubble(pill, card);
+            card.inset(-pad, -pad);
+            return card.contains(p[0], p[1]);
+        }
+        return false;
+    }
+
+    /** A gesture that began on a pill at the side camera is followed in the pill's own coordinates. */
+    private boolean pillGesture;
 
     float turnedRoom() {
         return icons.turnedRoom();
@@ -1224,10 +1276,17 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         }
         shapes.main(pillRect);
         int save = canvas.save();
+        android.graphics.Matrix moved = scene.pillTransform;
         if (alpha < 0.995f) {
-            canvas.saveLayerAlpha(0.0f, 0.0f, metrics.screenW, getHeight(), Math.round(255.0f * alpha));
+            if (moved != null) {
+                // the pills are drawn at the side camera, outside this view's own frame
+                canvas.saveLayerAlpha(-getWidth(), -getHeight(), getWidth() * 3f, getHeight() * 3f, Math.round(255.0f * alpha));
+            } else {
+                canvas.saveLayerAlpha(0.0f, 0.0f, metrics.screenW, getHeight(), Math.round(255.0f * alpha));
+            }
         }
         if(scene.iMode!=null) {
+            if (moved != null) canvas.concat(moved);
             scene.iMode.draw(canvas,now());
             canvas.restoreToCount(save);
             return;
@@ -1235,6 +1294,7 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         stackPainter.drawGoo(canvas);
         float scale = springs.press.value() * (springs.pulse.value() + 1.0f);
         int pillSave = canvas.save();
+        if (moved != null) canvas.concat(moved);
         canvas.scale(scale, scale, pillRect.centerX(), metrics.cy);
         pillPainter.draw(canvas, pillRect, now());
         canvas.restoreToCount(pillSave);
@@ -1372,6 +1432,17 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
             if (scene.sleeping) return false;
             if(e.getActionMasked()==MotionEvent.ACTION_DOWN&&materialCaptureRefresh!=null)materialCaptureRefresh.run();
             touchFrame();
+            if (e.getActionMasked() == MotionEvent.ACTION_DOWN) pillGesture = onMovedPill(e.getX(), e.getY());
+            if (pillGesture && scene.pillTransform != null) {
+                // the pill is drawn at the side camera: the touch goes to it as it would in portrait
+                MotionEvent mapped = MotionEvent.obtain(e);
+                try {
+                    mapped.transform(scene.pillInverse);
+                    return touch.handle(mapped);
+                } finally {
+                    mapped.recycle();
+                }
+            }
             return touch.handle(e);
         } catch (Throwable t) {
             XLog.once("IslandView.onTouchEvent", t);

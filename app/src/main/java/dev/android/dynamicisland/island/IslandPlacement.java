@@ -469,7 +469,7 @@ final class IslandPlacement {
         }
     }
 
-    /** The whole window grows out of (or shrinks into) the side camera while it fades in (or out). */
+    /** The open cards grow out of (or shrink into) the side camera while they fade in (or out); the pills stay. */
     private void moveAtCamera(boolean growing) {
         stopMotionAtCamera();
         // the pivot in the island's own coordinates: the window maps it through its offset
@@ -481,13 +481,9 @@ final class IslandPlacement {
                 : new android.view.animation.AccelerateInterpolator(1.4f));
         motion.addUpdateListener(animation -> {
             float t = (float) animation.getAnimatedValue();
-            float shown = growing ? t : 1f - t;
-            if (window != null) window.setSurfaceFade(shown, AT_CAMERA_SCALE + (1f - AT_CAMERA_SCALE) * shown, px, py);
+            if (window != null) window.setCardsMotion(growing ? t : 1f - t, AT_CAMERA_SCALE, px, py);
         });
-        if (window != null) {
-            float start = growing ? 0f : 1f;
-            window.setSurfaceFade(start, AT_CAMERA_SCALE + (1f - AT_CAMERA_SCALE) * start, px, py);
-        }
+        if (window != null) window.setCardsMotion(growing ? 0f : 1f, AT_CAMERA_SCALE, px, py);
         if (!growing) {
             motion.addListener(new android.animation.AnimatorListenerAdapter() {
                 private boolean cancelled;
@@ -523,7 +519,7 @@ final class IslandPlacement {
             openMotion.cancel();
             openMotion = null;
         }
-        if (window != null) window.setSurfaceFade(1f, 1f, 0f, 0f);
+        if (window != null) window.setCardsMotion(1f, 1f, 0f, 0f);
     }
 
     /**

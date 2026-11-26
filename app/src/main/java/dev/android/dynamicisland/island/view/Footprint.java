@@ -74,7 +74,7 @@ final class Footprint {
         }
         if (scene.mode == Mode.EXPANDED && !scene.peekOpen) {
             // an opened stack takes the touches of the whole screen: a touch beside it closes it
-            if (scene.pillAwayWhileOpen) {
+            if (scene.pillTransform != null) {
                 // cards opened upright at a side camera: the window is the whole screen, wider than this view's frame
                 out.set(-OPEN_AT_SIDE_REACH, -OPEN_AT_SIDE_REACH, OPEN_AT_SIDE_REACH, OPEN_AT_SIDE_REACH);
                 return;
@@ -84,11 +84,12 @@ final class Footprint {
         }
         shapes.paintedMain(pill);
         if (scene.mode == Mode.COMPACT || pill.width() > m.dp(40.0f)) {
-            add(out, pill, pad);
+            add(out, moved(pill), pad);
         }
         if (scene.springs.split.value() > 0.6f && scene.mode == Mode.COMPACT) {
+            shapes.paintedMain(pill); // unmoved: the bubble is worked out from the pill where the island has it
             shapes.bubble(pill, other);
-            add(out, other, pad);
+            add(out, moved(other), pad);
         }
         for (int i = 0, n = scene.cards.size(); i < n; i++) {
             Card c = scene.cards.get(i);
@@ -97,6 +98,12 @@ final class Footprint {
                 add(out, other, pad);
             }
         }
+    }
+
+    /** Where a pill is drawn: at the side camera while cards are open beside it (see {@link Scene#pillTransform}). */
+    private RectF moved(RectF rect) {
+        if (scene.pillTransform != null) scene.pillTransform.mapRect(rect);
+        return rect;
     }
 
     private static void add(Region region, RectF rect, float pad) {

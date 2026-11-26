@@ -70,8 +70,14 @@ final class Scene {
     }
 
     /** Nothing to show, yet the user asked for an empty pill around the camera (not while they hid the island by hand). */
-    /** The island rests at a side camera and its cards are drawn upright elsewhere: no pill while they are open. */
-    boolean pillAwayWhileOpen;
+    /**
+     * The island rests at a side camera and its cards are open upright beside it: the pills (and iMotion's activity
+     * pills) are drawn through this matrix, from the island's own coordinates to where the turned island has them, so
+     * they stay at the camera as they are in portrait. Null everywhere else.
+     */
+    android.graphics.Matrix pillTransform;
+    /** Its inverse, for touches on those pills. */
+    final android.graphics.Matrix pillInverse = new android.graphics.Matrix();
 
     boolean restingShown() {
         return mode == Mode.HIDDEN && ModuleSettings.alwaysVisible() && !(iMode != null && iMode.hiddenByGesture());

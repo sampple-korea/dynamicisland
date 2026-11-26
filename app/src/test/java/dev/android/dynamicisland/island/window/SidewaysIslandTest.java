@@ -203,7 +203,8 @@ public class SidewaysIslandTest {
         WindowManager.LayoutParams params = ReflectionHelpers.getField(window, "params");
         assertEquals("across the top while cards are open", ViewGroup.LayoutParams.MATCH_PARENT, params.width);
         assertEquals(0f, turner(window).getRotation(), 0f);
-        assertEquals(0, (int) ReflectionHelpers.callInstanceMethod(window.view, "contentTurn"));
+        assertEquals("the pills stay at the camera, upright there", 90,
+                (int) ReflectionHelpers.callInstanceMethod(window.view, "contentTurn"));
         window.setUprightWhileOpen(false);
         assertTrue(window.turned());
         assertEquals(-90f, turner(window).getRotation(), 0f);
@@ -335,7 +336,7 @@ public class SidewaysIslandTest {
             root(window).draw(canvas);
             RenderCapture.write(shot, new File("build/renders/sideways-open-card.png"));
             int left = Integer.MAX_VALUE, right = -1, top = Integer.MAX_VALUE, bottom = -1;
-            for (int y = 0; y < SCREEN_H; y++) for (int x = 0; x < SCREEN_W; x++) {
+            for (int y = 0; y < SCREEN_H; y++) for (int x = 46; x < SCREEN_W; x++) { // the card, right of the camera dot
                 int c = shot.getPixel(x, y);
                 if (Color.red(c) < 60 && Color.green(c) < 60 && Color.blue(c) < 60) {
                     left = Math.min(left, x); right = Math.max(right, x); top = Math.min(top, y); bottom = Math.max(bottom, y);
@@ -344,9 +345,65 @@ public class SidewaysIslandTest {
             assertTrue("an upright card: wider than tall (" + (right - left) + "x" + (bottom - top) + ")", right - left > 2 * (bottom - top));
             assertEquals("centred on the camera's height", 175, (top + bottom) / 2f, 12);
             assertTrue("right beside the camera, not under it: " + left, left >= 35 + 11 && left < 70);
+            // the pill stays where the turned island has it: at the camera on the left edge
+            int pill = 0;
+            for (int y = 160; y < 190; y++) for (int x = 15; x < 46; x++) { // around the camera (35, 175)
+                int c = shot.getPixel(x, y);
+                if (Color.red(c) < 40 && Color.green(c) < 40 && Color.blue(c) < 40) pill++;
+            }
+            assertTrue("the pill at the camera: " + pill, pill > 150);
             assertFalse("no turned window while it is open", window.turned());
         } finally {
             GlyphIcon.setPlaybackFrozen(false);
+        }
+    }
+
+    @Test public void aRenderOfIMotionWithTwoActivitiesOpenAtASideCamera() throws Exception {
+        GlyphIcon.setPlaybackFrozen(true);
+        android.content.SharedPreferences prefs = ModuleSettings.openStore(RuntimeEnvironment.getApplication());
+        prefs.edit().putBoolean(ModuleSettings.KEY_I_MODE, true).commit();
+        try {
+            IslandWindow window = window();
+            window.view.setGeometry(SCREEN_H, SCREEN_H - 175, 35, 22, false);
+            window.setSideways(IslandWindow.SIDE_LEFT);
+            IslandItem timer = percentItem("timer");
+            timer.kind = IslandItem.Kind.LIVE;
+            timer.title = "0:20.05";
+            timer.subtitle = "Stopwatch";
+            IslandItem recording = percentItem("recording");
+            recording.icon = GlyphIcon.of(GlyphIcon.Kind.MIC);
+            recording.trailingText = "0:06";
+            window.view.setItems(List.of(timer, recording));
+            for (int i = 0; i < 30; i++) {
+                layout(window, EXTENT, SCREEN_H);
+                Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(16));
+                window.view.doFrame(android.os.SystemClock.uptimeMillis() * 1_000_000L);
+            }
+            ReflectionHelpers.callInstanceMethod(ReflectionHelpers.getField(window.view, "director"), "expand",
+                    ReflectionHelpers.ClassParameter.from(List.class, List.of(timer)),
+                    ReflectionHelpers.ClassParameter.from(long.class, 0L));
+            window.setUprightWhileOpen(true);
+            float[] span = new float[4];
+            for (int i = 0; i < 60; i++) {
+                layout(window, SCREEN_W, SCREEN_H);
+                Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(16));
+                window.view.doFrame(android.os.SystemClock.uptimeMillis() * 1_000_000L);
+                if (window.view.openCardsSpan(span)) {
+                    float[] offset = IslandPlacementProbe.openCardsOffset(IslandWindow.SIDE_LEFT, 35, 175, 11, SCREEN_W, SCREEN_H,
+                            span, 8);
+                    window.setOpenOffset(offset[0], offset[1]);
+                }
+            }
+            layout(window, SCREEN_W, SCREEN_H);
+            Bitmap shot = Bitmap.createBitmap(SCREEN_W, SCREEN_H, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(shot);
+            canvas.drawColor(0xFF4A78C8);
+            root(window).draw(canvas);
+            RenderCapture.write(shot, new File("build/renders/sideways-imotion-open.png"));
+        } finally {
+            GlyphIcon.setPlaybackFrozen(false);
+            prefs.edit().remove(ModuleSettings.KEY_I_MODE).commit();
+            ModuleSettings.configurePreview(prefs);
         }
     }
 }
