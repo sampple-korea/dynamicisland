@@ -578,6 +578,11 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         return true;
     }
 
+    /** How thick the pill and its bubbles are across: at a side camera they reach this far in from the edge. */
+    public float pillThickness() {
+        return Math.max(metrics.pillH, 2f * metrics.bubbleR);
+    }
+
     /** True with iMotion, whose cards morph out of the pills themselves. */
     public boolean usesIMotion() {
         return scene.iMode != null;

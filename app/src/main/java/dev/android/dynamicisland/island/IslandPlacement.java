@@ -541,7 +541,9 @@ final class IslandPlacement {
         if (!window.isUprightWhileOpen() || !view.openCardsSpan(cardSpan)) {
             return;
         }
-        float[] offset = openCardsOffset(window.sideways(), sideHoleX, sideHoleY, sideHoleR, sideScreenW, sideScreenH,
+        // the pills stay drawn at the camera while cards are open: the cards open past them, not over them
+        float clear = Math.max(sideHoleR, view.pillThickness() / 2f);
+        float[] offset = openCardsOffset(window.sideways(), sideHoleX, sideHoleY, clear, sideScreenW, sideScreenH,
                 cardSpan, density * OPEN_CARD_MARGIN_DP);
         openOffsetX = offset[0];
         openOffsetY = offset[1];
@@ -550,7 +552,7 @@ final class IslandPlacement {
 
     /**
      * How far the upright island moves so its cards ({@code span}: top, bottom, left, right) open right beside the camera
-     * ({@code holeX}, {@code holeY}, radius {@code holeR}) on its side, centred on its height, kept on the screen by
+     * ({@code holeX}, {@code holeY}; {@code holeR} is how far the pills there reach from its centre) on its side, centred on its height, kept on the screen by
      * {@code margin}: the content never lies under the camera.
      */
     static float[] openCardsOffset(int edge, float holeX, float holeY, float holeR, int screenW, int screenH, float[] span,
