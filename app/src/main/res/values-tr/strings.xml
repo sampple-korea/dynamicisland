@@ -547,7 +547,7 @@
     <string name="show_in_fullscreen_desc">Kamera gibi durum çubuğunu gizleyen uygulamalarda devam eden etkinlikleri gösterir. Kilit ekranında, Always On Display sırasında veya etkin içerik olmadığında ada gizlenir.</string>
     <string name="show_in_landscape">Yatay modda ve oyunlarda göster</string>
     <string name="show_in_landscape_desc">Telefon yan çevrildiğinde ve oyun gibi tam ekran uygulamalarda adayı görünür tutar. Kilit ekranında ve Always On Display\'de yine gizlenir. Yatay düzen dikey kadar özenli değildir.</string>
-    <string name="setting_landscape_at_camera_desc">Yatay modda ada, dikey moddaki gibi ekranın yanındaki kamerada kalır. Simgeler ve kısa değerler düz okunur; açılan kartlar üstte düz gösterilir. Yalnızca kamerası ekran deliğinde olan telefonlarda çalışır.</string>
+    <string name="setting_landscape_at_camera_desc">Yatay modda ada, dikey moddaki gibi ekranın yanındaki kamerada kalır. Simgeler ve kısa değerler düz okunur; açılan kartlar kameranın hemen yanında düz gösterilir. Yalnızca kamerası ekran deliğinde olan telefonlarda çalışır.</string>
     <string name="landscape_hidden">Gizle</string>
     <string name="landscape_top">Üstte göster</string>
     <string name="landscape_camera">Yandaki kamerada göster</string>

@@ -264,6 +264,7 @@ public final class IslandWindow {
     private void applyTurn() {
         int edge = turned() ? side : SIDE_NONE;
         turner.setSide(edge);
+        if (!isUprightWhileOpen()) turner.setOffset(0f, 0f);
         view.setPillAwayWhileOpen(side != SIDE_NONE && uprightWhileOpen);
         // each icon and text of the pill turns back the other way, so it reads upright on the turned island
         view.setContentTurn(edge == SIDE_LEFT ? 90 : edge == SIDE_RIGHT ? -90 : 0);
@@ -277,9 +278,28 @@ public final class IslandWindow {
         invalidateTouchRegion();
     }
 
+    /**
+     * Where the upright cards of an island at a side camera are drawn: the island's own coordinates moved by
+     * ({@code dx}, {@code dy}) on the window, so the cards open at that camera (see the placement). 0, 0 elsewhere.
+     */
+    public void setOpenOffset(float dx, float dy) {
+        if (!isUprightWhileOpen()) {
+            dx = 0f;
+            dy = 0f;
+        }
+        if (turner.setOffset(dx, dy)) {
+            invalidateTouchRegion();
+        }
+    }
+
     private void applyShape() {
         int extent = Math.max(1, requestedHeight);
-        if (!turned()) {
+        if (isUprightWhileOpen()) {
+            // the cards may open anywhere along the camera's edge: the window covers the screen, touches only the cards
+            params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+            params.height = ViewGroup.LayoutParams.MATCH_PARENT;
+            params.gravity = Gravity.TOP | Gravity.LEFT;
+        } else if (!turned()) {
             params.width = ViewGroup.LayoutParams.MATCH_PARENT;
             params.height = extent;
             params.gravity = Gravity.TOP | Gravity.LEFT;
@@ -307,7 +327,7 @@ public final class IslandWindow {
     /** Call when the island's shape changed; re-reads the touchable region on the next frame. */
     public void invalidateTouchRegion() {
         view.getTouchRegion(latestRegion);
-        if (turned()) toWindow(latestRegion);
+        if (side != SIDE_NONE) toWindow(latestRegion);
         if (!latestRegion.equals(touchRegion)) {
             touchRegion.set(latestRegion);
             root.invalidate();
@@ -399,7 +419,7 @@ public final class IslandWindow {
     }
 
     public boolean setSurfaceFade(float alpha, float scale, float px, float py) {
-        if (turned()) {
+        if (side != SIDE_NONE) {
             // the pivot comes in the island's own (upright) coordinates
             point[0] = px;
             point[1] = py;
@@ -510,6 +530,9 @@ public final class IslandWindow {
      */
     static final class Turner extends FrameLayout {
         private int side = SIDE_NONE;
+        /** Extra shift of the upright island (cards opened at a side camera). */
+        private float offsetX;
+        private float offsetY;
 
         Turner(Context context) {
             super(context);
@@ -539,10 +562,18 @@ public final class IslandWindow {
             place();
         }
 
+        boolean setOffset(float dx, float dy) {
+            if (dx == offsetX && dy == offsetY) return false;
+            offsetX = dx;
+            offsetY = dy;
+            place();
+            return true;
+        }
+
         /** After the turn the upright box lies above (left side) or left of (right side) the window: move it back. */
         private void place() {
-            setTranslationX(side == SIDE_RIGHT ? getHeight() : 0f);
-            setTranslationY(side == SIDE_LEFT ? getWidth() : 0f);
+            setTranslationX(side == SIDE_RIGHT ? getHeight() : side == SIDE_NONE ? offsetX : 0f);
+            setTranslationY(side == SIDE_LEFT ? getWidth() : side == SIDE_NONE ? offsetY : 0f);
         }
     }
 

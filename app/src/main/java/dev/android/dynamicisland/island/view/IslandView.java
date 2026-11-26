@@ -516,6 +516,28 @@ public final class IslandView extends View implements Choreographer.FrameCallbac
         return icons.turnedRoom();
     }
 
+    /**
+     * Top, bottom, left and right (view coordinates) of the open cards where they are heading, into
+     * {@code out[0..3]}; false without an open card. Used to open them beside a camera on the side, centred on it.
+     */
+    public boolean openCardsSpan(float[] out) {
+        float top = Float.MAX_VALUE;
+        float bottom = -Float.MAX_VALUE;
+        float width = 0f;
+        for (Card card : scene.cards) {
+            if (card.leaving) continue;
+            top = Math.min(top, card.targetCy - card.body.h / 2f);
+            bottom = Math.max(bottom, card.targetCy + card.body.h / 2f);
+            width = Math.max(width, card.targetW);
+        }
+        if (bottom < top) return false;
+        out[0] = top;
+        out[1] = bottom;
+        out[2] = metrics.cx - width / 2f;
+        out[3] = metrics.cx + width / 2f;
+        return true;
+    }
+
     /** True while any card is on screen, also one that is still folding away. */
     public boolean hasCards() {
         return !scene.cards.isEmpty();

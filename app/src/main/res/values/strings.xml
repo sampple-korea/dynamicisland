@@ -570,7 +570,7 @@
     <string name="show_in_fullscreen_desc">Keep active cards visible when apps such as Camera hide the status bar. The island still hides on the lock screen, Always On Display, or when there is no active content.</string>
     <string name="show_in_landscape">Show in landscape and in games</string>
     <string name="show_in_landscape_desc">Keep the island visible when the phone is turned sideways and in full-screen apps such as games. It still hides on the lock screen and Always On Display. Landscape layouts are less polished than portrait.</string>
-    <string name="setting_landscape_at_camera_desc">In landscape the island stays at the camera on the side of the screen, as it sits in portrait. Its icons and short values read upright; open cards show upright at the top. Only on phones with the camera in a hole.</string>
+    <string name="setting_landscape_at_camera_desc">In landscape the island stays at the camera on the side of the screen, as it sits in portrait. Its icons and short values read upright, and open cards show upright right beside the camera. Only on phones with the camera in a hole.</string>
     <string name="landscape_hidden">Hide</string>
     <string name="landscape_top">Show at the top</string>
     <string name="landscape_camera">Show at the camera on the side</string>

@@ -588,7 +588,7 @@
     <string name="setting_stock_charging_animation_desc">Exibir a animação colorida que expande a bateria da barra de status ao iniciar o carregamento. Desativado por padrão.</string>
     <string name="setting_wide_charging">Pop-up de carregamento largo</string>
     <string name="setting_wide_charging_desc">Ao conectar, exibir o pop-up de carregamento como uma pílula longa cruzando a barra de status. Desative para ter um pop-up de tamanho comum. Aplica-se apenas com o efeito de carregamento da Samsung desativado.</string>
-    <string name="setting_landscape_at_camera_desc">No modo paisagem a ilha fica na câmera, na lateral da tela, como no modo retrato. Ícones e valores curtos ficam na posição certa; os cartões abertos aparecem na posição certa no topo. Só em telefones com a câmera em um furo na tela.</string>
+    <string name="setting_landscape_at_camera_desc">No modo paisagem a ilha fica na câmera, na lateral da tela, como no modo retrato. Ícones e valores curtos ficam na posição certa, e os cartões abertos aparecem na posição certa ao lado da câmera. Só em telefones com a câmera em um furo na tela.</string>
     <string name="landscape_hidden">Ocultar</string>
     <string name="landscape_top">Mostrar no topo</string>
     <string name="landscape_camera">Mostrar na câmera lateral</string>

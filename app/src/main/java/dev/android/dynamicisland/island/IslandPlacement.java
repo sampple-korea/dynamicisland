@@ -86,6 +86,12 @@ final class IslandPlacement {
     private float centerYLandscape = -1.0f;
     /** The turned island's centre, in from the edge with the camera (its own upright y). */
     private float sidewaysCentreY;
+    /** The side camera on the screen and the screen's size, for opening the cards there. */
+    private float sideHoleX, sideHoleY, sideHoleR;
+    private int sideScreenW, sideScreenH;
+    private final float[] cardSpan = new float[4];
+    /** Room kept between open cards and the screen's top or bottom edge. */
+    private static final float OPEN_CARD_MARGIN_DP = 8.0f;
     /** Packages whose chips the launcher animates into the island, from the last refresh. */
     private Set<String> exitPackages = new LinkedHashSet<>();
     private final RectF scratch = new RectF();
@@ -401,6 +407,11 @@ final class IslandPlacement {
             return false;
         }
         float[] centre = sidewaysCentre(edge, hole, width, height);
+        sideHoleX = hole.exactCenterX();
+        sideHoleY = hole.exactCenterY();
+        sideHoleR = Math.min(hole.width(), hole.height()) * CUTOUT_VISIBLE_RATIO / 2f;
+        sideScreenW = width;
+        sideScreenH = height;
         float holeD;
         switch (ModuleSettings.holeMode()) {
             case ModuleSettings.HOLE_NONE:
@@ -437,8 +448,38 @@ final class IslandPlacement {
     void onExpandedChanged(boolean expanded) {
         if (window != null && expanded && window.sideways() != IslandWindow.SIDE_NONE) {
             window.setUprightWhileOpen(true);
+            placeOpenCards();
             applyWindowHeight();
         }
+    }
+
+    /**
+     * Like the island on a phone whose camera is on the side (iPhone Duo): the cards open upright at that camera,
+     * around it, centred on it along the edge and kept on the screen.
+     */
+    private void placeOpenCards() {
+        if (!window.isUprightWhileOpen() || !view.openCardsSpan(cardSpan)) {
+            return;
+        }
+        float[] offset = openCardsOffset(window.sideways(), sideHoleX, sideHoleY, sideHoleR, sideScreenW, sideScreenH,
+                cardSpan, density * OPEN_CARD_MARGIN_DP);
+        window.setOpenOffset(offset[0], offset[1]);
+    }
+
+    /**
+     * How far the upright island moves so its cards ({@code span}: top, bottom, left, right) open right beside the camera
+     * ({@code holeX}, {@code holeY}, radius {@code holeR}) on its side, centred on its height, kept on the screen by
+     * {@code margin}: the content never lies under the camera.
+     */
+    static float[] openCardsOffset(int edge, float holeX, float holeY, float holeR, int screenW, int screenH, float[] span,
+                                   float margin) {
+        float top = span[0], bottom = span[1], left = span[2], right = span[3];
+        float dx = edge == IslandWindow.SIDE_RIGHT ? (holeX - holeR - margin) - right : (holeX + holeR + margin) - left;
+        dx = Math.max(margin - left, Math.min(dx, screenW - margin - right));
+        float dy = holeY - (top + bottom) / 2f;
+        dy = Math.min(dy, screenH - margin - bottom); // not past the bottom
+        dy = Math.max(dy, margin - top); // and the top wins for a stack taller than the screen
+        return new float[] {dx, dy};
     }
 
     /** Where the island's centre is horizontally: the middle, a quarter in from either side, plus the user's shift. */
@@ -568,6 +609,8 @@ final class IslandPlacement {
             // the last card has folded away: the pill goes back to the camera on the side
             window.setUprightWhileOpen(false);
             applyWindowHeight();
+        } else if (window.isUprightWhileOpen()) {
+            placeOpenCards(); // cards come and go, and grow: stay centred on the camera
         }
         window.invalidateTouchRegion();
         boolean hidden = view.isFullyHidden();

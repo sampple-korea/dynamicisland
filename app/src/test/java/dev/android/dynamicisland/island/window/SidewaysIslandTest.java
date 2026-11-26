@@ -116,6 +116,20 @@ public class SidewaysIslandTest {
         assertFalse("where the pill is upright is not where it is now", region.contains(140, 25));
     }
 
+    @Test public void openCardsOpenBesideTheCameraCentredOnItAndStayOnTheScreen() {
+        float[] span = {60, 140, 12, 348}; // the cards in the island's own coordinates
+        float[] left = IslandPlacementProbe.openCardsOffset(IslandWindow.SIDE_LEFT, 35, 175, 11, SCREEN_W, SCREEN_H, span, 8);
+        assertEquals("the cards' left edge just past the camera", 35 + 11 + 8 - 12, left[0], 0.01);
+        assertEquals("the cards' middle (100) moves to the camera (175)", 75, left[1], 0.01);
+        float[] right = IslandPlacementProbe.openCardsOffset(IslandWindow.SIDE_RIGHT, 765, 175, 11, SCREEN_W, SCREEN_H, span, 8);
+        assertEquals("the right edge just before a camera on the right", 765 - 11 - 8 - 348, right[0], 0.01);
+        float[] low = IslandPlacementProbe.openCardsOffset(IslandWindow.SIDE_LEFT, 35, 340, 11, SCREEN_W, SCREEN_H, span, 8);
+        assertEquals("kept above the bottom", SCREEN_H - 8 - 140, low[1], 0.01);
+        float[] tall = IslandPlacementProbe.openCardsOffset(IslandWindow.SIDE_LEFT, 35, 175, 11, SCREEN_W, SCREEN_H,
+                new float[] {60, 500, 12, 348}, 8);
+        assertEquals("a stack taller than the screen starts at the top", 8 - 60, tall[1], 0.01);
+    }
+
     @Test public void theCentreComesFromTheHoleOnTheEdge() {
         float[] left = IslandPlacementProbe.sidewaysCentre(IslandWindow.SIDE_LEFT, new Rect(20, 160, 50, 190), SCREEN_W, SCREEN_H);
         assertEquals("along the edge, from the bottom up", SCREEN_H - 175, left[0], 0.01);
@@ -302,10 +316,16 @@ public class SidewaysIslandTest {
             window.view.setItems(List.of(item));
             window.view.peek(item, 5000);
             window.setUprightWhileOpen(true); // what the placement does when the island reports it opened
+            float[] span = new float[4];
             for (int i = 0; i < 60; i++) {
                 layout(window, SCREEN_W, SCREEN_H);
                 Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(16));
                 window.view.doFrame(android.os.SystemClock.uptimeMillis() * 1_000_000L);
+                if (window.view.openCardsSpan(span)) { // what the placement does every frame
+                    float[] offset = IslandPlacementProbe.openCardsOffset(IslandWindow.SIDE_LEFT, 35, 175, 11, SCREEN_W, SCREEN_H,
+                            span, 8);
+                    window.setOpenOffset(offset[0], offset[1]);
+                }
             }
             layout(window, SCREEN_W, SCREEN_H);
             assertTrue(window.view.isExpanded());
@@ -322,6 +342,8 @@ public class SidewaysIslandTest {
                 }
             }
             assertTrue("an upright card: wider than tall (" + (right - left) + "x" + (bottom - top) + ")", right - left > 2 * (bottom - top));
+            assertEquals("centred on the camera's height", 175, (top + bottom) / 2f, 12);
+            assertTrue("right beside the camera, not under it: " + left, left >= 35 + 11 && left < 70);
             assertFalse("no turned window while it is open", window.turned());
         } finally {
             GlyphIcon.setPlaybackFrozen(false);

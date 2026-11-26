@@ -561,7 +561,7 @@
     <string name="show_in_fullscreen_desc">カメラなどステータスバーを隠すアプリでも進行中のアクティビティを表示します。ロック画面、常時表示ディスプレイ、表示する内容がないときは非表示になります。</string>
     <string name="show_in_landscape">横向き・ゲーム中も表示</string>
     <string name="show_in_landscape_desc">端末を横向きにしたときや、ゲームなどの全画面アプリでもアイランドを表示し続けます。ロック画面と Always On Display では非表示のままです。横向きのレイアウトは縦向きほど作り込まれていません。</string>
-    <string name="setting_landscape_at_camera_desc">横向きでも、アイランドは縦向きと同じように画面横のカメラの位置に留まります。アイコンと短い値は正しい向きで表示され、開いたカードは上部に正しい向きで表示されます。カメラが画面の穴にある端末でのみ動作します。</string>
+    <string name="setting_landscape_at_camera_desc">横向きでも、アイランドは縦向きと同じように画面横のカメラの位置に留まります。アイコンと短い値は正しい向きで表示され、開いたカードはカメラのすぐ横に正しい向きで表示されます。カメラが画面の穴にある端末でのみ動作します。</string>
     <string name="landscape_hidden">非表示</string>
     <string name="landscape_top">上部に表示</string>
     <string name="landscape_camera">横のカメラの位置に表示</string>
